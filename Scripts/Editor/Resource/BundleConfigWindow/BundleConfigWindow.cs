@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Engine.Scripts.Runtime.Resource;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,7 +15,12 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
         private static BundleConfig _config;
         private static List<BundleConfigData> _list;
 
-        [MenuItem("Window/UI Toolkit/BundleConfigWindow")]
+        private static Dictionary<string,  EventCallback<ChangeEvent<string>>> _eventStringDic = new ();
+        private static Dictionary<string, EventCallback<ClickEvent>> _eventClickDic = new ();
+        private static Dictionary<string, EventCallback<ChangeEvent<Enum>>> _eventEnumDic = new ();
+        private static Dictionary<string, EventCallback<ChangeEvent<bool>>> _eventBoolDic = new ();
+
+        [MenuItem("Bundle/Bundle Config/Bundle Config Window")]
         public static void ShowExample()
         {
             // 加载配置
@@ -52,6 +56,29 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             if (_config == null)
                 return;
             
+            // 主按钮事件注册
+            MainBtnEventReg(labelFromUXML);
+            
+            var listView = labelFromUXML.Q<MultiColumnListView>();
+
+            listView.itemsSource = _list;
+
+            // 创建列处理
+            MakeCell(listView);
+
+            // 取消列绑定事件
+            UnbindColumnsEvent(listView);
+                
+            // 绑定列事件
+            BindColumnsEvent(listView);
+        }
+
+        /// <summary>
+        /// 主按钮事件注册
+        /// </summary>
+        /// <param name="labelFromUXML"></param>
+        private void MainBtnEventReg(VisualElement labelFromUXML)
+        {
             var btnAdd = labelFromUXML.Q<Button>("btn-add");
             var btnSave = labelFromUXML.Q<Button>("btn-save");
             var btnRemove = labelFromUXML.Q<Button>("btn-remove");
@@ -96,9 +123,14 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                 
                 listView.RefreshItems();
             });
+        }
 
-            listView.itemsSource = _list;
-
+        /// <summary>
+        /// 创建列处理
+        /// </summary>
+        /// <param name="listView"></param>
+        private void MakeCell(MultiColumnListView listView)
+        {
             listView.columns["path"].makeCell = () =>
             {
                 VisualElement ve = new VisualElement();
@@ -117,7 +149,82 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             listView.columns["dirType"].makeCell = () => new EnumField(EABPackDir.File);
             listView.columns["compressType"].makeCell = () => new EnumField(EABCompress.LZ4);
             listView.columns["md5"].makeCell = () => new Toggle();
+        }
+        
+        /// <summary>
+        /// 取消列绑定事件
+        /// </summary>
+        /// <param name="listView"></param>
+        private void UnbindColumnsEvent(MultiColumnListView listView)
+        {
+            listView.columns["path"].unbindCell = (element, i) =>
+            {
+                var textField = element.Q<TextField>();
+                var selector = element.Q<Button>();
+                
+                var key = $"path_textField_{i}";
+                if (_eventStringDic.TryGetValue(key, out var handler1))
+                {
+                    textField.UnregisterCallback(handler1);
+                    
+                    _eventStringDic.Remove(key);
+                }
+                
+                key = $"path_selector_{i}";
+                if (_eventClickDic.TryGetValue(key, out var handler2))
+                {
+                    selector.UnregisterCallback(handler2);
+                    
+                    _eventClickDic.Remove(key);
+                }
+            };
+            listView.columns["dirType"].unbindCell = (element, i) =>
+            {
+                var ele = (EnumField) element;
 
+                var key = $"dirType_{i}";
+                
+                if (_eventEnumDic.TryGetValue(key, out var handler))
+                {
+                    ele.UnregisterCallback(handler);
+                    
+                    _eventEnumDic.Remove(key);
+                }
+            };
+            listView.columns["compressType"].unbindCell = (element, i) =>
+            {
+                var ele = (EnumField) element;
+
+                var key = $"compressType_{i}";
+                
+                if (_eventEnumDic.TryGetValue(key, out var handler))
+                {
+                    ele.UnregisterCallback(handler);
+                    
+                    _eventEnumDic.Remove(key);
+                }
+            };
+            listView.columns["md5"].unbindCell = (element, i) =>
+            {
+                var ele = (Toggle) element;
+
+                var key = $"md5_{i}";
+                
+                if (_eventBoolDic.TryGetValue(key, out var handler))
+                {
+                    ele.UnregisterCallback(handler);
+                    
+                    _eventBoolDic.Remove(key);
+                }
+            };
+        }
+
+        /// <summary>
+        /// 列表绑定事件
+        /// </summary>
+        /// <param name="listView"></param>
+        private void BindColumnsEvent(MultiColumnListView listView)
+        {
             listView.columns["path"].bindCell = (element, i) =>
             {
                 var textField = element.Q<TextField>();
@@ -127,17 +234,17 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                 {
                     _list[i].path = evt.newValue;
                 }
-                
-                textField.UnregisterCallback<ChangeEvent<string>>(OnPathChanged);
-                textField.RegisterCallback<ChangeEvent<string>>(OnPathChanged);
 
+                _eventStringDic.Add($"path_textField_{i}", OnPathChanged);
+                textField.RegisterCallback<ChangeEvent<string>>(OnPathChanged);
+        
                 void OnSelectPath(ClickEvent evt)
                 {
                     var folder = Path.Combine(Application.dataPath, "BundleAssets").Replace("/", "\\");
                     string path = EditorUtility.OpenFolderPanel("SelectFolder", folder, "").Replace("/", "\\");
                     
-                    Debug.Log($"CCC {folder}");
-                    Debug.Log($"CCC {path}");
+                    if (string.IsNullOrEmpty(path))
+                        return;
                     
                     // 目录是否没在BundleAssets下
                     if (!path.Contains(folder))
@@ -154,7 +261,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     _list[i].path = relPath;
                 }
                 
-                selector.UnregisterCallback<ClickEvent>(OnSelectPath);
+                _eventClickDic.Add($"path_selector_{i}", OnSelectPath);
                 selector.RegisterCallback<ClickEvent>(OnSelectPath);
                 
                 textField.value = _list[i].path;
@@ -169,7 +276,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     _list[i].packDirType = (EABPackDir) evt.newValue;
                 }
                 
-                ele.UnregisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
+                _eventEnumDic.Add($"dirType_{i}", OnEnumChanged);
                 ele.RegisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
 
                 ele.value = _list[i].packDirType;
@@ -183,7 +290,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     _list[i].packCompressType = (EABCompress) evt.newValue;
                 }
                 
-                ele.UnregisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
+                _eventEnumDic.Add($"compressType_{i}", OnEnumChanged);
                 ele.RegisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
 
                 ele.value = _list[i].packCompressType;
@@ -197,13 +304,14 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     _list[i].md5 = evt.newValue;
                 }
                 
-                toggle.UnregisterCallback<ChangeEvent<bool>>(OnToggleChanged);
+                _eventBoolDic.Add($"md5_{i}", OnToggleChanged);
                 toggle.RegisterCallback<ChangeEvent<bool>>(OnToggleChanged);
 
                 toggle.value = _list[i].md5;
             };
         }
-
+        
+        // 深拷贝列表
         private static List<BundleConfigData> DeepCopyList(List<BundleConfigData> list)
         {
             List<BundleConfigData> newList = new List<BundleConfigData>();
