@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-direction: row; margin-top: 5px; margin-bottom: 5px;">
+        <ui:Button text="New line" display-tooltip-when-elided="true" name="btn-add" class="common-button" />
+        <ui:Button text="Remove line" display-tooltip-when-elided="true" name="btn-remove" class="common-button" />
+        <ui:Button text="Save" display-tooltip-when-elided="true" name="btn-save" class="common-button" />
+    </ui:VisualElement>
+    <ui:MultiColumnListView fixed-item-height="20" reorderable="false">
+        <ui:Columns>
+            <ui:Column name="path" title="Path" width="300" />
+            <ui:Column name="dirType" title="DirType" width="80" />
+            <ui:Column name="compressType" title="CompressType" width="80" />
+            <ui:Column name="md5" title="Md5" width="80" />
+        </ui:Columns>
+    </ui:MultiColumnListView>
+</ui:UXML>
