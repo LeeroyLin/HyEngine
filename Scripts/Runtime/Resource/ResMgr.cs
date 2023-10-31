@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Resource
 {
-    public class ResMgr : SingletonClass<ResMgr>, IManager
+    public partial class ResMgr : SingletonClass<ResMgr>, IManager
     {
         // 记录已加载的ab，键名为ab名
         private Dictionary<string, ABInfo> _abDic = new ();
@@ -28,26 +28,6 @@ namespace Engine.Scripts.Runtime.Resource
             TimerMgr.Ins.UseLoopTimer(0, OnTimer);
         }
 
-        private void OnTimer()
-        {
-            foreach (var abInfo in _abDic)
-            {
-                if (abInfo.Value.ABState == EABState.AsyncLoading)
-                {
-                    if (abInfo.Value.Req.isDone)
-                    {
-                        abInfo.Value.ABState = EABState.Loaded;
-                        abInfo.Value.AB = abInfo.Value.Req.assetBundle;
-                        abInfo.Value.Req = null;
-                        
-                        // 完成后的回调
-                        abInfo.Value.OnLoaded?.Invoke(abInfo.Value.AB);
-                        abInfo.Value.OnLoaded = null;
-                    }
-                }
-            }
-        }
-        
         /// <summary>
         /// 同步加载ab
         /// </summary>
@@ -155,7 +135,7 @@ namespace Engine.Scripts.Runtime.Resource
             
             abInfo = new ABInfo(EABState.AsyncLoading);
 
-            _abDic.Add(abName, abInfo);
+            _abDic.TryAdd(abName, abInfo);
             
             // 加载依赖
             LoadABDepsAsync(abName, async () =>
@@ -165,9 +145,31 @@ namespace Engine.Scripts.Runtime.Resource
                 abInfo.Req = req;
             });
         }
-        
-        public void LoadAsset(string relPath)
+
+        private void OnTimer()
         {
+            OnABTimer();
+            OnAssetTimer();
+        }
+        
+        private void OnABTimer()
+        {
+            foreach (var abInfo in _abDic)
+            {
+                if (abInfo.Value.ABState == EABState.AsyncLoading)
+                {
+                    if (abInfo.Value.Req.isDone)
+                    {
+                        abInfo.Value.ABState = EABState.Loaded;
+                        abInfo.Value.AB = abInfo.Value.Req.assetBundle;
+                        abInfo.Value.Req = null;
+                        
+                        // 完成后的回调
+                        abInfo.Value.OnLoaded?.Invoke(abInfo.Value.AB);
+                        abInfo.Value.OnLoaded = null;
+                    }
+                }
+            }
         }
 
         /// <summary>

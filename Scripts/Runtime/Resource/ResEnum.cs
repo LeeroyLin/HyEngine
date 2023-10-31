@@ -14,4 +14,11 @@
         AsyncLoading,
         Loaded,
     }
+    
+    public enum EAssetState
+    {
+        SyncLoading,
+        AsyncLoading,
+        Loaded,
+    }
 }
