@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Engine.Scripts.Editor.Resource.BundleBuild;
 using Engine.Scripts.Runtime.Resource;
 using UnityEditor;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
         static void LoadConfig()
         {
             if (!_config)
-                _config = AssetDatabase.LoadAssetAtPath<BundleConfig>("Assets/BundleAssets/BundleConfig/BundleConfigData.asset");
+                _config = AssetDatabase.LoadAssetAtPath<BundleConfig>(BundleBuilder.CONFIG_PATH);
 
             if (_config == null)
             {

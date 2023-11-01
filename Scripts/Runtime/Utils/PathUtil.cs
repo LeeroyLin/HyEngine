@@ -26,5 +26,17 @@ namespace Engine.Scripts.Runtime.Utils
 
             return Path.Combine(Application.dataPath, path).Replace("/", "\\");
         }
+
+        /// <summary>
+        /// 确保有目录
+        /// </summary>
+        /// <param name="dir">路径或目录</param>
+        public static void MakeSureDir(string dir)
+        {
+            if (Directory.Exists(dir))
+                return;
+
+            Directory.CreateDirectory(dir);
+        }
     }
 }
