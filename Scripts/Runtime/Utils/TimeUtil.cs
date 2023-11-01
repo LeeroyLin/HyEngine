@@ -35,7 +35,7 @@ namespace Engine.Scripts.Runtime.Utils
         /**
          * 距离某毫秒级时间，已经经过多少时间
          */
-        public static int ExpireMS(int timeMS)
+        public static int ExpireMS(long timeMS)
         {
             var nowMS = GetTimestampMS();
             return Mathf.Max(0, (int)(nowMS - timeMS));
