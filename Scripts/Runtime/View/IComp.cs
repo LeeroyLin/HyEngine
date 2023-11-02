@@ -1,10 +1,8 @@
 ﻿namespace Engine.Scripts.Runtime.View
 {
-    public interface IView
+    public interface IComp
     {
         void DoInit();
-        
-        void DoOpen(ViewArgsBase args = null);
         
         void DoClose();
         

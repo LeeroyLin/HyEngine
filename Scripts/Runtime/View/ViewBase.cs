@@ -1,39 +1,84 @@
-﻿using FairyGUI;
+﻿using Engine.Scripts.Runtime.Utils;
+using FairyGUI;
 
 namespace Engine.Scripts.Runtime.View
 {
-    public abstract class ViewBase : IView
+    public abstract class ViewBase : GComponent, IView
     {
-        public int Key { get; private set; }
         public string Pkg { get; private set; }
         public string Name { get; private set; }
-        public GComponent Node { get; set; }
+        public string CustomKey { get; private set; }
+
+        /// <summary>
+        /// 是否在激活列表
+        /// </summary>
+        public bool IsActive { get; private set; }
         
-        public ViewBase(int key, string pkg, string name)
+        /// <summary>
+        /// 非激活时的毫秒时间戳
+        /// </summary>
+        public long InactiveAt { get; private set; }
+
+        public ViewBase(string pkg, string name)
         {
             Pkg = pkg;
             Name = name;
-            Key = key;
+            CustomKey = ViewMgr.GetCustomKey(pkg, name);
+
+            InactiveAt = 0;
+            IsActive = true;
         }
 
-        public void Init()
+        public void DoInit()
         {
             OnInit();
         }
 
-        public void Open(ViewArgsBase args = null)
+        public void DoOpen(ViewArgsBase args = null)
         {
             OnOpen(args);
         }
 
-        public void Close()
+        public void DoClose()
         {
             OnClose();
         }
 
-        public void Dispose()
+        public void DoDispose()
         {
             OnDispose();
+            
+            Dispose();
+        }
+        
+        /// <summary>
+        /// 激活
+        /// </summary>
+        public void Active()
+        {
+            IsActive = true;
+            InactiveAt = 0;
+        }
+
+        /// <summary>
+        /// 非激活
+        /// </summary>
+        public void Inactive()
+        {
+            IsActive = false;
+            InactiveAt = TimeUtil.GetTimestampMS();
+        }
+
+        /// <summary>
+        /// 是否已经过期
+        /// </summary>
+        /// <param name="durationMS">过期所需毫秒</param>
+        /// <returns></returns>
+        public bool IsExpired(long durationMS)
+        {
+            var leftMS = TimeUtil.ExpireMS(InactiveAt + durationMS);
+
+            return leftMS <= 0;
         }
 
         protected abstract void OnInit();
@@ -43,5 +88,7 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnClose();
         
         protected abstract void OnDispose();
+
+        protected abstract void InitChildren();
     }
 }

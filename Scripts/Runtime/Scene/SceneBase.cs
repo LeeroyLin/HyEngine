@@ -1,4 +1,6 @@
-﻿namespace Engine.Scripts.Runtime.Scene
+﻿using Engine.Scripts.Runtime.Resource;
+
+namespace Engine.Scripts.Runtime.Scene
 {
     public abstract class SceneBase : ISceneBase
     {
@@ -16,6 +18,8 @@
 
         public void Enter(SceneArgsBase args = null)
         {
+            PreLoadUIPkg();
+            
             OnEnter(args);
         }
 
@@ -25,7 +29,16 @@
         }
 
         protected abstract void OnInit();
+        protected abstract string[] OnGetPreLoadUIPkg();
         protected abstract void OnEnter(SceneArgsBase args = null);
         protected abstract void OnExit();
+
+        void PreLoadUIPkg()
+        {
+            var pkgs = OnGetPreLoadUIPkg();
+
+            foreach (var pkg in pkgs)
+                ResMgr.Ins.AddPackage(pkg);
+        }
     }
 }

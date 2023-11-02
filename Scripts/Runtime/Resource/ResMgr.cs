@@ -53,6 +53,17 @@ namespace Engine.Scripts.Runtime.Resource
             // ab名
             var abName = RelPath2ABName(relPath);
 
+            // 通过AB名加载AB
+            return LoadABWithABName(abName);
+        }
+
+        /// <summary>
+        /// 通过AB名加载AB
+        /// </summary>
+        /// <param name="abName"></param>
+        /// <returns></returns>
+        public AssetBundle LoadABWithABName(string abName)
+        {
             if (_abDic.TryGetValue(abName, out var abInfo))
             {
                 switch (abInfo.ABState)
@@ -119,6 +130,17 @@ namespace Engine.Scripts.Runtime.Resource
             // ab名
             var abName = RelPath2ABName(relPath);
 
+            // 通过AB名，异步加载AB
+            LoadABAsyncWithABName(abName, callback);
+        }
+
+        /// <summary>
+        /// 通过AB名，异步加载AB
+        /// </summary>
+        /// <param name="abName"></param>
+        /// <param name="callback"></param>
+        public void LoadABAsyncWithABName(string abName, Action<AssetBundle> callback)
+        {
             if (_abDic.TryGetValue(abName, out var abInfo))
             {
                 switch (abInfo.ABState)
@@ -138,7 +160,7 @@ namespace Engine.Scripts.Runtime.Resource
             _abDic.TryAdd(abName, abInfo);
             
             // 加载依赖
-            LoadABDepsAsync(abName, async () =>
+            LoadABDepsAsync(abName, () =>
             {
                 // 异步加载ab
                 var req = AssetBundle.LoadFromFileAsync(abName);

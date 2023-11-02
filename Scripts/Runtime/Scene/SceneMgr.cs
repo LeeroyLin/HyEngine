@@ -30,7 +30,7 @@ namespace Engine.Scripts.Runtime.Scene
         /// <param name="args">参数，可空</param>
         public void Open(string key, SceneArgsBase args = null)
         {
-            if (_current.Key == key)
+            if (_current?.Key == key)
             {
                 _log.Warning("[Open] Can not open same scene with key:'{0}'.", key);
                 
@@ -38,7 +38,7 @@ namespace Engine.Scripts.Runtime.Scene
             }
             
             // 关闭之前场景
-            _current.Exit();
+            _current?.Exit();
             
             // 获得新场景实例
             _current = _generator.GetSceneIns(key);

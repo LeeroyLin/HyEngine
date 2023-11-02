@@ -104,7 +104,7 @@ namespace Engine.Scripts.Runtime.Resource
 
         private T AssetPost<T>(T asset, string relPath) where T: Object
         {
-            if (asset.GetType().IsInstanceOfType(typeof(GameObject))) ;
+            if (asset.GetType().IsInstanceOfType(typeof(GameObject)))
             {
                 // 实例化
                 GameObject obj = Object.Instantiate(asset as GameObject);

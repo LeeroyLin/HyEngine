@@ -1,36 +1,65 @@
 ﻿using System.Collections.Generic;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
+using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
 using Engine.Scripts.Runtime.Utils;
 using FairyGUI;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
     public class ViewMgr : SingletonClass<ViewMgr>, IManager
     {
         // 界面非激活后的销毁时间
-        public static readonly long EXPIRE_TIME_MS = 60000;
+        static readonly long EXPIRE_TIME_MS = 60000;
         
         // 当前激活的UI列表
-        private List<ViewInfo> _activeUIList = new List<ViewInfo>();
+        private List<ViewBase> _activeUIList = new List<ViewBase>();
         
         // 非激活的UI列表，UI等待被销毁
-        private List<ViewInfo> _inactiveUIList = new List<ViewInfo>();
+        private List<ViewBase> _inactiveUIList = new List<ViewBase>();
 
-        private IViewGenerator _generator;
+        private IViewExtension _viewExtension;
         
         private LogGroup _log;
         
         public void Reset()
         {
         }
+        
+        /// <summary>
+        /// 获得自定义UI键名
+        /// </summary>
+        /// <param name="pkg">UI包名</param>
+        /// <param name="name">UI名</param>
+        /// <returns></returns>
+        public static string GetCustomKey(string pkg, string name)
+        {
+            return $"{pkg}_{name}";
+        }
 
-        public void Init(IViewGenerator generator)
+        /// <summary>
+        /// 通过自定义UI键名，获得包名和UI名
+        /// </summary>
+        /// <param name="customKey"></param>
+        /// <returns></returns>
+        public static (string, string) CustomKey2PkgAndName(string customKey)
+        {
+            var strs = customKey.Split("_");
+            return (strs[0], strs[1]);
+        }
+
+        public void Init(IViewExtension viewExtension)
         {
             _log = new LogGroup("ViewMgr");
             
-            _generator = generator;
+            // 注册界面扩展
+            var extensions = viewExtension.InitViewExtension();
+            foreach (var extension in extensions)
+            {
+                UIObjectFactory.SetPackageItemExtension(extension.Url, extension.Creator);
+            }
             
             // 注册计时器
             TimerMgr.Ins.UseLoopTimer(0, OnTimer);
@@ -41,28 +70,24 @@ namespace Engine.Scripts.Runtime.View
         /// </summary>
         /// <param name="key">界面键</param>
         /// <param name="args">参数，可空</param>
-        public void Open(int key, ViewArgsBase args = null)
+        public void Open(string key, ViewArgsBase args = null)
         {
             ViewBase ins = null;
-            ViewInfo info = null;
             
             // 是否在非激活状态
             if (FindViewIdx(_inactiveUIList, key, out var idx))
             {
                 // 获得信息
-                info = _inactiveUIList[idx];
+                ins = _inactiveUIList[idx];
                 
                 // 从非激活列表移除
                 _inactiveUIList.RemoveAt(idx);
                 
                 // 标记激活
-                info.Active();
-                
-                // 获得实例
-                ins = info.View;
+                ins.Active();
                 
                 // 显示节点
-                ins.Node.visible = false;
+                ins.visible = false;
             }
             // 是否已经激活
             else if (FindViewIdx(_activeUIList, key, out var i))
@@ -74,32 +99,26 @@ namespace Engine.Scripts.Runtime.View
             // 新建实例
             if (ins == null)
             {
-                // 新建实例
-                ins = _generator.GetUIIns(key);
-                
-                // 获得节点
-                var node = UIPackage.CreateObject("Main", "WinMain").asCom;
-                node.name = $"{ins.Pkg}_{ins.Name}";
-                node.MakeFullScreen();
-                GRoot.inst.AddChild(node);
-                
-                // 记录
-                ins.Node = node;
-                info = new ViewInfo(ins);
+                // 新建UI
+                var (pkgName, uiName) = CustomKey2PkgAndName(key);
+                ins = ResMgr.Ins.CreateUIObject(pkgName, uiName) as ViewBase;
+                ins.name = $"{ins.Pkg}_{ins.Name}";
+                ins.MakeFullScreen();
+                GRoot.inst.AddChild(ins);
             }
 
-            _activeUIList.Add(info);
+            _activeUIList.Add(ins);
             
             // 回调
-            ins.Init();
-            ins.Open(args);
+            ins.DoInit();
+            ins.DoOpen(args);
         }
 
         /// <summary>
         /// 关闭界面
         /// </summary>
         /// <param name="key">界面键</param>
-        public void Close(int key)
+        public void Close(string key)
         {
             // 如果没有该UI
             if (!FindViewIdx(_activeUIList, key, out var idx))
@@ -127,10 +146,10 @@ namespace Engine.Scripts.Runtime.View
             info.Inactive();
             
             // 隐藏
-            info.View.Node.visible = false;
+            info.visible = false;
             
             // 回调
-            info.View.Close();
+            info.DoClose();
 
             // 放入非激活列表
             _inactiveUIList.Add(info);
@@ -144,7 +163,8 @@ namespace Engine.Scripts.Runtime.View
         {
             var info = _inactiveUIList[idx];
             
-            // todo 销毁
+            // 销毁
+            info.DoDispose();
             
             // 移除数据
             _inactiveUIList.RemoveAt(idx);
@@ -158,12 +178,12 @@ namespace Engine.Scripts.Runtime.View
         /// <param name="key"></param>
         /// <param name="idx"></param>
         /// <returns></returns>
-        private bool FindViewIdx(List<ViewInfo> list, int key, out int idx)
+        private bool FindViewIdx(List<ViewBase> list, string key, out int idx)
         {
             idx = -1;
             for (int i = 0; i < list.Count; i++)
             {
-                if (list[i].View.Key == key)
+                if (list[i].CustomKey == key)
                 {
                     idx = i;
                     return true;
@@ -180,7 +200,7 @@ namespace Engine.Scripts.Runtime.View
         private void CloseAfter(int idx)
         {
             for (int i = _activeUIList.Count - 1; i >= idx; i--)
-                Close(i);
+                CloseAt(i);
         }
         
         /// <summary>
