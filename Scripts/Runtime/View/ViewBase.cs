@@ -44,7 +44,7 @@ namespace Engine.Scripts.Runtime.View
 
         public void DoOpen(ViewArgsBase args = null)
         {
-            OnRegEvents();
+            OnRegGameEvents();
             
             OnOpen(args);
         }
@@ -119,6 +119,6 @@ namespace Engine.Scripts.Runtime.View
         /// 在打开界面时调用，关闭界面时自动注销事件.
         /// 必须通过 ViewModel的EventGroup 变量注册事件
         /// </summary>
-        protected abstract void OnRegEvents();
+        protected abstract void OnRegGameEvents();
     }
 }
