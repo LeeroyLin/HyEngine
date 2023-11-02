@@ -8,7 +8,9 @@ namespace Engine.Scripts.Runtime.View
         public string Pkg { get; private set; }
         public string Name { get; private set; }
         public string CustomKey { get; private set; }
-
+        
+        protected ViewModelBase vm;
+        
         /// <summary>
         /// 是否在激活列表
         /// </summary>
@@ -31,9 +33,9 @@ namespace Engine.Scripts.Runtime.View
 
         public void DoInit()
         {
-            InitChildren();
-            
             InitViewModel();
+            
+            InitChildren();
             
             OnInitChildren();
             
@@ -42,11 +44,15 @@ namespace Engine.Scripts.Runtime.View
 
         public void DoOpen(ViewArgsBase args = null)
         {
+            OnRegEvents();
+            
             OnOpen(args);
         }
 
         public void DoClose()
         {
+            vm.EventGroup.ClearCurrentAllEvents();
+            
             OnCloseChildren();
             
             OnClose();
@@ -108,5 +114,11 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnDisposeChildren();
         
         protected abstract void InitViewModel();
+        
+        /// <summary>
+        /// 在打开界面时调用，关闭界面时自动注销事件.
+        /// 必须通过 ViewModel的EventGroup 变量注册事件
+        /// </summary>
+        protected abstract void OnRegEvents();
     }
 }

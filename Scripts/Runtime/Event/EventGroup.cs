@@ -6,13 +6,13 @@ namespace Engine.Scripts.Runtime.Event
 {
     public class EventGroup
     {
-        public int Group { get; private set; }
+        public EEventGroup Group { get; private set; }
 
-        private Dictionary<int, int> _handlerDic;
+        private Dictionary<int, string> _handlerDic;
 
         private LogGroup _log;
 
-        public EventGroup(int group)
+        public EventGroup(EEventGroup group)
         {
             Group = group;
             _handlerDic = new();
@@ -26,6 +26,7 @@ namespace Engine.Scripts.Runtime.Event
         /// <typeparam name="T"></typeparam>
         public void Reg<T>(Action<T> callback) where T : EventDataBase
         {
+            var key = typeof(T).ToString();
             var cbId = callback.GetHashCode();
             
             // 是否已经存在
@@ -36,7 +37,7 @@ namespace Engine.Scripts.Runtime.Event
                 return;
             }
             
-            _handlerDic.Add(cbId, cbId);
+            _handlerDic.Add(cbId, key);
             EventMgr.Ins.Reg(Group, callback);
         }
         
@@ -79,20 +80,14 @@ namespace Engine.Scripts.Runtime.Event
         }
 
         /// <summary>
-        /// 清除组事件
+        /// 移除通过该对象注册的所有事件
         /// </summary>
-        public void ClearGroup()
+        public void ClearCurrentAllEvents()
         {
-            EventMgr.Ins.ClearGroup(Group);
-        }
-
-        /// <summary>
-        /// 清除对应事件
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        public void ClearEvent<T>() where T : EventDataBase
-        {
-            EventMgr.Ins.ClearEvent<T>(Group);
+            foreach (var info in _handlerDic)
+            {
+                EventMgr.Ins.ClearEvent(Group, info.Value, info.Key);
+            }
         }
     }
 }

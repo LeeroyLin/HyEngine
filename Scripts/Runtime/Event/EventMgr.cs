@@ -13,7 +13,7 @@ namespace Engine.Scripts.Runtime.Event
 
     public class EventMgr : SingletonClass<EventMgr>, IManager
     {
-        private Dictionary<int, Dictionary<string, List<int>>> _eventDic;
+        private Dictionary<EEventGroup, Dictionary<string, List<int>>> _eventDic;
         private Dictionary<int, HandlerInfo> _cbDic;
         // 在下一帧再调用
         private List<AsyncInfo> _asyncList;
@@ -42,7 +42,7 @@ namespace Engine.Scripts.Runtime.Event
         /// <param name="group"></param>
         /// <param name="callback"></param>
         /// <typeparam name="T"></typeparam>
-        public void Reg<T>(int group, Action<T> callback) where T : EventDataBase
+        public void Reg<T>(EEventGroup group, Action<T> callback) where T : EventDataBase
         {
             var groupDic = GetGroupDic(group);
 
@@ -65,7 +65,7 @@ namespace Engine.Scripts.Runtime.Event
         /// <param name="group"></param>
         /// <param name="callback"></param>
         /// <typeparam name="T"></typeparam>
-        public void UnReg<T>(int group, Action<T> callback) where T : EventDataBase
+        public void UnReg<T>(EEventGroup group, Action<T> callback) where T : EventDataBase
         {
             var groupDic = GetGroupDic(group);
 
@@ -98,7 +98,7 @@ namespace Engine.Scripts.Runtime.Event
         /// </summary>
         /// <param name="group"></param>
         /// <param name="data"></param>
-        public void Broadcast(int group, EventDataBase data)
+        public void Broadcast(EEventGroup group, EventDataBase data)
         {
             var key = GetKey(data);
             
@@ -122,7 +122,7 @@ namespace Engine.Scripts.Runtime.Event
         /// </summary>
         /// <param name="group"></param>
         /// <param name="data"></param>
-        public void BroadcastAsync(int group, EventDataBase data)
+        public void BroadcastAsync(EEventGroup group, EventDataBase data)
         {
             var key = GetKey(data);
 
@@ -133,7 +133,7 @@ namespace Engine.Scripts.Runtime.Event
         /// 清除指定组的事件
         /// </summary>
         /// <param name="group"></param>
-        public void ClearGroup(int group)
+        public void ClearGroup(EEventGroup group)
         {
             _eventDic.Remove(group);
         }
@@ -143,13 +143,41 @@ namespace Engine.Scripts.Runtime.Event
         /// </summary>
         /// <param name="group"></param>
         /// <typeparam name="T"></typeparam>
-        public void ClearEvent<T>(int group) where T : EventDataBase
+        public void ClearEvent<T>(EEventGroup group) where T : EventDataBase
         {
             if (_eventDic.TryGetValue(group, out var dic))
             {
                 var key = GetKey<T>();
 
                 dic.Remove(key);
+            }
+        }
+
+        /// <summary>
+        /// 清除对应事件
+        /// </summary>
+        /// <param name="group"></param>
+        /// <param name="key"></param>
+        /// <param name="cbId"></param>
+        public void ClearEvent(EEventGroup group, string key, int cbId)
+        {
+            if (_eventDic.TryGetValue(group, out var dic))
+            {
+                if (dic.TryGetValue(key, out var list))
+                {
+                    for (int i = list.Count - 1; i >= 0; i--)
+                    {
+                        if (list[i] == cbId)
+                        {
+                            list.RemoveAt(i);
+
+                            if (_cbDic.TryGetValue(cbId, out var info))
+                                info.ReduceRefCnt();
+                            
+                            return;
+                        }
+                    }
+                }
             }
         }
 
@@ -180,7 +208,7 @@ namespace Engine.Scripts.Runtime.Event
         }
 
         // 获得组字典，没有则创建
-        Dictionary<string, List<int>> GetGroupDic(int group)
+        Dictionary<string, List<int>> GetGroupDic(EEventGroup group)
         {
             if (!_eventDic.TryGetValue(group, out var dic))
             {
