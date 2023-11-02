@@ -31,6 +31,12 @@ namespace Engine.Scripts.Runtime.View
 
         public void DoInit()
         {
+            InitChildren();
+            
+            InitViewModel();
+            
+            OnInitChildren();
+            
             OnInit();
         }
 
@@ -41,11 +47,15 @@ namespace Engine.Scripts.Runtime.View
 
         public void DoClose()
         {
+            OnCloseChildren();
+            
             OnClose();
         }
 
         public void DoDispose()
         {
+            OnDisposeChildren();
+            
             OnDispose();
             
             Dispose();
@@ -90,5 +100,13 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnDispose();
 
         protected abstract void InitChildren();
+        
+        protected abstract void OnInitChildren();
+        
+        protected abstract void OnCloseChildren();
+        
+        protected abstract void OnDisposeChildren();
+        
+        protected abstract void InitViewModel();
     }
 }

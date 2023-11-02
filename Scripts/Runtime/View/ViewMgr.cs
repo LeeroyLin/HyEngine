@@ -5,7 +5,6 @@ using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
 using Engine.Scripts.Runtime.Utils;
 using FairyGUI;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
