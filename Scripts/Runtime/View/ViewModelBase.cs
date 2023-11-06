@@ -10,9 +10,7 @@ namespace Engine.Scripts.Runtime.View
         {
             EventGroup = new EventGroup(EEventGroup.GameLogic);
         }
-        
-        public void Init()
-        {
-        }
+
+        public abstract void Init();
     }
 }
