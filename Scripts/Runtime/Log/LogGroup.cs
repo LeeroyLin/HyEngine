@@ -26,7 +26,7 @@
             if (!IsEnabled)
                 return;
 
-            var content = $"【{Title}】 {msg} {args}";
+            var content = $"【{Title}】 {string.Format(msg, args)}";
             LogMgr.Ins.Log(content);
         }
 
@@ -35,7 +35,7 @@
             if (!IsEnabled)
                 return;
             
-            var content = $"【{Title}】 {msg} {args}";
+            var content = $"【{Title}】 {string.Format(msg, args)}";
             LogMgr.Ins.LogError(content);
         }
 
@@ -44,7 +44,7 @@
             if (!IsEnabled)
                 return;
             
-            var content = $"【{Title}】 {msg} {args}";
+            var content = $"【{Title}】 {string.Format(msg, args)}";
             LogMgr.Ins.LogWarning(content);
         }
     }
