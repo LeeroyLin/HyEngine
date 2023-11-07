@@ -4,9 +4,9 @@
     {
         public EEventGroup Group { get; private set; }
         public string Key { get; private set; }
-        public EventDataBase Data { get; private set; }
+        public IEventData Data { get; private set; }
         
-        public AsyncInfo(EEventGroup group, string key, EventDataBase data)
+        public AsyncInfo(EEventGroup group, string key, IEventData data)
         {
             Group = group;
             Key = key;

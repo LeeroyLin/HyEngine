@@ -24,7 +24,7 @@ namespace Engine.Scripts.Runtime.Event
         /// </summary>
         /// <param name="callback"></param>
         /// <typeparam name="T"></typeparam>
-        public void Reg<T>(Action<T> callback) where T : EventDataBase
+        public void Reg<T>(Action<T> callback) where T : IEventData
         {
             var key = typeof(T).ToString();
             var cbId = callback.GetHashCode();
@@ -46,7 +46,7 @@ namespace Engine.Scripts.Runtime.Event
         /// </summary>
         /// <param name="callback"></param>
         /// <typeparam name="T"></typeparam>
-        public void UnReg<T>(Action<T> callback) where T : EventDataBase
+        public void UnReg<T>(Action<T> callback) where T : IEventData
         {
             var cbId = callback.GetHashCode();
 
@@ -65,7 +65,7 @@ namespace Engine.Scripts.Runtime.Event
         /// 同步广播
         /// </summary>
         /// <param name="data"></param>
-        public void Broadcast(EventDataBase data)
+        public void Broadcast(IEventData data)
         {
             EventMgr.Ins.Broadcast(Group, data);
         }
@@ -74,7 +74,7 @@ namespace Engine.Scripts.Runtime.Event
         /// 异步同步广播
         /// </summary>
         /// <param name="data"></param>
-        public void BroadcastAsync(EventDataBase data)
+        public void BroadcastAsync(IEventData data)
         {
             EventMgr.Ins.BroadcastAsync(Group, data);
         }

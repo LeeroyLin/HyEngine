@@ -6,10 +6,10 @@ namespace Engine.Scripts.Runtime.Event
     class HandlerInfo
     {
         public int Key { get; private set; }
-        public Action<EventDataBase> Callback { get; private set; }
+        public Action<IEventData> Callback { get; private set; }
         public int RefCnt { get; private set; }
 
-        public HandlerInfo(int key, Action<EventDataBase> callback)
+        public HandlerInfo(int key, Action<IEventData> callback)
         {
             Key = key;
             Callback = callback;

@@ -7,8 +7,9 @@ using Engine.Scripts.Runtime.Utils;
 
 namespace Engine.Scripts.Runtime.Event
 {
-    public abstract class EventDataBase
+    public interface IEventData
     {
+        
     }
 
     public class EventMgr : SingletonClass<EventMgr>, IManager
@@ -42,7 +43,7 @@ namespace Engine.Scripts.Runtime.Event
         /// <param name="group"></param>
         /// <param name="callback"></param>
         /// <typeparam name="T"></typeparam>
-        public void Reg<T>(EEventGroup group, Action<T> callback) where T : EventDataBase
+        public void Reg<T>(EEventGroup group, Action<T> callback) where T : IEventData
         {
             var groupDic = GetGroupDic(group);
 
@@ -65,7 +66,7 @@ namespace Engine.Scripts.Runtime.Event
         /// <param name="group"></param>
         /// <param name="callback"></param>
         /// <typeparam name="T"></typeparam>
-        public void UnReg<T>(EEventGroup group, Action<T> callback) where T : EventDataBase
+        public void UnReg<T>(EEventGroup group, Action<T> callback) where T : IEventData
         {
             var groupDic = GetGroupDic(group);
 
@@ -98,7 +99,7 @@ namespace Engine.Scripts.Runtime.Event
         /// </summary>
         /// <param name="group"></param>
         /// <param name="data"></param>
-        public void Broadcast(EEventGroup group, EventDataBase data)
+        public void Broadcast(EEventGroup group, IEventData data)
         {
             var key = GetKey(data);
             
@@ -122,7 +123,7 @@ namespace Engine.Scripts.Runtime.Event
         /// </summary>
         /// <param name="group"></param>
         /// <param name="data"></param>
-        public void BroadcastAsync(EEventGroup group, EventDataBase data)
+        public void BroadcastAsync(EEventGroup group, IEventData data)
         {
             var key = GetKey(data);
 
@@ -143,7 +144,7 @@ namespace Engine.Scripts.Runtime.Event
         /// </summary>
         /// <param name="group"></param>
         /// <typeparam name="T"></typeparam>
-        public void ClearEvent<T>(EEventGroup group) where T : EventDataBase
+        public void ClearEvent<T>(EEventGroup group) where T : IEventData
         {
             if (_eventDic.TryGetValue(group, out var dic))
             {
@@ -220,15 +221,15 @@ namespace Engine.Scripts.Runtime.Event
         }
         
         // 获得事件信息
-        HandlerInfo GetHandlerInfo<T>(Action<T> callback) where T : EventDataBase
+        HandlerInfo GetHandlerInfo<T>(Action<T> callback) where T : IEventData
         {
             var cbId = callback.GetHashCode();
             
             if (!_cbDic.TryGetValue(cbId, out var info))
             {
-                void newCallback(EventDataBase evt)
+                void newCallback(IEventData evt)
                 {
-                    callback(evt as T);
+                    callback((T)evt);
                 }
                 
                 info = new HandlerInfo(cbId, newCallback);
@@ -241,11 +242,11 @@ namespace Engine.Scripts.Runtime.Event
         }
 
         // 获得键
-        private string GetKey(EventDataBase evt)
+        private string GetKey(IEventData evt)
         {
             return evt.ToString();
         }
-        private string GetKey<T>() where T : EventDataBase
+        private string GetKey<T>() where T : IEventData
         {
             return typeof(T).ToString();
         }

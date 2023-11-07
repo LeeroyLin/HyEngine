@@ -10,9 +10,11 @@ namespace Engine.Scripts.Runtime.View
         public ViewModelBase()
         {
             EventGroup = new EventGroup(EEventGroup.GameLogic);
+
+            OnRegGameEvents();
         }
 
-        public abstract void Init();
+        public abstract void Init(ViewBase view);
         
         protected abstract void OnRegGameEvents();
 
@@ -21,7 +23,7 @@ namespace Engine.Scripts.Runtime.View
         /// </summary>
         /// <param name="callback"></param>
         /// <typeparam name="T"></typeparam>
-        public void Reg<T>(Action<T> callback) where T : EventDataBase
+        public void Reg<T>(Action<T> callback) where T : IEventData
         {
             EventGroup.Reg(callback);
         }
@@ -30,7 +32,7 @@ namespace Engine.Scripts.Runtime.View
         /// 同步广播
         /// </summary>
         /// <param name="data"></param>
-        public void Broadcast(EventDataBase data)
+        public void Broadcast(IEventData data)
         {
             EventGroup.Broadcast(data);
         }
@@ -39,7 +41,7 @@ namespace Engine.Scripts.Runtime.View
         /// 异步同步广播
         /// </summary>
         /// <param name="data"></param>
-        public void BroadcastAsync(EventDataBase data)
+        public void BroadcastAsync(IEventData data)
         {
             EventGroup.BroadcastAsync(data);
         }
