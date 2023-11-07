@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Client.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Timer;
@@ -15,13 +14,17 @@ namespace Engine.Scripts.Runtime.Resource
         private Dictionary<string, ABInfo> _abDic = new ();
 
         private LogGroup _log;
+        
+        private EResLoadMode _resLoadMode;
 
         public void Reset()
         {
         }
 
-        public void Init()
+        public void Init(EResLoadMode resLoadMode)
         {
+            _resLoadMode = resLoadMode;
+            
             _log = new LogGroup("ResMgr");
 
             // 注册定时器
@@ -35,7 +38,7 @@ namespace Engine.Scripts.Runtime.Resource
         /// <returns></returns>
         public AssetBundle LoadAB(string relPath)
         {
-            if (GlobalConfig.ResLoadMode == EResLoadMode.Editor)
+            if (_resLoadMode == EResLoadMode.Editor)
                 return null;
             
             if (relPath == null)
@@ -107,7 +110,7 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="callback">回调方法</param>
         public void LoadABAsync(string relPath, Action<AssetBundle> callback)
         {
-            if (GlobalConfig.ResLoadMode == EResLoadMode.Editor)
+            if (_resLoadMode == EResLoadMode.Editor)
             {
                 callback(null);
                 return;

@@ -1,5 +1,4 @@
-﻿using Client.Scripts.Runtime.Global;
-using Engine.Scripts.Runtime.Manager;
+﻿using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
 
@@ -7,12 +6,16 @@ namespace Engine.Scripts.Runtime.Log
 {
     public class LogMgr : SingletonClass<LogMgr>, IManager
     {
+        private LogConfig _config;
+        
         public void Reset()
         {
         }
 
-        public void Init()
+        public void Init(LogConfig config)
         {
+            _config = config;
+            
             // 创建文件目录
             TryCreateDir();
         }
@@ -49,7 +52,7 @@ namespace Engine.Scripts.Runtime.Log
 
         private void TryLog(string content)
         {
-            if (!GlobalConfig.LogConfig.isShowLog)
+            if (!_config.isShowLog)
                 return;
             
             Debug.Log(content);
@@ -57,7 +60,7 @@ namespace Engine.Scripts.Runtime.Log
         
         private void TryWarning(string content)
         {
-            if (!GlobalConfig.LogConfig.isShowWarning)
+            if (!_config.isShowWarning)
                 return;
             
             Debug.LogWarning(content);
@@ -65,7 +68,7 @@ namespace Engine.Scripts.Runtime.Log
         
         private void TryError(string content)
         {
-            if (!GlobalConfig.LogConfig.isShowError)
+            if (!_config.isShowError)
                 return;
             
             Debug.LogError(content);
@@ -73,7 +76,7 @@ namespace Engine.Scripts.Runtime.Log
         
         private void TrySaveLog(string content)
         {
-            if (!GlobalConfig.LogConfig.isSaveLog)
+            if (!_config.isSaveLog)
                 return;
 
             // todo
@@ -81,7 +84,7 @@ namespace Engine.Scripts.Runtime.Log
         
         private void TrySaveWarning(string content)
         {
-            if (!GlobalConfig.LogConfig.isSaveWarning)
+            if (!_config.isSaveWarning)
                 return;
 
             // todo
@@ -89,7 +92,7 @@ namespace Engine.Scripts.Runtime.Log
         
         private void TrySaveError(string content)
         {
-            if (!GlobalConfig.LogConfig.isSaveError)
+            if (!_config.isSaveError)
                 return;
 
             // todo
@@ -98,7 +101,7 @@ namespace Engine.Scripts.Runtime.Log
         // 尝试创建文件目录
         private void TryCreateDir()
         {
-            if (!GlobalConfig.LogConfig.isSaveLog && !GlobalConfig.LogConfig.isSaveWarning && !GlobalConfig.LogConfig.isSaveError)
+            if (!_config.isSaveLog && !_config.isSaveWarning && !_config.isSaveError)
                 return;
             
             // todo

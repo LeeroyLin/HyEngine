@@ -1,5 +1,4 @@
 ﻿using System;
-using Client.Scripts.Runtime.Global;
 using FairyGUI;
 using UnityEditor;
 using UnityEngine;
@@ -25,13 +24,13 @@ namespace Engine.Scripts.Runtime.Resource
         public void AddPackage(string pkgName)
         {
             // 是否是编辑器模式
-            if (GlobalConfig.ResLoadMode == EResLoadMode.Editor)
+            if (_resLoadMode == EResLoadMode.Editor)
             {
                 // 编辑器模式加载
                 LoadInEditorMode(pkgName);
             }
             // 包模式
-            else if (GlobalConfig.ResLoadMode == EResLoadMode.AB)
+            else if (_resLoadMode == EResLoadMode.AB)
             {
                 // AB模式加载
                 LoadInABMode(pkgName);
