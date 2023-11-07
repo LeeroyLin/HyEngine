@@ -1,6 +1,7 @@
 ﻿using System;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Utils;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Timer
 {
@@ -77,6 +78,7 @@ namespace Engine.Scripts.Runtime.Timer
             var targetTime = _cnt == 0 ? Delay : Interval;
             long targetTimeMS = (long)(targetTime * 1000);
             var leftMS = TimeUtil.LeftMS(_startAtMS + targetTimeMS);
+
             return leftMS <= 0;
         }
 
@@ -88,8 +90,10 @@ namespace Engine.Scripts.Runtime.Timer
         {
             if (_isMarked)
                 return;
-            
-            _cnt++;
+
+            if (CntLimited > 0)
+                _cnt++;
+
             _isMarked = true;
             
             _startAtMS = TimeUtil.GetTimestampMS();
@@ -106,8 +110,8 @@ namespace Engine.Scripts.Runtime.Timer
                 
                 return true;
             }
-
-            if (_cnt >= CntLimited)
+            
+            if (CntLimited > 0 && _cnt >= CntLimited)
                 return true;
 
             return false;

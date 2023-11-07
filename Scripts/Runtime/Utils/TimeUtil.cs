@@ -10,8 +10,9 @@ namespace Engine.Scripts.Runtime.Utils
          */
         public static long GetTimestamp()
         {
-            // todo
-            return DateTime.Now.Ticks;
+            DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 1970年1月1日零时
+            long timestamp = (long)(DateTime.UtcNow.Subtract(startTime)).TotalSeconds;
+            return timestamp;
         }
 
         /**
@@ -19,8 +20,9 @@ namespace Engine.Scripts.Runtime.Utils
          */
         public static long GetTimestampMS()
         {
-            // todo
-            return DateTime.Now.Ticks;
+            DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 1970年1月1日零时
+            long timestamp = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
+            return timestamp;
         }
 
         /**
