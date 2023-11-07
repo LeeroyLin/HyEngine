@@ -56,6 +56,9 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
             MakeSureDir(newDir);
 
             var newPath = $"{newDir}\\{fileName}";
+
+            if (File.Exists(newPath))
+                File.Delete(newPath);
             
             File.Move(path, newPath);
         }
@@ -70,6 +73,9 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
             
             var newPath = $"{newDir}\\{fileName}";
             
+            if (File.Exists(newPath))
+                File.Delete(newPath);
+
             File.Move(path, newPath);
         }
 
