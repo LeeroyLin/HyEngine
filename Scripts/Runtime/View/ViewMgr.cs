@@ -86,7 +86,7 @@ namespace Engine.Scripts.Runtime.View
                 ins.Active();
                 
                 // 显示节点
-                ins.visible = false;
+                ins.visible = true;
             }
             // 是否已经激活
             else if (FindViewIdx(_activeUIList, key, out var i))

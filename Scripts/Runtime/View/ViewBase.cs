@@ -1,5 +1,6 @@
 ﻿using Engine.Scripts.Runtime.Utils;
 using FairyGUI;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
@@ -92,7 +93,7 @@ namespace Engine.Scripts.Runtime.View
         /// <returns></returns>
         public bool IsExpired(long durationMS)
         {
-            var leftMS = TimeUtil.ExpireMS(InactiveAt + durationMS);
+            var leftMS = TimeUtil.LeftMS(InactiveAt + durationMS);
 
             return leftMS <= 0;
         }
