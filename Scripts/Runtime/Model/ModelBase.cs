@@ -1,8 +1,9 @@
 ﻿using Engine.Scripts.Runtime.Event;
+using Engine.Scripts.Runtime.Utils;
 
 namespace Engine.Scripts.Runtime.Model
 {
-    public abstract class ModelBase : IModel
+    public abstract class ModelBase<T> : SingletonClass<T>, IModel where T : class, new()
     {
         protected EventGroup NetEventGroup { get; private set; }
         protected EventGroup GameEventGroup { get; private set; }
