@@ -5,6 +5,7 @@ using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
 using Engine.Scripts.Runtime.Utils;
 using FairyGUI;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
@@ -111,6 +112,8 @@ namespace Engine.Scripts.Runtime.View
             // 回调
             ins.DoInit();
             ins.DoOpen(args);
+            
+            // LogList();
         }
 
         /// <summary>
@@ -128,6 +131,8 @@ namespace Engine.Scripts.Runtime.View
             }
 
             CloseAt(idx);
+            
+            // LogList();
         }
 
         /// <summary>
@@ -223,6 +228,23 @@ namespace Engine.Scripts.Runtime.View
                     // 因为非激活界面从后插入，正向遍历到没过期的项，该项之后都不会过期。
                     return;
                 }
+            }
+        }
+
+        void LogList()
+        {
+            _log.Log("============");
+            _log.Log("ActiveUIList:");
+            
+            foreach (var view in _activeUIList)
+            {
+                _log.Log(view.CustomKey);
+            }
+            
+            _log.Log("InactiveUIList:");
+            foreach (var view in _inactiveUIList)
+            {
+                _log.Log(view.CustomKey);
             }
         }
     }
