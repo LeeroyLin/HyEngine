@@ -120,5 +120,13 @@ namespace Engine.Scripts.Runtime.View
         /// 必须通过 ViewModel的EventGroup 变量注册事件
         /// </summary>
         protected abstract void OnRegGameEvents();
+
+        /// <summary>
+        /// 关闭自身
+        /// </summary>
+        protected void CloseSelf()
+        {
+            ViewMgr.Ins.Close(CustomKey);
+        }
     }
 }
