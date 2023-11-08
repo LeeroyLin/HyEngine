@@ -47,6 +47,8 @@ namespace Engine.Scripts.Runtime.View
         {
             OnRegGameEvents();
             
+            vm.Init(this);
+            
             OnOpen(args);
         }
 
