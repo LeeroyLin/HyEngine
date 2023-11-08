@@ -6,16 +6,24 @@ namespace Engine.Scripts.Runtime.View
     {
         public void DoInit()
         {
+            InitChildren();
+            
+            OnInitChildren();
+
             OnInit();
         }
 
         public void DoClose()
         {
+            OnCloseChildren();
+
             OnClose();
         }
 
         public void DoDispose()
         {
+            OnDisposeChildren();
+
             OnDispose();
             
             Dispose();
