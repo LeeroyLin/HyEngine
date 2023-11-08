@@ -2,8 +2,6 @@
 {
     public interface IComp
     {
-        void DoInit();
-        
         void DoClose();
         
         void DoDispose();

@@ -4,12 +4,15 @@ namespace Engine.Scripts.Runtime.View
 {
     public abstract class CompComboBoxBase : GComboBox, IComp
     {
-        public void DoInit()
+        public CompComboBoxBase()
+        {
+            onCreated = DoInit;
+        }
+
+        void DoInit()
         {
             InitChildren();
             
-            OnInitChildren();
-
             OnInit();
         }
 
@@ -36,8 +39,6 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnDispose();
 
         protected abstract void InitChildren();
-        
-        protected abstract void OnInitChildren();
         
         protected abstract void OnCloseChildren();
         

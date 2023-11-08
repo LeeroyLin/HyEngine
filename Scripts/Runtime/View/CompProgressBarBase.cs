@@ -4,12 +4,15 @@ namespace Engine.Scripts.Runtime.View
 {
     public abstract class CompProgressBarBase : GProgressBar, IComp
     {
-        public void DoInit()
+        public CompProgressBarBase()
+        {
+            onCreated = DoInit;
+        }
+
+        void DoInit()
         {
             InitChildren();
             
-            OnInitChildren();
-
             OnInit();
         }
 
@@ -36,8 +39,6 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnDispose();
 
         protected abstract void InitChildren();
-        
-        protected abstract void OnInitChildren();
         
         protected abstract void OnCloseChildren();
         

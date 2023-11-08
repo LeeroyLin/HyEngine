@@ -4,11 +4,14 @@ namespace Engine.Scripts.Runtime.View
 {
     public abstract class CompBase : GComponent, IComp
     {
-        public void DoInit()
+        public CompBase()
+        {
+            onCreated = DoInit;
+        }
+        
+        void DoInit()
         {
             InitChildren();
-            
-            OnInitChildren();
             
             OnInit();
         }
@@ -36,8 +39,6 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnDispose();
 
         protected abstract void InitChildren();
-        
-        protected abstract void OnInitChildren();
         
         protected abstract void OnCloseChildren();
         

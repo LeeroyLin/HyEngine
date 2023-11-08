@@ -110,7 +110,6 @@ namespace Engine.Scripts.Runtime.View
             _activeUIList.Add(ins);
             
             // 回调
-            ins.DoInit();
             ins.DoOpen(args);
             
             // LogList();

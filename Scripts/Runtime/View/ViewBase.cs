@@ -30,15 +30,15 @@ namespace Engine.Scripts.Runtime.View
 
             InactiveAt = 0;
             IsActive = true;
+
+            onCreated = DoInit;
         }
 
-        public void DoInit()
+        protected void DoInit()
         {
             InitViewModel();
             
             InitChildren();
-            
-            OnInitChildren();
             
             OnInit();
         }
@@ -109,8 +109,6 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnDispose();
 
         protected abstract void InitChildren();
-        
-        protected abstract void OnInitChildren();
         
         protected abstract void OnCloseChildren();
         
