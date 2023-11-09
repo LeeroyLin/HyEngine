@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -47,15 +48,25 @@ namespace Engine.Scripts.Runtime.Resource
                         break;
                 }
             }
-            
-            // 加载ab
-            var ab = LoadAB(relPath);
 
-            // 获得资源名
-            var assetName = GetAssetNameWithRelativePath(relPath);
+            T newAsset;
             
-            // 加载资源
-            var newAsset = ab.LoadAsset<T>(assetName);
+            if (_resLoadMode == EResLoadMode.Editor)
+            {
+                string p = $"Assets\\BundleAssets\\{relPath}";
+                newAsset = AssetDatabase.LoadAssetAtPath<T>(p);
+            }
+            else
+            {
+                // 加载ab
+                var ab = LoadAB(relPath);
+
+                // 获得资源名
+                var assetName = GetAssetNameWithRelativePath(relPath);
+            
+                // 加载资源
+                newAsset = ab.LoadAsset<T>(assetName);
+            }
 
             info = new AssetInfo(EAssetState.SyncLoading);
             _assetDic.TryAdd(relPath, info);
@@ -64,7 +75,7 @@ namespace Engine.Scripts.Runtime.Resource
             info.AssetState = EAssetState.Loaded;
 
             // 完成后的回调
-            info.OnLoaded?.Invoke(ab);
+            info.OnLoaded?.Invoke(newAsset);
             info.OnLoaded = null;
             
             return AssetPost(newAsset, relPath);
@@ -91,20 +102,34 @@ namespace Engine.Scripts.Runtime.Resource
             info = new AssetInfo(EAssetState.AsyncLoading);
             _assetDic.TryAdd(relPath, info);
             
-            // 加载ab
-            var ab = LoadAB(relPath);
+            if (_resLoadMode == EResLoadMode.Editor)
+            {
+                var newAsset = AssetDatabase.LoadAssetAtPath<T>($"Assets\\BundleAssets\\{relPath}");
+                
+                info.Asset = newAsset;
+                info.AssetState = EAssetState.Loaded;
 
-            // 获得资源名
-            var assetName = GetAssetNameWithRelativePath(relPath);
+                // 完成后的回调
+                info.OnLoaded?.Invoke(newAsset);
+                info.OnLoaded = null;
+            }
+            else
+            {
+                // 加载ab
+                var ab = LoadAB(relPath);
+
+                // 获得资源名
+                var assetName = GetAssetNameWithRelativePath(relPath);
             
-            // 异步加载Asset
-            var req = ab.LoadAssetAsync<T>(assetName);
-            info.Req = req;
+                // 异步加载Asset
+                var req = ab.LoadAssetAsync<T>(assetName);
+                info.Req = req;
+            }
         }
 
         private T AssetPost<T>(T asset, string relPath) where T: Object
         {
-            if (asset.GetType().IsInstanceOfType(typeof(GameObject)))
+            if (typeof(T) == typeof(GameObject))
             {
                 // 实例化
                 GameObject obj = Object.Instantiate(asset as GameObject);
