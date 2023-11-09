@@ -15,7 +15,11 @@ namespace Engine.Scripts.Runtime.Timer
         
         List<int> _removeList = new List<int>();
         List<TimerInfo> _callList = new List<TimerInfo>();
-        
+
+        private Dictionary<int, Action> _updateDic = new Dictionary<int, Action>();
+        private Dictionary<int, Action> _lateUpdateDic = new Dictionary<int, Action>();
+        private Dictionary<int, Action> _fixedUpdateDic = new Dictionary<int, Action>();
+
         public void Reset()
         {
             Clear();
@@ -25,11 +29,66 @@ namespace Engine.Scripts.Runtime.Timer
         {
         }
 
+        public void OnUpdate()
+        {
+            foreach (var data in _updateDic)
+            {
+                data.Value?.Invoke();
+            }
+        }
+
+        public void OnLateUpdate()
+        {
+            foreach (var data in _lateUpdateDic)
+            {
+                data.Value?.Invoke();
+            }
+        }
+
+        public void OnFixedUpdate()
+        {
+            OnTick();
+            
+            foreach (var data in _fixedUpdateDic)
+            {
+                data.Value?.Invoke();
+            }
+        }
+
+        public void UseUpdate(Action callback)
+        {
+            _updateDic.TryAdd(callback.GetHashCode(), callback);
+        }
+
+        public void RemoveUpdate(Action callback)
+        {
+            _updateDic.Remove(callback.GetHashCode());
+        }
+
+        public void UseLateUpdate(Action callback)
+        {
+            _lateUpdateDic.TryAdd(callback.GetHashCode(), callback);
+        }
+
+        public void RemoveLateUpdate(Action callback)
+        {
+            _lateUpdateDic.Remove(callback.GetHashCode());
+        }
+
+        public void UseFixedUpdate(Action callback)
+        {
+            _fixedUpdateDic.TryAdd(callback.GetHashCode(), callback);
+        }
+
+        public void RemoveFixedUpdate(Action callback)
+        {
+            _fixedUpdateDic.Remove(callback.GetHashCode());
+        }
+
         /// <summary>
         /// 用于外部计时
         /// </summary>
-        /// <param name="delta"></param>
-        public void OnTick(float delta)
+        public void OnTick()
         {
             _removeList.Clear();
             _callList.Clear();

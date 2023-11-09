@@ -34,7 +34,7 @@ namespace Engine.Scripts.Runtime.Event
             _log = new LogGroup("EventMgr");
             
             // 使用计时器
-            TimerMgr.Ins.UseLoopTimer(0, OnTimer);
+            TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
         
         /// <summary>

@@ -8,13 +8,25 @@
             OnStart();
         }
         
-        public void Tick(float dt)
+        public void DoUpdate()
         {
-            OnTick(dt);
+            OnUpdate();
+        }
+        
+        public void DoLateUpdate()
+        {
+            OnLateUpdate();
+        }
+        
+        public void DoFixedUpdate()
+        {
+            OnFixedUpdate();
         }
 
         protected abstract void OnInit();
         protected abstract void OnStart();
-        protected abstract void OnTick(float dt);
+        protected abstract void OnUpdate();
+        protected abstract void OnLateUpdate();
+        protected abstract void OnFixedUpdate();
     }
 }

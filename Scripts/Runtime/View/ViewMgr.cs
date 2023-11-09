@@ -62,7 +62,7 @@ namespace Engine.Scripts.Runtime.View
             }
             
             // 注册计时器
-            TimerMgr.Ins.UseLoopTimer(0, OnTimer);
+            TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
         
         /// <summary>

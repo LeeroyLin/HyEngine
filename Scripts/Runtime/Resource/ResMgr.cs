@@ -28,7 +28,7 @@ namespace Engine.Scripts.Runtime.Resource
             _log = new LogGroup("ResMgr");
 
             // 注册定时器
-            TimerMgr.Ins.UseLoopTimer(0, OnTimer);
+            TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
 
         /// <summary>
