@@ -38,7 +38,7 @@ namespace Engine.Scripts.Runtime.Resource
                 switch (info.AssetState)
                 {
                     case EAssetState.Loaded:
-                        return AssetPost(info.Asset, relPath) as T;
+                        return AssetPost(info.Asset as T, relPath) as T;
                     case EAssetState.SyncLoading:
                         return null;
                     case EAssetState.AsyncLoading:
