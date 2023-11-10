@@ -2,11 +2,12 @@
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Resource;
+using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.CameraStage
 {
-    public class CameraMgr : IManager
+    public class CameraMgr : SingletonClass<CameraMgr>, IManager
     {
         private CameraStageBase _currStage;
 
@@ -15,6 +16,7 @@ namespace Engine.Scripts.Runtime.CameraStage
         private LogGroup _log;
 
         private Camera _camera;
+        private Transform _camTrans;
         
         public void Reset()
         {
@@ -53,6 +55,11 @@ namespace Engine.Scripts.Runtime.CameraStage
             return _camera;
         }
 
+        public Transform GetCameraTrans()
+        {
+            return _camTrans;
+        }
+
         public MainCameraStage GetMainCameraStage()
         {
             if (_currStage != null && _currStage.Key == ECameraStage.Main)
@@ -63,12 +70,23 @@ namespace Engine.Scripts.Runtime.CameraStage
             return null;
         }
 
+        public void Drag(Vector2 dir)
+        {
+            _currStage?.OnDrag(dir);
+        }
+
+        public void Zoom(float value)
+        {
+            _currStage?.OnZoom(value);
+        }
+
         void CreateCamara()
         {
             var obj = ResMgr.Ins.GetAsset<GameObject>("Camera\\Main Camera.prefab");
             obj.name = "Main Camera";
             
             _camera = obj.GetComponent<Camera>();
+            _camTrans = obj.transform;
         }
     }
 }
