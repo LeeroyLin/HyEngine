@@ -143,6 +143,15 @@ namespace Engine.Scripts.Runtime.Resource
             return asset;
         }
 
+        /// <summary>
+        /// 减少资源引用
+        /// </summary>
+        /// <param name="relPath"></param>
+        private void ReduceAssetRef(string relPath)
+        {
+            ReduceABRef(relPath);
+        }
+
         // 通过相对路径获得资源名
         private string GetAssetNameWithRelativePath(string relPath)
         {

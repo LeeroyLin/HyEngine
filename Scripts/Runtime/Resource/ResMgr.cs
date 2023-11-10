@@ -32,6 +32,21 @@ namespace Engine.Scripts.Runtime.Resource
         }
 
         /// <summary>
+        /// 减少AB引用
+        /// </summary>
+        /// <param name="relPath">相对资源目录的资源路径</param>
+        public void ReduceABRef(string relPath)
+        {
+            // ab名
+            var abName = RelPath2ABName(relPath);
+
+            if (_abDic.TryGetValue(abName, out var ab))
+            {
+                ab.ReduceRef();
+            }
+        }
+
+        /// <summary>
         /// 同步加载ab
         /// </summary>
         /// <param name="relPath">相对资源目录的资源路径</param>
