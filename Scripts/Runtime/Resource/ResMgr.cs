@@ -53,7 +53,7 @@ namespace Engine.Scripts.Runtime.Resource
         /// <returns></returns>
         public AssetBundle LoadAB(string relPath)
         {
-            if (_resLoadMode == EResLoadMode.Editor)
+            if (_resLoadMode != EResLoadMode.AB)
                 return null;
             
             if (relPath == null)
@@ -125,9 +125,11 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="callback">回调方法</param>
         public void LoadABAsync(string relPath, Action<AssetBundle> callback)
         {
-            if (_resLoadMode == EResLoadMode.Editor)
+            if (_resLoadMode != EResLoadMode.AB)
             {
+                #if UNITY_EDITOR
                 callback(null);
+                #endif
                 return;
             }
             

@@ -29,6 +29,12 @@ namespace Engine.Scripts.Runtime.Resource
                 // 编辑器模式加载
                 LoadInEditorMode(pkgName);
             }
+            // Resource模式
+            else if (_resLoadMode == EResLoadMode.Resource)
+            {
+                // Resource模式加载
+                LoadInResourceMode(pkgName);
+            }
             // 包模式
             else if (_resLoadMode == EResLoadMode.AB)
             {
@@ -40,6 +46,7 @@ namespace Engine.Scripts.Runtime.Resource
         // 编辑器模式加载
         void LoadInEditorMode(string pkgName)
         {
+            #if UNITY_EDITOR
             var path = "Assets\\BundleAssets\\UI";
             var descPath = $"{path}\\Desc\\{pkgName}_fui.bytes";
                     
@@ -47,7 +54,7 @@ namespace Engine.Scripts.Runtime.Resource
             TextAsset ta = AssetDatabase.LoadAssetAtPath<TextAsset>(descPath);
             if (ta == null)
             {
-                _log.Error("[AddPackage] Can not get desc file at '{0}'", descPath);
+                _log.Error("[LoadInEditorMode] Can not get desc file at '{0}'", descPath);
                 return;
             }
 
@@ -61,6 +68,35 @@ namespace Engine.Scripts.Runtime.Resource
                     var assetPath = $"{path}\\Res\\{pkgName}\\{assetName}{extension}";
                     
                     var asset = AssetDatabase.LoadAssetAtPath(assetPath, type);
+
+                    return asset;
+                });
+            #endif
+        }
+
+        void LoadInResourceMode(string pkgName)
+        {
+            var path = "UI";
+            var descPath = $"{path}\\Desc\\{pkgName}_fui.bytes";
+                    
+            // 从路径加载描述文件
+            TextAsset ta = GetAssetFromResource<TextAsset>(descPath);
+            if (ta == null)
+            {
+                _log.Error("[LoadInResourceMode] Can not get desc file at '{0}'", descPath);
+                return;
+            }
+
+            UIPackage.AddPackage(ta.bytes, pkgName,
+                (string name, string extension, Type type, out DestroyMethod method) =>
+                {
+                    method = DestroyMethod.Unload;
+
+                    var assetName = name;
+                    
+                    var assetPath = $"{path}\\Res\\{pkgName}\\{assetName}{extension}";
+
+                    var asset = GetAssetFromResource(assetPath, type);
 
                     return asset;
                 });

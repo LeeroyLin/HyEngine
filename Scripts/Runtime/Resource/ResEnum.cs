@@ -6,6 +6,8 @@
         Editor,
         // ab包模式
         AB,
+        // Resource
+        Resource,
     }
 
     public enum EABState

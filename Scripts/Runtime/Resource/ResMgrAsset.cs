@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -49,12 +50,18 @@ namespace Engine.Scripts.Runtime.Resource
                 }
             }
 
-            T newAsset;
+            T newAsset = null;
             
             if (_resLoadMode == EResLoadMode.Editor)
             {
+                #if UNITY_EDITOR
                 string p = $"Assets\\BundleAssets\\{relPath}";
                 newAsset = AssetDatabase.LoadAssetAtPath<T>(p);
+                #endif
+            }
+            else if (_resLoadMode == EResLoadMode.Resource)
+            {
+                newAsset = GetAssetFromResource<T>(relPath);
             }
             else
             {
@@ -104,7 +111,20 @@ namespace Engine.Scripts.Runtime.Resource
             
             if (_resLoadMode == EResLoadMode.Editor)
             {
+                #if UNITY_EDITOR
                 var newAsset = AssetDatabase.LoadAssetAtPath<T>($"Assets\\BundleAssets\\{relPath}");
+                
+                info.Asset = newAsset;
+                info.AssetState = EAssetState.Loaded;
+
+                // 完成后的回调
+                info.OnLoaded?.Invoke(newAsset);
+                info.OnLoaded = null;
+                #endif
+            }
+            else if (_resLoadMode == EResLoadMode.Resource)
+            {
+                var newAsset = GetAssetFromResource<T>(relPath);
                 
                 info.Asset = newAsset;
                 info.AssetState = EAssetState.Loaded;
@@ -125,6 +145,19 @@ namespace Engine.Scripts.Runtime.Resource
                 var req = ab.LoadAssetAsync<T>(assetName);
                 info.Req = req;
             }
+        }
+
+        public T GetAssetFromResource<T>(string relPath) where T: Object
+        {
+            var extension = Path.GetExtension(relPath);
+            return Resources.Load<T>(relPath.Replace(extension, ""));
+        }
+
+        public Object GetAssetFromResource(string relPath, Type systemTypeInstance)
+        {
+            var extension = Path.GetExtension(relPath);
+            var path = relPath.Replace(extension, "");
+            return Resources.Load(path, systemTypeInstance);
         }
 
         private T AssetPost<T>(T asset, string relPath) where T: Object
