@@ -1,12 +1,12 @@
 ﻿using System.IO;
+using Client.Scripts.Runtime.Global;
+using Engine.Scripts.Runtime.Resource;
 using UnityEditor;
 
 namespace Engine.Scripts.Editor.Resource.AssetImport
 {
     public class AssetImport : AssetPostprocessor
     {
-        private static string UI_DIR = $"Assets\\BundleAssets\\UI".Replace("/", "\\");
-        
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
             string[] movedFromAssetPaths)
         {
@@ -35,7 +35,11 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
 
             var extension = Path.GetExtension(path);
 
-            if (dir == UI_DIR)
+            var uiDir = "Assets\\BundleAssets\\UI";
+            if (GlobalConfig.ResLoadMode == EResLoadMode.Resource)
+                uiDir = "Resources\\UI";
+            
+            if (dir == uiDir)
             {
                 if (extension == ".bytes")
                 {
