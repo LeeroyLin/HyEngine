@@ -102,6 +102,13 @@ namespace Engine.Scripts.Runtime.View
                 // 新建UI
                 var (pkgName, uiName) = CustomKey2PkgAndName(key);
                 ins = ResMgr.Ins.CreateUIObject(pkgName, uiName) as ViewBase;
+
+                if (ins == null)
+                {
+                    _log.Error($"Load view '{pkgName}_{uiName}' failed.");
+                    return;
+                }
+                
                 ins.name = $"{ins.Pkg}_{ins.Name}";
                 ins.MakeFullScreen();
                 GRoot.inst.AddChild(ins);
