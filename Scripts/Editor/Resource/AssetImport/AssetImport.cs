@@ -2,11 +2,14 @@
 using Client.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using UnityEditor;
+using UnityEngine;
 
 namespace Engine.Scripts.Editor.Resource.AssetImport
 {
     public class AssetImport : AssetPostprocessor
     {
+        private static readonly string DEFAULT_OUT_UI_DIR = "Assets\\BundleAssets\\UI";
+        
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
             string[] movedFromAssetPaths)
         {
@@ -35,23 +38,23 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
 
             var extension = Path.GetExtension(path);
 
-            var uiDir = "Assets\\BundleAssets\\UI";
+            var uiDir = DEFAULT_OUT_UI_DIR;
             if (GlobalConfig.ResLoadMode == EResLoadMode.Resource)
-                uiDir = "Resources\\UI";
+                uiDir = "Assets\\Resources\\UI";
             
-            if (dir == uiDir)
+            if (dir == DEFAULT_OUT_UI_DIR)
             {
                 if (extension == ".bytes")
                 {
-                    MoveDesc(path, dir);
+                    MoveDesc(path, uiDir);
                 }
                 else if (extension == ".png")
                 {
-                    MovePng(path, dir);
+                    MovePng(path, uiDir);
                 }
             }
         }
-        
+
         private static void MoveDesc(string path, string dir)
         {
             var fileName = Path.GetFileName(path);
@@ -66,7 +69,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
             
             File.Move(path, newPath);
         }
-        
+
         private static void MovePng(string path, string dir)
         {
             var fileName = Path.GetFileName(path);
