@@ -7,6 +7,8 @@ namespace Engine.Scripts.Runtime.View
     {
         public EventGroup EventGroup { get; private set; }
 
+        public ViewArgsBase Args { get; private set; }
+
         public ViewModelBase()
         {
             EventGroup = new EventGroup(EEventGroup.GameLogic);
@@ -14,7 +16,7 @@ namespace Engine.Scripts.Runtime.View
             OnRegGameEvents();
         }
 
-        public abstract void Init(ViewBase view);
+        public abstract void Init(ViewBase view, ViewArgsBase args);
         
         protected abstract void OnRegGameEvents();
 
