@@ -16,7 +16,14 @@ namespace Engine.Scripts.Runtime.View
             OnRegGameEvents();
         }
 
-        public abstract void Init(ViewBase view, ViewArgsBase args);
+        public void Init(ViewBase view, ViewArgsBase args)
+        {
+            Args = args;
+            
+            OnInit(view);
+        }
+        
+        public abstract void OnInit(ViewBase view);
         
         protected abstract void OnRegGameEvents();
 
