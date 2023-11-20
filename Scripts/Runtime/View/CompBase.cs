@@ -8,7 +8,7 @@ namespace Engine.Scripts.Runtime.View
         {
             onCreated = DoInit;
         }
-        
+            
         void DoInit()
         {
             InitChildren();

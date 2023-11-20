@@ -1,5 +1,4 @@
-﻿using Client.Scripts.Runtime.CameraStage;
-using Engine.Scripts.Runtime.Log;
+﻿using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
@@ -60,14 +59,17 @@ namespace Engine.Scripts.Runtime.CameraStage
             return _camTrans;
         }
 
-        public MainCameraStage GetMainCameraStage()
+        public bool GetStage<T>(out T stage) where T : CameraStageBase
         {
-            if (_currStage != null && _currStage.Key == ECameraStage.Main)
+            if (_currStage != null && _currStage.Key.GetType() == typeof(T))
             {
-                return _currStage as MainCameraStage;
+                stage = _currStage as T;
+                return true;
             }
 
-            return null;
+            stage = null;
+
+            return false;
         }
 
         public void Drag(Vector2 dir)

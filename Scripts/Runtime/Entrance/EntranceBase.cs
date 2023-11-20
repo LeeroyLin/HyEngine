@@ -2,17 +2,17 @@
 {
     public abstract class EntranceBase
     {
+        public void DoUpdate()
+        {
+            OnUpdate();
+        }
+
         public void Start()
         {
             OnInit();
             OnStart();
         }
-        
-        public void DoUpdate()
-        {
-            OnUpdate();
-        }
-        
+
         public void DoLateUpdate()
         {
             OnLateUpdate();
