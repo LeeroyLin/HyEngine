@@ -43,13 +43,19 @@ namespace Engine.Scripts.Runtime.Cfg
             return new List<C>(_dataList);
         }
 
-        public void Foreach(Action<C> callback)
+        /// <summary>
+        /// 遍历配置表
+        /// 返回true继续遍历，false中断遍历
+        /// </summary>
+        /// <param name="callback"></param>
+        public void Foreach(Func<C, bool> callback)
         {
             if (callback == null)
                 return;
             
             foreach (var val in _dataList)
-                callback(val);
+                if (!callback(val))
+                    break;
         }
 
         public List<C> Filter(Func<C, bool> checkHandler)
@@ -63,6 +69,8 @@ namespace Engine.Scripts.Runtime.Cfg
             {
                 if (checkHandler(data))
                     list.Add(data);
+
+                return true;
             });
 
             return list;

@@ -4,6 +4,9 @@
     {
         public void Init()
         {
+            OnInit();
         }
+
+        protected abstract void OnInit();
     }
 }
