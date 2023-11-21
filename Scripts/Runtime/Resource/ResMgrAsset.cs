@@ -22,6 +22,9 @@ namespace Engine.Scripts.Runtime.Resource
                         info.Value.AssetState = EAssetState.Loaded;
                         info.Value.Asset = info.Value.Req.asset;
                         info.Value.Req = null;
+
+                        if (info.Value.Asset == null)
+                            _log.Error($"Load asset '{info.Key}' failed.");
                         
                         // 完成后的回调
                         info.Value.OnLoaded?.Invoke(info.Value.Asset);
@@ -78,6 +81,9 @@ namespace Engine.Scripts.Runtime.Resource
             info = new AssetInfo(EAssetState.SyncLoading);
             _assetDic.TryAdd(relPath, info);
 
+            if (newAsset == null)
+                _log.Error($"Load asset '{relPath}' failed.");
+            
             info.Asset = newAsset;
             info.AssetState = EAssetState.Loaded;
 
@@ -117,6 +123,9 @@ namespace Engine.Scripts.Runtime.Resource
                 info.Asset = newAsset;
                 info.AssetState = EAssetState.Loaded;
 
+                if (info.Asset == null)
+                    _log.Error($"Load asset '{relPath}' failed.");
+
                 // 完成后的回调
                 info.OnLoaded?.Invoke(newAsset);
                 info.OnLoaded = null;
@@ -128,6 +137,9 @@ namespace Engine.Scripts.Runtime.Resource
                 
                 info.Asset = newAsset;
                 info.AssetState = EAssetState.Loaded;
+
+                if (info.Asset == null)
+                    _log.Error($"Load asset '{relPath}' failed.");
 
                 // 完成后的回调
                 info.OnLoaded?.Invoke(newAsset);

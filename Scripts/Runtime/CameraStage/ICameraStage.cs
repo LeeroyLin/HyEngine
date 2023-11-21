@@ -1,12 +1,10 @@
-﻿using UnityEngine;
-
-namespace Engine.Scripts.Runtime.CameraStage
+﻿namespace Engine.Scripts.Runtime.CameraStage
 {
     public interface ICameraStage
     {
+        int Key { get; protected set; }
+        
         void Exit();
         void Enter();
-        void OnDrag(Vector2 dir);
-        void OnZoom(float value);
     }
 }

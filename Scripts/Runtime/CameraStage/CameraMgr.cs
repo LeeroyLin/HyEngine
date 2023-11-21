@@ -8,7 +8,7 @@ namespace Engine.Scripts.Runtime.CameraStage
 {
     public class CameraMgr : SingletonClass<CameraMgr>, IManager
     {
-        private CameraStageBase _currStage;
+        private ICameraStage _currStage;
 
         private ICameraStageGenerator _generator;
 
@@ -26,11 +26,15 @@ namespace Engine.Scripts.Runtime.CameraStage
             _generator = generator;
             
             _log = new LogGroup("CameraStageMgr");
-            
-            CreateCamara();
         }
 
-        public void ChangeStage(string key)
+        public void SetCameraNode(Transform node)
+        {
+            _camTrans = node;
+            _camera = node.GetComponent<Camera>();
+        }
+
+        public void ChangeStage(int key)
         {
             if (_currStage?.Key == key)
             {
@@ -59,7 +63,7 @@ namespace Engine.Scripts.Runtime.CameraStage
             return _camTrans;
         }
 
-        public bool GetStage<T>(out T stage) where T : CameraStageBase
+        public bool GetStage<T>(out T stage) where T : class, ICameraStage
         {
             if (_currStage != null && _currStage.Key.GetType() == typeof(T))
             {
@@ -70,25 +74,6 @@ namespace Engine.Scripts.Runtime.CameraStage
             stage = null;
 
             return false;
-        }
-
-        public void Drag(Vector2 dir)
-        {
-            _currStage?.OnDrag(dir);
-        }
-
-        public void Zoom(float value)
-        {
-            _currStage?.OnZoom(value);
-        }
-
-        void CreateCamara()
-        {
-            var obj = ResMgr.Ins.GetAsset<GameObject>("Camera\\Main Camera.prefab");
-            obj.name = "Main Camera";
-            
-            _camera = obj.GetComponent<Camera>();
-            _camTrans = obj.transform;
         }
     }
 }

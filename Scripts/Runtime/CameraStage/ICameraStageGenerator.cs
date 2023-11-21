@@ -2,6 +2,6 @@
 {
     public interface ICameraStageGenerator
     {
-        CameraStageBase GetStageIns(string key);
+        ICameraStage GetStageIns(int key);
     }
 }
