@@ -1,6 +1,9 @@
-﻿namespace Engine.Scripts.Runtime.Utils
+﻿using UnityEngine;
+
+namespace Engine.Scripts.Runtime.Utils
 {
-    public class MonoHelper : SingletonScript<MonoHelper>
+    public class MonoHelper : SingletonClass<MonoHelper>
     {
+        public MonoBehaviour Behaviour { get; set; }
     }
 }

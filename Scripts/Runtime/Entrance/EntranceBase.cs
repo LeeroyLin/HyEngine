@@ -1,16 +1,21 @@
-﻿namespace Engine.Scripts.Runtime.Entrance
+﻿using Engine.Scripts.Runtime.Utils;
+using UnityEngine;
+
+namespace Engine.Scripts.Runtime.Entrance
 {
     public abstract class EntranceBase
     {
+        public void Start(MonoBehaviour behaviour)
+        {
+            MonoHelper.Ins.Behaviour = behaviour;
+            
+            OnInit();
+            OnStart();
+        }
+
         public void DoUpdate()
         {
             OnUpdate();
-        }
-
-        public void Start()
-        {
-            OnInit();
-            OnStart();
         }
 
         public void DoLateUpdate()
