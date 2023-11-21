@@ -48,7 +48,7 @@ namespace Engine.Scripts.Runtime.CameraStage
             
             // 获得新场景实例
             _currStage = _generator.GetStageIns(key);
-
+            
             // 回调
             _currStage.Enter();
         }
@@ -65,7 +65,7 @@ namespace Engine.Scripts.Runtime.CameraStage
 
         public bool GetStage<T>(out T stage) where T : class, ICameraStage
         {
-            if (_currStage != null && _currStage.Key.GetType() == typeof(T))
+            if (_currStage != null)
             {
                 stage = _currStage as T;
                 return true;

@@ -44,6 +44,7 @@ namespace Engine.Scripts.Runtime.Scene
             _current = _generator.GetSceneIns(key);
 
             // 回调
+            _current.Init();
             _current.Enter(args);
         }
     }
