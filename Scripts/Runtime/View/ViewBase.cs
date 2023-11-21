@@ -45,8 +45,6 @@ namespace Engine.Scripts.Runtime.View
 
         public void DoOpen(ViewArgsBase args = null)
         {
-            OnRegGameEvents();
-            
             vm.Init(this, args);
             
             OnOpen(args);
@@ -115,12 +113,6 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnDisposeChildren();
         
         protected abstract void InitViewModel();
-        
-        /// <summary>
-        /// 在打开界面时调用，关闭界面时自动注销事件.
-        /// 必须通过 ViewModel的EventGroup 变量注册事件
-        /// </summary>
-        protected abstract void OnRegGameEvents();
 
         /// <summary>
         /// 关闭自身
