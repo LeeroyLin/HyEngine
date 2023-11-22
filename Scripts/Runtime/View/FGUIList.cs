@@ -58,6 +58,24 @@ namespace Engine.Scripts.Runtime.View
             }
         }
 
+        /// <summary>
+        /// 设置行数
+        /// </summary>
+        /// <param name="num"></param>
+        public void SetRowNum(int num)
+        {
+            List.lineCount = num;
+        }
+
+        /// <summary>
+        /// 设置列数
+        /// </summary>
+        /// <param name="num"></param>
+        public void SetColumNum(int num)
+        {
+            List.columnCount = num;
+        }
+
         void OnShowListCell(int idx, GObject obj)
         {
             _showCellHandler(idx, obj as T);
