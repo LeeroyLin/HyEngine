@@ -20,8 +20,6 @@ namespace Engine.Scripts.Runtime.View
             if (isVirtual)
                 List.SetVirtual();
 
-            SetNum(initNum);
-
             _showCellHandler = showCellHandler;
 
             List.itemRenderer = OnShowListCell;
@@ -37,6 +35,8 @@ namespace Engine.Scripts.Runtime.View
                 _clickCellHandler = clickCellHandler;
                 List.onClickItem.Add(OnClickCell);
             }
+            
+            SetNum(initNum);
         }
 
         public void SetNum(int num)
