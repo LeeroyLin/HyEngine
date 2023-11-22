@@ -35,8 +35,9 @@ namespace Engine.Scripts.Runtime.View
                 _clickCellHandler = clickCellHandler;
                 List.onClickItem.Add(OnClickCell);
             }
-            
-            SetNum(initNum);
+
+            if (initNum > 0)
+                SetNum(initNum);
         }
 
         public void SetNum(int num)
