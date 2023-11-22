@@ -15,7 +15,7 @@ namespace Engine.Scripts.Runtime.View
             List = obj as GList;
         }
         
-        public void Init(bool isVirtual, int initNum, Action<int, T> showCellHandler, Action<int, T> clickCellHandler = null, Func<int, string> setCellHandler = null)
+        public void Init(bool isVirtual, Action<int, T> showCellHandler, Action<int, T> clickCellHandler = null, Func<int, string> setCellHandler = null)
         {
             if (isVirtual)
                 List.SetVirtual();
@@ -35,9 +35,6 @@ namespace Engine.Scripts.Runtime.View
                 _clickCellHandler = clickCellHandler;
                 List.onClickItem.Add(OnClickCell);
             }
-
-            if (initNum > 0)
-                SetNum(initNum);
         }
 
         public void SetNum(int num)
