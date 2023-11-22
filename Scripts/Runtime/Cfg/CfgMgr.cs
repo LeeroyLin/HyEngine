@@ -36,7 +36,7 @@ namespace Engine.Scripts.Runtime.Cfg
         {
             if (!GetI18nCfgNameByKey(key, out var cfgName))
             {
-                _log.Warning($"Wrong i18n key '{_log}'");
+                _log.Warning($"Wrong i18n key '{key}'");
                 
                 return key;
             }
@@ -57,7 +57,7 @@ namespace Engine.Scripts.Runtime.Cfg
 
             if (strs.Length > 2)
             {
-                cfgName = strs[0] + strs[1];
+                cfgName = strs[0] + "_" + strs[1];
                 return true;
             }
 

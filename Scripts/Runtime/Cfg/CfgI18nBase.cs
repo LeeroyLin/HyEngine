@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Engine.Scripts.Runtime.Log;
 
 namespace Engine.Scripts.Runtime.Cfg
 {
@@ -12,8 +13,12 @@ namespace Engine.Scripts.Runtime.Cfg
         // 记录所有数据，键为数据键名，值为不同语言的值，下标与_langIdxDic一致
         Dictionary<string, string[]> _dataDic;
 
+        private LogGroup _log;
+        
         public CfgI18nBase(string cfgName)
         {
+            _log = new LogGroup(cfgName);
+            
             CfgName = cfgName;
             
             _langIdxDic = OnGetLangIdxDic();
@@ -25,11 +30,19 @@ namespace Engine.Scripts.Runtime.Cfg
         
         public string GetByKey(string key, string langStr)
         {
-            if (!_langIdxDic.TryGetValue(key, out var idx))
+            if (!_langIdxDic.TryGetValue(langStr, out var idx))
+            {
+                _log.Warning($"Can not find i18n lang ''{langStr}' field in cfg '{CfgName}'");
+                
                 return key;
-            
-            if (!_dataDic.TryGetValue(langStr, out var dataList))
+            }
+
+            if (!_dataDic.TryGetValue(key, out var dataList))
+            {
+                _log.Warning($"Can not find i18n key '{key}' in cfg '{CfgName}'.");
+                
                 return key;
+            }
 
             return idx < dataList.Length ? dataList[idx] : key;
         }
