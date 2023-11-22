@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Utils;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Cfg
 {
@@ -11,8 +13,12 @@ namespace Engine.Scripts.Runtime.Cfg
         private Dictionary<K, C> _dataDic = new Dictionary<K, C>();
         private List<C> _dataList = new List<C>();
 
+        private LogGroup _log;
+        
         public CfgBase()
         {
+            _log = new LogGroup($"Cfg {GetType()}");
+            
             var dataArr = OnGetDataArr();
             foreach (var data in dataArr)
             {
@@ -25,7 +31,14 @@ namespace Engine.Scripts.Runtime.Cfg
         
         public C GetById(K key)
         {
-            return _dataDic[key];
+            if (!_dataDic.TryGetValue(key, out var data))
+            {
+                _log.Error($"Can not find key '{key}' in cfg '{GetType()}'");
+                
+                return null;
+            }
+            
+            return data;
         }
 
         public bool Has(K key)
