@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Engine.Scripts.Runtime.Language;
+using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
 
@@ -9,12 +10,16 @@ namespace Engine.Scripts.Runtime.Cfg
     {
         private Dictionary<string, CfgI18nBase> _i18nCfgDic = new Dictionary<string, CfgI18nBase>();
 
+        private LogGroup _log;
+        
         public void Reset()
         {
         }
 
         public void Init(ICfgI18nGenerator generator)
         {
+            _log = new LogGroup("CfgMgr");
+            
             var arr = generator.GetCfgI18nArr();
             foreach (var data in arr)
             {
@@ -30,10 +35,18 @@ namespace Engine.Scripts.Runtime.Cfg
         public string GetI18nVal(string key)
         {
             if (!GetI18nCfgNameByKey(key, out var cfgName))
-                return "";
+            {
+                _log.Warning($"Wrong i18n key '{_log}'");
+                
+                return key;
+            }
 
             if (!_i18nCfgDic.TryGetValue(cfgName, out var cfg))
-                return "";
+            {
+                _log.Warning($"Can not find i18n cfg '{cfgName}', key '{key}'");
+                
+                return key;
+            }
 
             return cfg.GetByKey(key, LanguageMgr.Ins.LangStr);
         }
