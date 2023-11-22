@@ -30,7 +30,7 @@ namespace Engine.Scripts.Runtime.Timer
 
         public TimerInfo(float delay, Action callback)
         {
-            _startAtMS = TimeUtil.GetTimestampMS();
+            _startAtMS = TimeUtilBase.GetTimestampMS();
             _cnt = 0;
             
             Delay = delay;
@@ -41,7 +41,7 @@ namespace Engine.Scripts.Runtime.Timer
         
         public TimerInfo(float delay, float interval, int limited, Action callback)
         {
-            _startAtMS = TimeUtil.GetTimestampMS();
+            _startAtMS = TimeUtilBase.GetTimestampMS();
             _cnt = 0;
             
             Delay = delay;
@@ -77,7 +77,7 @@ namespace Engine.Scripts.Runtime.Timer
         {
             var targetTime = _cnt == 0 ? Delay : Interval;
             long targetTimeMS = (long)(targetTime * 1000);
-            var leftMS = TimeUtil.LeftMS(_startAtMS + targetTimeMS);
+            var leftMS = TimeUtilBase.LeftMS(_startAtMS + targetTimeMS);
 
             return leftMS <= 0;
         }
@@ -96,7 +96,7 @@ namespace Engine.Scripts.Runtime.Timer
 
             _isMarked = true;
             
-            _startAtMS = TimeUtil.GetTimestampMS();
+            _startAtMS = TimeUtilBase.GetTimestampMS();
         }
 
         /// <summary>

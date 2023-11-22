@@ -83,7 +83,7 @@ namespace Engine.Scripts.Runtime.View
         public void Inactive()
         {
             IsActive = false;
-            InactiveAt = TimeUtil.GetTimestampMS();
+            InactiveAt = TimeUtilBase.GetTimestampMS();
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Engine.Scripts.Runtime.View
         /// <returns></returns>
         public bool IsExpired(long durationMS)
         {
-            var leftMS = TimeUtil.LeftMS(InactiveAt + durationMS);
+            var leftMS = TimeUtilBase.LeftMS(InactiveAt + durationMS);
 
             return leftMS <= 0;
         }
