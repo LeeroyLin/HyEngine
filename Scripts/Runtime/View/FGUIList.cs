@@ -1,5 +1,6 @@
 ﻿using System;
 using FairyGUI;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
@@ -37,9 +38,42 @@ namespace Engine.Scripts.Runtime.View
             }
         }
 
-        public void SetNum(int num)
+        /// <summary>
+        /// 设置列表数据数量
+        /// <param name="num">数量</param>
+        /// <param name="num">是否根据子节点适配宽。 FGUI编辑器里，必须禁用 "自动调整列表项目大小"</param> 
+        /// </summary>
+        public void SetNum(int num, bool isAdaptWidthByChildren = false)
         {
             List.numItems = num;
+            
+            if (isAdaptWidthByChildren)
+                AdaptWidthByChildren();
+        }
+
+        /// <summary>
+        /// 根据子节点，适配宽度
+        /// FGUI编辑器里，必须禁用 "自动调整列表项目大小"
+        /// </summary>
+        public void AdaptWidthByChildren()
+        {
+            if (List.isVirtual)
+            {
+                List.width = List.scrollPane.contentWidth;
+            }
+            else
+            {
+                var listChildren = List.GetChildren();
+                
+                float width = (listChildren.Length - 1) * List.columnGap;
+                
+                foreach (var child in listChildren)
+                {
+                    width += child.width;
+                }
+
+                List.width = width;
+            }
         }
 
         public void RefreshList()
