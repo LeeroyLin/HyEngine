@@ -59,13 +59,13 @@ namespace Engine.Scripts.Runtime.View
         {
             if (List.isVirtual)
             {
-                List.width = List.scrollPane.contentWidth;
+                List.width = List.scrollPane.contentWidth + List.margin.left + List.margin.right;
             }
             else
             {
                 var listChildren = List.GetChildren();
                 
-                float width = (listChildren.Length - 1) * List.columnGap;
+                float width = (listChildren.Length - 1) * List.columnGap + List.margin.left + List.margin.right;
                 
                 foreach (var child in listChildren)
                 {
