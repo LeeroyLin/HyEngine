@@ -136,7 +136,7 @@ namespace Engine.Scripts.Runtime.Utils
                 if (sec < val)
                     continue;
 
-                int num = sec / val;
+                int num = val > 0 ? sec / val : sec;
                 data.value = num;
 
                 sec -= num;
