@@ -139,24 +139,30 @@ namespace Engine.Scripts.Runtime.Utils
                 int num = val > 0 ? sec / val : sec;
                 data.value = num;
 
-                sec -= num;
+                sec -= num * val;
             }
-
+            
             for (int i = 0; i < list.Count; i++)
             {
                 var data = list[i];
                 
-                if (i != 0)
-                    sb.Append(":");
-
                 if (data.key == "D")
                 {
-                    sb.Append(data.value);
-                    sb.Append(dayUnit);
+                    if (data.value > 0)
+                    {
+                        sb.Append(data.value);
+                        sb.Append(dayUnit);
+                        sb.Append(":");
+                    }
                 }
                 else
                 {
-                    sb.Append(data.value.ToString().PadLeft(2, '0'));
+                    var v = data.value.ToString().PadLeft(2, '0');
+                    
+                    sb.Append(v);
+
+                    if (i < list.Count - 1)
+                        sb.Append(":");
                 }
             }
             
