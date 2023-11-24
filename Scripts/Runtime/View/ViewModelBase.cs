@@ -1,5 +1,6 @@
 ﻿using System;
 using Engine.Scripts.Runtime.Event;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
@@ -12,13 +13,13 @@ namespace Engine.Scripts.Runtime.View
         public ViewModelBase()
         {
             EventGroup = new EventGroup(EEventGroup.GameLogic);
-
-            OnRegGameEvents();
         }
 
         public void Init(ViewBase view, ViewArgsBase args)
         {
             Args = args;
+         
+            OnRegGameEvents();
             
             OnInit(view);
         }

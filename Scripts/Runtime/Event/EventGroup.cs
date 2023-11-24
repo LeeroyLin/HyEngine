@@ -88,6 +88,8 @@ namespace Engine.Scripts.Runtime.Event
             {
                 EventMgr.Ins.ClearEvent(Group, info.Value, info.Key);
             }
+            
+            _handlerDic.Clear();
         }
     }
 }
