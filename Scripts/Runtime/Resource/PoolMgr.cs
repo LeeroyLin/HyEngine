@@ -15,11 +15,6 @@ namespace Engine.Scripts.Runtime.Resource
         public static readonly int DEFAULT_CAPACITY = 10;
 
         /// <summary>
-        /// 最大容量
-        /// </summary>
-        public static readonly int MAX_CAPACITY = 50;
-
-        /// <summary>
         /// 对象池根节点
         /// </summary>
         public Transform PoolRoot { get; private set; }
@@ -108,7 +103,7 @@ namespace Engine.Scripts.Runtime.Resource
                 _dicPool.Add(key, poolData);
             }
             
-            poolData.SetCapacity(Mathf.Clamp(capacity, 0, MAX_CAPACITY));
+            poolData.SetCapacity(capacity);
         }
 
         /// <summary>
