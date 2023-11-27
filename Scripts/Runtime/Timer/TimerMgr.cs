@@ -31,28 +31,37 @@ namespace Engine.Scripts.Runtime.Timer
 
         public void OnUpdate()
         {
+            List<Action> actions = new List<Action>();
+            
             foreach (var data in _updateDic)
-            {
-                data.Value?.Invoke();
-            }
+                actions.Add(data.Value);
+
+            foreach (var action in actions)
+                action();
         }
 
         public void OnLateUpdate()
         {
+            List<Action> actions = new List<Action>();
+            
             foreach (var data in _lateUpdateDic)
-            {
-                data.Value?.Invoke();
-            }
+                actions.Add(data.Value);
+
+            foreach (var action in actions)
+                action();
         }
 
         public void OnFixedUpdate()
         {
             OnTick();
             
+            List<Action> actions = new List<Action>();
+            
             foreach (var data in _fixedUpdateDic)
-            {
-                data.Value?.Invoke();
-            }
+                actions.Add(data.Value);
+
+            foreach (var action in actions)
+                action();
         }
 
         public void UseUpdate(Action callback)
