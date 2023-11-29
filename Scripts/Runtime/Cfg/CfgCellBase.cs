@@ -26,7 +26,9 @@ namespace Engine.Scripts.Runtime.Cfg
 
             for (int i = 0; i < keyArr.Length; i++)
             {
-                for (int t = 0; t < keyArr.LongLength; t++)
+                var kArr = keyArr[i];
+                
+                for (int t = 0; t < kArr.Length; t++)
                 {
                     arr[i][t] = CfgMgr.Ins.GetI18nVal(keyArr[i][t]);
                 }
