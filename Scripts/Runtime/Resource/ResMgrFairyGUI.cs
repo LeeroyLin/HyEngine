@@ -47,8 +47,8 @@ namespace Engine.Scripts.Runtime.Resource
         void LoadInEditorMode(string pkgName)
         {
             #if UNITY_EDITOR
-            var path = "Assets\\BundleAssets\\UI";
-            var descPath = $"{path}\\Desc\\{pkgName}_fui.bytes";
+            var path = "Assets/BundleAssets/UI";
+            var descPath = $"{path}/Desc/{pkgName}_fui.bytes";
                     
             // 从路径加载描述文件
             TextAsset ta = AssetDatabase.LoadAssetAtPath<TextAsset>(descPath);
@@ -65,7 +65,7 @@ namespace Engine.Scripts.Runtime.Resource
 
                     var assetName = name;
                     
-                    var assetPath = $"{path}\\Res\\{pkgName}\\{assetName}{extension}";
+                    var assetPath = $"{path}/Res/{pkgName}/{assetName}{extension}";
                     
                     var asset = AssetDatabase.LoadAssetAtPath(assetPath, type);
 
@@ -77,7 +77,7 @@ namespace Engine.Scripts.Runtime.Resource
         void LoadInResourceMode(string pkgName)
         {
             var path = "UI";
-            var descPath = $"{path}\\Desc\\{pkgName}_fui.bytes";
+            var descPath = $"{path}/Desc/{pkgName}_fui.bytes";
                     
             // 从路径加载描述文件
             TextAsset ta = GetAssetFromResource<TextAsset>(descPath);
@@ -94,7 +94,7 @@ namespace Engine.Scripts.Runtime.Resource
 
                     var assetName = name;
                     
-                    var assetPath = $"{path}\\Res\\{pkgName}\\{assetName}{extension}";
+                    var assetPath = $"{path}/Res/{pkgName}/{assetName}{extension}";
 
                     var asset = GetAssetFromResource(assetPath, type);
 
@@ -105,8 +105,8 @@ namespace Engine.Scripts.Runtime.Resource
         // AB模式加载
         void LoadInABMode(string pkgName)
         {
-            var descABName = $"UI\\Desc\\{pkgName}_fui";
-            var resABName = $"UI\\Res\\{pkgName}";
+            var descABName = $"UI/Desc/{pkgName}_fui";
+            var resABName = $"UI/Res/{pkgName}";
 
             var abDesc = LoadABWithABName(descABName);
             var abRes = LoadABWithABName(resABName);

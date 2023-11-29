@@ -58,7 +58,7 @@ namespace Engine.Scripts.Runtime.Resource
             if (_resLoadMode == EResLoadMode.Editor)
             {
                 #if UNITY_EDITOR
-                string p = $"Assets\\BundleAssets\\{relPath}";
+                string p = $"Assets/BundleAssets/{relPath}";
                 newAsset = AssetDatabase.LoadAssetAtPath<T>(p);
                 #endif
             }
@@ -118,7 +118,7 @@ namespace Engine.Scripts.Runtime.Resource
             if (_resLoadMode == EResLoadMode.Editor)
             {
                 #if UNITY_EDITOR
-                var newAsset = AssetDatabase.LoadAssetAtPath<T>($"Assets\\BundleAssets\\{relPath}");
+                var newAsset = AssetDatabase.LoadAssetAtPath<T>($"Assets/BundleAssets/{relPath}");
                 
                 info.Asset = newAsset;
                 info.AssetState = EAssetState.Loaded;

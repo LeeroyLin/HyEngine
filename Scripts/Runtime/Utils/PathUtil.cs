@@ -24,7 +24,7 @@ namespace Engine.Scripts.Runtime.Utils
         {
             var path = assetsPath.Substring(7);
 
-            return Path.Combine(Application.dataPath, path).Replace("/", "\\");
+            return Path.Combine(Application.dataPath, path).Replace("\\", "/");
         }
 
         /// <summary>
