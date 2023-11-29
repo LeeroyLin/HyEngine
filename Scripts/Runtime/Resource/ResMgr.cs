@@ -4,12 +4,16 @@ using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Timer;
 using Engine.Scripts.Runtime.Utils;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.U2D;
 
 namespace Engine.Scripts.Runtime.Resource
 {
     public partial class ResMgr : SingletonClass<ResMgr>, IManager
     {
+        public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
+        
         // 记录已加载的ab，键名为ab名
         private Dictionary<string, ABInfo> _abDic = new ();
 
@@ -29,6 +33,35 @@ namespace Engine.Scripts.Runtime.Resource
 
             // 注册定时器
             TimerMgr.Ins.UseLateUpdate(OnTimer);
+            
+            SpriteAtlasManager.atlasRequested += RequestAtlas;
+        }
+        
+        private void RequestAtlas(string atlasName, Action<SpriteAtlas> callback)
+        {
+            SpriteAtlas atlas = null;
+            if (_resLoadMode == EResLoadMode.Editor)
+            {
+                #if UNITY_EDITOR
+                atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>($"{BUNDLE_ASSETS_PATH}Atlas/{atlasName}.spriteatlasv2");
+                #endif
+            }
+            else if (_resLoadMode == EResLoadMode.Resource)
+            {
+                atlas = Resources.Load<SpriteAtlas>($"Atlas/{atlasName}.spriteatlasv2");
+            }
+            else
+            {
+                var abRelPath = $"Atlas/{atlasName}";
+                
+                // 加载ab
+                var ab = LoadAB(abRelPath);
+
+                // 加载资源
+                atlas = ab.LoadAsset<SpriteAtlas>(atlasName);
+            }
+            
+            callback(atlas);
         }
 
         /// <summary>

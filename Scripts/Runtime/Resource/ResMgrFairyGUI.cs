@@ -47,7 +47,7 @@ namespace Engine.Scripts.Runtime.Resource
         void LoadInEditorMode(string pkgName)
         {
             #if UNITY_EDITOR
-            var path = "Assets/BundleAssets/UI";
+            var path = $"{BUNDLE_ASSETS_PATH}UI";
             var descPath = $"{path}/Desc/{pkgName}_fui.bytes";
                     
             // 从路径加载描述文件

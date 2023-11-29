@@ -28,11 +28,15 @@ namespace Engine.Scripts.Runtime.Resource
         public Action<Object> OnLoaded { get; set; }
         
         // 异步加载对象
-        public  AssetBundleRequest Req { get; set; }
+        public AssetBundleRequest Req { get; set; }
         
-        public AssetInfo(EAssetState assetState)
+        public bool IsAtlas { get; private set; }
+        public string SpriteName { get; set; }
+        
+        public AssetInfo(EAssetState assetState, bool isAtlas)
         {
             AssetState = assetState;
+            IsAtlas = isAtlas;
         }
         
         // 减少引用

@@ -38,7 +38,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
 
             if (_config == null)
             {
-                Debug.LogError("【Bundle Config】 There is no BundleConfigData.asset at Assets/BundleAssets/BundleConfig");
+                Debug.LogError($"【Bundle Config】 There is no BundleConfigData.asset at {ResMgr.BUNDLE_ASSETS_PATH}BundleConfig");
                 return;
             }
 

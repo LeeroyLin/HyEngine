@@ -11,7 +11,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 {
     public partial  class BundleBuilder
     {
-        public static string CONFIG_PATH = "Assets/BundleAssets/BundleConfig/BundleConfigData.asset";
+        public static string CONFIG_PATH = $"{ResMgr.BUNDLE_ASSETS_PATH}BundleConfig/BundleConfigData.asset";
         public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
         
         private static BundleConfig _config;
@@ -48,7 +48,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 _config = AssetDatabase.LoadAssetAtPath<BundleConfig>(CONFIG_PATH);
 
             if (_config == null)
-                Debug.LogError("【Bundle Builder】 There is no BundleConfigData.asset at Assets/BundleAssets/BundleConfig");
+                Debug.LogError($"【Bundle Builder】 There is no BundleConfigData.asset at {ResMgr.BUNDLE_ASSETS_PATH}BundleConfig");
         }
     }
     
