@@ -99,10 +99,11 @@ namespace Engine.Scripts.Runtime.Utils
         /// 根据格式化字符串内容，格式化时间显示
         /// </summary>
         /// <param name="sec">秒</param>
+        /// <param name="isHideLeftZero">是否隐藏左侧0值 显示15:00 非00:15:00</param>
         /// <param name="pattern">格式化字符串, D:天 H:小时 M:分钟 S:秒</param>
         /// <param name="dayUnit">天，单位字符串。显示在天数后，例如："1d:5:23:1"</param>
         /// <returns></returns>
-        public static string GetFormatStr(int sec, string pattern = "DHMS", string dayUnit = "d")
+        public static string GetFormatStr(int sec, bool isHideLeftZero = false, string pattern = "DHMS", string dayUnit = "d")
         {
             StringBuilder sb = new StringBuilder();
             
@@ -141,6 +142,8 @@ namespace Engine.Scripts.Runtime.Utils
 
                 sec -= num * val;
             }
+
+            bool isShowAny = false;
             
             for (int i = 0; i < list.Count; i++)
             {
@@ -153,16 +156,23 @@ namespace Engine.Scripts.Runtime.Utils
                         sb.Append(data.value);
                         sb.Append(dayUnit);
                         sb.Append(":");
+
+                        isShowAny = true;
                     }
                 }
                 else
                 {
                     var v = data.value.ToString().PadLeft(2, '0');
-                    
-                    sb.Append(v);
 
-                    if (i < list.Count - 1)
-                        sb.Append(":");
+                    if (isShowAny || !isHideLeftZero || data.value > 0)
+                    {
+                        sb.Append(v);
+
+                        if (i < list.Count - 1)
+                            sb.Append(":");
+                        
+                        isShowAny = true;
+                    }
                 }
             }
             
