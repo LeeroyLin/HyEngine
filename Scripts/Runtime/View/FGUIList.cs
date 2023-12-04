@@ -110,6 +110,26 @@ namespace Engine.Scripts.Runtime.View
             List.columnCount = num;
         }
 
+        public void ScrollLeft()
+        {
+            List.scrollPane.ScrollLeft();
+        }
+
+        public void ScrollRight()
+        {
+            List.scrollPane.ScrollRight();
+        }
+
+        public void ScrollTop()
+        {
+            List.scrollPane.ScrollTop();
+        }
+
+        public void ScrollBottom()
+        {
+            List.scrollPane.ScrollBottom();
+        }
+
         void OnShowListCell(int idx, GObject obj)
         {
             _showCellHandler(idx, obj as T);
