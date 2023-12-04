@@ -31,8 +31,9 @@ namespace Engine.Scripts.Runtime.Cfg
         /// 通过多语言键名获得多语言文本
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
-        public string GetI18nVal(string key)
+        public string GetI18nVal(string key, params string[] args)
         {
             if (!GetI18nCfgNameByKey(key, out var cfgName))
             {
@@ -48,7 +49,16 @@ namespace Engine.Scripts.Runtime.Cfg
                 return key;
             }
 
-            return cfg.GetByKey(key, LanguageMgr.Ins.LangStr);
+            var content = cfg.GetByKey(key, LanguageMgr.Ins.LangStr);
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                var arg = args[i];
+
+                content = content.Replace("{0}", arg);
+            }
+            
+            return content;
         }
 
         bool GetI18nCfgNameByKey(string key, out string cfgName)
