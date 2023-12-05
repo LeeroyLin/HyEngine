@@ -111,11 +111,16 @@ namespace Engine.Scripts.Runtime.Event
                 return;
             }
 
+            List<Action<IEventData>> cbList = new List<Action<IEventData>>();
+            
             foreach (var cbId in list)
             {
-                if (_cbDic.TryGetValue(cbId, out var info))
-                    info.Callback?.Invoke(data);
+                if (_cbDic.TryGetValue(cbId, out var info) && info.Callback != null)
+                    cbList.Add(info.Callback);
             }
+
+            foreach (var cb in cbList)
+                cb(data);
         }
 
         /// <summary>
@@ -192,17 +197,24 @@ namespace Engine.Scripts.Runtime.Event
 
         void OnTimer()
         {
-            foreach (var info in _asyncList)
+            List<Action<IEventData>> cbList = new List<Action<IEventData>>();
+            
+            foreach (var asyncInfo in _asyncList)
             {
-                var groupDic = GetGroupDic(info.Group);
-                if (groupDic.TryGetValue(info.Key, out var list))
+                var groupDic = GetGroupDic(asyncInfo.Group);
+                if (!groupDic.TryGetValue(asyncInfo.Key, out var list))
+                    continue;
+                
+                cbList.Clear();
+
+                foreach (var cbId in list)
                 {
-                    foreach (var cbId in list)
-                    {
-                        if (_cbDic.TryGetValue(cbId, out var i))
-                            i.Callback?.Invoke(info.Data);
-                    }
+                    if (_cbDic.TryGetValue(cbId, out var info) && info.Callback != null)
+                        cbList.Add(info.Callback);
                 }
+                
+                foreach (var cb in cbList)
+                    cb(asyncInfo.Data);
             }
             
             _asyncList.Clear();
