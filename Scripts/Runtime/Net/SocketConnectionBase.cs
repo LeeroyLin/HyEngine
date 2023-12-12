@@ -3,7 +3,6 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Log;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Net
 {
@@ -18,16 +17,18 @@ namespace Engine.Scripts.Runtime.Net
         public Action OnDisconnected { get; set; }
         public Action<NetMsg> OnRecData { get; set; }
         public IConnMsgPack MsgPack { get; protected set; }
-        public ushort MsgId { get; private set; }
         public LogGroup Log { get; protected set; }
         
+        public int MaxMsgContentLen { get; protected set; }
+        public ushort MsgId { get; private set; }
+
         byte[] _bytes = new byte[1024];
         
         MemoryStream _stream = new MemoryStream();
         
         private bool _isHasData = false;
 
-        public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt)
+        public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt, int maxMsgContentLen)
         {
             Log = new LogGroup($"Conn {host}:{port}");
             
@@ -35,6 +36,7 @@ namespace Engine.Scripts.Runtime.Net
             Port = port;
             MsgPack = msgPack;
             IsEncrypt = isEncrypt;
+            MaxMsgContentLen = maxMsgContentLen;
             
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             MsgId = 0;
@@ -92,6 +94,13 @@ namespace Engine.Scripts.Runtime.Net
 
         public void SendMsg(ushort protoId, byte[] bytes)
         {
+            if (bytes.Length > MaxMsgContentLen)
+            {
+                Log.Error($"Send msg failed. Msg len '{bytes.Length}' lager than max msg len '{MaxMsgContentLen}'.");
+                
+                return;
+            }
+            
             var msg = new NetMsg(MsgId, protoId, (UInt32)bytes.Length, bytes);
 
             bytes = MsgPack.Pack(msg, IsEncrypt);
@@ -156,7 +165,6 @@ namespace Engine.Scripts.Runtime.Net
             _stream.SetLength(0);
         }
 
-        private TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
         async Task<bool> ReadMsgHeader()
         {
             if (_stream.Length < MsgPack.HeadLen())
@@ -193,6 +201,16 @@ namespace Engine.Scripts.Runtime.Net
             }
 
             MsgPack.UnPackHead(_stream, IsEncrypt);
+
+            int contentLen = MsgPack.ContentLen();
+            if (contentLen > MaxMsgContentLen)
+            {
+                ResetStream();
+                
+                Log.Error($"Receive msg len '{contentLen}' lager than max msg len '{MaxMsgContentLen}'.");
+                
+                return false;
+            }
             
             _isHasData = true;
 

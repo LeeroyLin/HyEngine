@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Engine.Scripts.Runtime.Encrypt;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Net
 {
@@ -11,8 +10,8 @@ namespace Engine.Scripts.Runtime.Net
         protected byte[] _byte2_2 = new byte[2];
         protected byte[] _byte4 = new byte[4];
         protected byte[] _byte8 = new byte[8];
-        protected NetMsg NetMsg;
 
+        protected NetMsg netMsg;
         protected UInt32 contentLen;
 
         protected MemoryStream packStream;
@@ -22,7 +21,7 @@ namespace Engine.Scripts.Runtime.Net
             packStream = new MemoryStream();
             RC4.SetKey("Mz,*'cP,.:'|z2");
         }
-        
+
         public int HeadLen()
         {
             return 8;
@@ -30,7 +29,7 @@ namespace Engine.Scripts.Runtime.Net
 
         public int ContentLen()
         {
-            return (int)NetMsg.ContentLen;
+            return (int)netMsg.ContentLen;
         }
 
         public byte[] Pack(NetMsg msg, bool isEncrypt)
@@ -91,7 +90,7 @@ namespace Engine.Scripts.Runtime.Net
                 contentLen = ReadByte4FromStream(stream);
             }
             
-            NetMsg = new NetMsg(serialId, protoId, contentLen);
+            netMsg = new NetMsg(serialId, protoId, contentLen);
             
             stream.Position = stream.Length - 1;
         }
@@ -103,11 +102,11 @@ namespace Engine.Scripts.Runtime.Net
             var contentBytes = new byte[ContentLen()];
             stream.Read(contentBytes, 0, ContentLen());
             
-            NetMsg.SetData(contentBytes);
+            netMsg.SetData(contentBytes);
             
             stream.Position = stream.Length - 1;
 
-            return NetMsg;
+            return netMsg;
         }
         
         protected ushort ReadByte2FromStream(MemoryStream stream)
