@@ -15,6 +15,7 @@ namespace Engine.Scripts.Runtime.Net
         
         public Action<Socket> OnConnected { get; set; }
         public Action OnDisconnected { get; set; }
+        public Action<NetMsg> OnSendData { get; set; }
         public Action<NetMsg> OnRecData { get; set; }
         public IConnMsgPack MsgPack { get; protected set; }
         public LogGroup Log { get; protected set; }
@@ -24,7 +25,7 @@ namespace Engine.Scripts.Runtime.Net
 
         byte[] _bytes = new byte[1024];
         
-        MemoryStream _stream = new MemoryStream();
+        QueueBuffer _buffer = new QueueBuffer();
         
         private bool _isHasData = false;
 
@@ -119,6 +120,8 @@ namespace Engine.Scripts.Runtime.Net
             {
                 Log.Error($"Send message failed. {e.Message}");
             }
+            
+            OnSendData?.Invoke(msg);
 
             AddMsgId();
         }
@@ -167,13 +170,12 @@ namespace Engine.Scripts.Runtime.Net
 
         void ResetStream()
         {
-            _stream.Position = 0;
-            _stream.SetLength(0);
+            _buffer.Reset();
         }
 
         async Task<bool> ReadMsgHeader()
         {
-            if (_stream.Length < MsgPack.HeadLen())
+            if (_buffer.Length < MsgPack.HeadLen())
             {
                 int length = 0;
 
@@ -193,15 +195,15 @@ namespace Engine.Scripts.Runtime.Net
                     return false;
                 }
 
-                if (length == 0 && _stream.Length == 0)
+                if (length == 0 && _buffer.Length == 0)
                     return true;
                 
                 if (length > 0)
-                    _stream.Write(_bytes, 0, length);
+                    _buffer.Write(_bytes, length);
             
-                if (_stream.Length < MsgPack.HeadLen())
+                if (_buffer.Length < MsgPack.HeadLen())
                 {
-                    Log.Error($"Msg head length '{_stream.Length}' not enough.");
+                    Log.Error($"Msg head length '{_buffer.Length}' not enough.");
                 
                     ResetStream();
 
@@ -209,7 +211,7 @@ namespace Engine.Scripts.Runtime.Net
                 }
             }
 
-            MsgPack.UnPackHead(_stream, IsEncrypt);
+            MsgPack.UnPackHead(_buffer, IsEncrypt);
 
             int contentLen = MsgPack.ContentLen();
             if (contentLen > MaxMsgContentLen)
@@ -232,7 +234,7 @@ namespace Engine.Scripts.Runtime.Net
         {
             int contentLen = MsgPack.ContentLen();
             
-            if (_stream.Length < contentLen)
+            if (_buffer.Length < contentLen)
             {
                 int length = 0;
 
@@ -253,10 +255,10 @@ namespace Engine.Scripts.Runtime.Net
                 }
                 
                 if (length > 0)
-                    _stream.Write(_bytes, 0, length);
+                    _buffer.Write(_bytes, length);
                 else
                 {
-                    Log.Error($"Msg content length '{_stream.Length}' not enough. Head set length is: '{contentLen}'");
+                    Log.Error($"Msg content length '{_buffer.Length}' not enough. Head set length is: '{contentLen}'");
 
                     ResetStream();
                     
@@ -265,13 +267,13 @@ namespace Engine.Scripts.Runtime.Net
                     return true;
                 }
 
-                if (_stream.Length < contentLen)
+                if (_buffer.Length < contentLen)
                     return true;
             }
 
             _isHasData = false;
 
-            var msg = MsgPack.UnPackContent(_stream, IsEncrypt);
+            var msg = MsgPack.UnPackContent(_buffer, IsEncrypt);
             
             // 回调
             OnRecData?.Invoke(msg);
