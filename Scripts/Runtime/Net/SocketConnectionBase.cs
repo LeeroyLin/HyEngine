@@ -105,10 +105,7 @@ namespace Engine.Scripts.Runtime.Net
             catch (Exception e)
             {
                 Log.Error($"Send message failed. {e.Message}");
-                return;
             }
-            
-            Log.Log($"Send message success.");
         }
 
         protected void AddMsgId()
