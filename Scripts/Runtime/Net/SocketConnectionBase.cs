@@ -2,12 +2,13 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Engine.Scripts.Runtime.Log;
 
 namespace Engine.Scripts.Runtime.Net
 {
-    public class SocketConnectionBase : ISocketConnection
+    public abstract class SocketConnectionBase : ISocketConnection
     {
-        static readonly int HEADER_LEN = 8;
+        static readonly int HEADER_LEN = 6;
         
         public string Host { get; private set; }
         public int Port { get; private set; }
@@ -17,27 +18,65 @@ namespace Engine.Scripts.Runtime.Net
         public Action OnDisconnected { get; set; }
         public Action<int, int, byte[]> OnRecData { get; set; }
         
-        byte[] _bytes = new byte[1024 * 3];
+        byte[] _bytes = new byte[1024];
         byte[] _byte2 = new byte[2];
         byte[] _byte4 = new byte[4];
         
         MemoryStream _stream = new MemoryStream();
+
+        protected LogGroup log;
+        
+        private int _serialId = 0;
+        private int _protoId = 0;
+        private int _contentLen = 0;
+        private bool _isHasData = false;
 
         public SocketConnectionBase(string host, int port)
         {
             Host = host;
             Port = port;
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            log = new LogGroup($"Conn {host}:{port}");
         }
 
         public void Connect()
         {
-            Socket.BeginConnect(Host, Port, OnSocketConnected, null);
+            log.Log($"Start connect to {Host}:{Port}");
+            
+            try
+            {
+                Socket.Connect(Host, Port);
+            }
+            catch (Exception e)
+            {
+                log.Error($"Connect to {Host}:{Port} failed. {e.Message}");
+                
+                return;
+            }
+
+            log.Log($"Connect to {Host}:{Port} success.");
+
+            OnConnected?.Invoke(Socket);
+
+            StartReceive();
         }
 
         public void Disconnect()
         {
-            Socket.BeginDisconnect(true, OnSocketDisconnected, null);
+            try
+            {
+                Socket.Disconnect(false);
+            }
+            catch (Exception e)
+            {
+                log.Error($"Disconnect to {Host}:{Port} failed. {e.Message}");
+                
+                return;
+            }
+
+            log.Log($"Disconnect to {Host}:{Port} success.");
+            
+            OnDisconnected?.Invoke();
         }
 
         public void Shutdown()
@@ -48,95 +87,109 @@ namespace Engine.Scripts.Runtime.Net
 
         public void SendMsg(byte[] bytes)
         {
-            // 包头拼接
-            
-            Socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, OnSocketSend, null);
-        }
-
-        void OnSocketConnected(IAsyncResult ar)
-        {
-            Socket.EndConnect(ar);
-            OnConnected?.Invoke(Socket);
-
-            StartReceive();
-        }
-
-        void OnSocketDisconnected(IAsyncResult ar)
-        {
-            Socket.EndDisconnect(ar);
-            OnDisconnected?.Invoke();
-        }
-
-        void OnSocketSend(IAsyncResult ar)
-        {
-            Socket.EndSend(ar);
+            try
+            {
+                Socket.Send(bytes, 0, bytes.Length, SocketFlags.None);
+            }
+            catch (Exception e)
+            {
+                log.Error($"Send message failed. {e.Message}");
+            }
         }
 
         /// <summary>
         /// 开始接收数据
-        /// 包头：协议号2b 序列号2b 内容长度4b
+        /// 包头：协议号2b 序列号2b 内容长度2b
         /// </summary>
         async void StartReceive()
         {
+            log.Log($"Start receive server msg data...");
+            
+            ResetStream();
+
             while (Socket.Connected)
             {
-                ReadData();
+                if (!_isHasData)
+                    ReadMsgHeader();
+
+                if (!_isHasData)
+                    return;
+            
+                ReadMsgContent();
                 
-                await Task.Delay(20);
+                await Task.Delay(1);
             }
+            
+            log.Log($"Finish receive server msg data.");
         }
 
-        void ReadData()
+        void ResetStream()
         {
             _stream.Position = 0;
             _stream.SetLength(0);
-            
-            int length = Socket.Receive(_bytes);
-    
-            if (length == 0)
-                return;
-            
-            _stream.Write(_bytes, 0, length);
-
-            while (_stream.Length > 0)
-            {
-                if (_stream.Length <= HEADER_LEN)
-                {
-                    // todo 数据过短
-                
-                    return;
-                }
-                
-                ReadOneProtoData();
-            }
         }
 
-        void ReadOneProtoData()
+        void ReadMsgHeader()
         {
-            int protoId = ReadByte2FromStream();
-            int serialId = ReadByte2FromStream();
-            int contentLen = ReadByte4FromStream();
-
-            while (_stream.Length < contentLen)
+            if (_stream.Length < HEADER_LEN)
             {
                 int length = Socket.Receive(_bytes);
 
-                if (length == 0)
+                if (length == 0 && _stream.Length == 0)
+                    return;
+                
+                if (length > 0)
+                    _stream.Write(_bytes, 0, length);
+            
+                if (_stream.Length < HEADER_LEN)
                 {
-                    // todo 内容数据不完整
+                    log.Error($"Msg head length '{_stream.Length}' not enough.");
+                
+                    ResetStream();
+                
                     return;
                 }
-                
-                _stream.Write(_bytes, 0, length);
             }
             
-            var contentBytes = new byte[contentLen];
-            _stream.Read(contentBytes, 0, contentLen);
+            _serialId = ReadByte2FromStream();
+            _protoId = ReadByte2FromStream();
+            _contentLen = ReadByte4FromStream();
             
-            // 回调
-            OnRecData?.Invoke(protoId, serialId, contentBytes);
+            _isHasData = true;
         }
 
+        void ReadMsgContent()
+        {
+            if (_stream.Length < _contentLen)
+            {
+                int length = Socket.Receive(_bytes);
+
+                if (length > 0)
+                    _stream.Write(_bytes, 0, length);
+                else
+                {
+                    log.Error($"Msg content length '{_stream.Length}' not enough. Head set length is: '{_contentLen}'");
+
+                    ResetStream();
+                    
+                    _isHasData = false;
+                    
+                    return;
+                }
+
+                if (_stream.Length < _contentLen)
+                    return;
+            }
+            
+            var contentBytes = new byte[_contentLen];
+            _stream.Read(contentBytes, 0, _contentLen);
+
+            _isHasData = false;
+            
+            // 回调
+            OnRecData?.Invoke(_protoId, _serialId, contentBytes);
+        }
+        
         protected int ReadByte2FromStream()
         {
             _stream.Read(_byte2, 0, 2);

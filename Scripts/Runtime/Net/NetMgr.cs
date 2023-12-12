@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
+using Engine.Scripts.Runtime.Utils;
 
 namespace Engine.Scripts.Runtime.Net
 {
-    public class NetMgr : IManager
+    public class NetMgr : SingletonClass<NetMgr>, IManager
     {
         private Dictionary<string, SocketConnectionBase> _connDic = new Dictionary<string, SocketConnectionBase>();
 
@@ -27,9 +26,20 @@ namespace Engine.Scripts.Runtime.Net
             _connDic.Clear();
             foreach (var conn in connList)
             {
-                var key = GetKey(conn);
+                var key = GetKey(conn.Host, conn.Port);
                 _connDic.Add(key, conn);
             }
+        }
+
+        public void Dispose()
+        {
+            ClearConnDic();
+        }
+
+        public SocketConnectionBase GetConn(string host, int port)
+        {
+            var key = GetKey(host, port);
+            return _connDic[key];
         }
 
         void ClearConnDic()
@@ -40,9 +50,9 @@ namespace Engine.Scripts.Runtime.Net
             _connDic.Clear();
         }
         
-        string GetKey(SocketConnectionBase conn)
+        string GetKey(string host, int port)
         {
-            return $"{conn.Host}:{conn.Port}";
+            return $"{host}:{port}";
         }
     }
 }

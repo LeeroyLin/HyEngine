@@ -18,6 +18,11 @@ namespace Engine.Scripts.Runtime.Entrance
             OnUpdate();
         }
 
+        public void DoDispose()
+        {
+            OnDispose();
+        }
+
         public void DoLateUpdate()
         {
             OnLateUpdate();
@@ -30,6 +35,7 @@ namespace Engine.Scripts.Runtime.Entrance
 
         protected abstract void OnInit();
         protected abstract void OnStart();
+        protected abstract void OnDispose();
         protected abstract void OnUpdate();
         protected abstract void OnLateUpdate();
         protected abstract void OnFixedUpdate();
