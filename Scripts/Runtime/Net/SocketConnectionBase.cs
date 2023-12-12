@@ -85,11 +85,13 @@ namespace Engine.Scripts.Runtime.Net
         public void Shutdown()
         {
             if (Socket.Connected)
-                Socket.Shutdown(SocketShutdown.Both);
+            {
+                Socket.Shutdown(SocketShutdown.Both);   
+
+                Log.Log($"Shutdown connection {Host}:{Port} success.");
+            }
             
             Socket.Close();
-
-            Log.Log($"Shutdown connection {Host}:{Port} success.");
         }
 
         public void SendMsg(ushort protoId, byte[] bytes)
@@ -104,8 +106,6 @@ namespace Engine.Scripts.Runtime.Net
             var msg = new NetMsg(MsgId, protoId, (UInt32)bytes.Length, bytes);
 
             bytes = MsgPack.Pack(msg, IsEncrypt);
-
-            AddMsgId();
             
             try
             {
@@ -115,6 +115,8 @@ namespace Engine.Scripts.Runtime.Net
             {
                 Log.Error($"Send message failed. {e.Message}");
             }
+
+            AddMsgId();
         }
 
         protected void AddMsgId()
@@ -208,6 +210,8 @@ namespace Engine.Scripts.Runtime.Net
                 ResetStream();
                 
                 Log.Error($"Receive msg len '{contentLen}' lager than max msg len '{MaxMsgContentLen}'.");
+                
+                Shutdown();
                 
                 return false;
             }
