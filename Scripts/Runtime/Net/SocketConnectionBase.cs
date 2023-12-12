@@ -84,6 +84,9 @@ namespace Engine.Scripts.Runtime.Net
 
         public void Shutdown()
         {
+            if (Socket == null)
+                return;
+            
             if (Socket.Connected)
             {
                 Socket.Shutdown(SocketShutdown.Both);   
@@ -92,6 +95,7 @@ namespace Engine.Scripts.Runtime.Net
             }
             
             Socket.Close();
+            Socket = null;
         }
 
         public void SendMsg(ushort protoId, byte[] bytes)
@@ -137,7 +141,7 @@ namespace Engine.Scripts.Runtime.Net
             
             ResetStream();
 
-            while (Socket.Connected)
+            while (Socket != null && Socket.Connected)
             {
                 await Task.Delay(1);
 
@@ -151,7 +155,7 @@ namespace Engine.Scripts.Runtime.Net
                 }
 
                 if (!_isHasData)
-                    break;
+                    continue;
 
                 isContinue = await ReadMsgContent();
                 if (!isContinue)
@@ -179,6 +183,9 @@ namespace Engine.Scripts.Runtime.Net
                 }
                 catch (Exception e)
                 {
+                    if (Socket == null)
+                        return false;
+                    
                     Log.Error($"Receive msg error: '{e.Message}'.");
                     
                     Shutdown();
@@ -235,6 +242,9 @@ namespace Engine.Scripts.Runtime.Net
                 }
                 catch (Exception e)
                 {
+                    if (Socket == null)
+                        return false;
+
                     Log.Error($"Receive msg error: '{e.Message}'.");
                     
                     Shutdown();
