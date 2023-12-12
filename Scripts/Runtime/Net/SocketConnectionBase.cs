@@ -3,45 +3,46 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Log;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Net
 {
     public abstract class SocketConnectionBase : ISocketConnection
     {
-        static readonly int HEADER_LEN = 6;
-        
         public string Host { get; private set; }
         public int Port { get; private set; }
         public Socket Socket { get; private set; }
+        public bool IsEncrypt { get; private set; }
         
         public Action<Socket> OnConnected { get; set; }
         public Action OnDisconnected { get; set; }
-        public Action<int, int, byte[]> OnRecData { get; set; }
+        public Action<NetMsg> OnRecData { get; set; }
+        public IConnMsgPack MsgPack { get; protected set; }
+        public ushort MsgId { get; private set; }
+        public LogGroup Log { get; protected set; }
         
         byte[] _bytes = new byte[1024];
-        byte[] _byte2 = new byte[2];
-        byte[] _byte4 = new byte[4];
         
         MemoryStream _stream = new MemoryStream();
-
-        protected LogGroup log;
         
-        private int _serialId = 0;
-        private int _protoId = 0;
-        private int _contentLen = 0;
         private bool _isHasData = false;
 
-        public SocketConnectionBase(string host, int port)
+        public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt)
         {
+            Log = new LogGroup($"Conn {host}:{port}");
+            
             Host = host;
             Port = port;
+            MsgPack = msgPack;
+            IsEncrypt = isEncrypt;
+            
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            log = new LogGroup($"Conn {host}:{port}");
+            MsgId = 0;
         }
 
         public void Connect()
         {
-            log.Log($"Start connect to {Host}:{Port}");
+            Log.Log($"Start connect to {Host}:{Port}");
             
             try
             {
@@ -49,16 +50,16 @@ namespace Engine.Scripts.Runtime.Net
             }
             catch (Exception e)
             {
-                log.Error($"Connect to {Host}:{Port} failed. {e.Message}");
+                Log.Error($"Connect to {Host}:{Port} failed. {e.Message}");
                 
                 return;
             }
 
-            log.Log($"Connect to {Host}:{Port} success.");
-
-            OnConnected?.Invoke(Socket);
+            Log.Log($"Connect to {Host}:{Port} success.");
 
             StartReceive();
+
+            OnConnected?.Invoke(Socket);
         }
 
         public void Disconnect()
@@ -69,32 +70,53 @@ namespace Engine.Scripts.Runtime.Net
             }
             catch (Exception e)
             {
-                log.Error($"Disconnect to {Host}:{Port} failed. {e.Message}");
+                Log.Error($"Disconnect to {Host}:{Port} failed. {e.Message}");
                 
                 return;
             }
 
-            log.Log($"Disconnect to {Host}:{Port} success.");
+            Log.Log($"Disconnect to {Host}:{Port} success.");
             
             OnDisconnected?.Invoke();
         }
 
         public void Shutdown()
         {
-            Socket.Shutdown(SocketShutdown.Both);
+            if (Socket.Connected)
+                Socket.Shutdown(SocketShutdown.Both);
+            
             Socket.Close();
+
+            Log.Log($"Shutdown connection {Host}:{Port} success.");
         }
 
-        public void SendMsg(byte[] bytes)
+        public void SendMsg(ushort protoId, byte[] bytes)
         {
+            var msg = new NetMsg(MsgId, protoId, (UInt32)bytes.Length, bytes);
+
+            bytes = MsgPack.Pack(msg, IsEncrypt);
+
+            AddMsgId();
+            
             try
             {
                 Socket.Send(bytes, 0, bytes.Length, SocketFlags.None);
             }
             catch (Exception e)
             {
-                log.Error($"Send message failed. {e.Message}");
+                Log.Error($"Send message failed. {e.Message}");
+                return;
             }
+            
+            Log.Log($"Send message success.");
+        }
+
+        protected void AddMsgId()
+        {
+            if (MsgId == ushort.MaxValue)
+                MsgId = 0;
+            else            
+                MsgId++;
         }
 
         /// <summary>
@@ -103,24 +125,32 @@ namespace Engine.Scripts.Runtime.Net
         /// </summary>
         async void StartReceive()
         {
-            log.Log($"Start receive server msg data...");
+            Log.Log($"Start receive server msg data...");
             
             ResetStream();
 
             while (Socket.Connected)
             {
+                await Task.Delay(1);
+
+                var isContinue = true;
+                
                 if (!_isHasData)
-                    ReadMsgHeader();
+                {
+                    isContinue = await ReadMsgHeader();
+                    if (!isContinue)
+                        break;
+                }
 
                 if (!_isHasData)
-                    return;
-            
-                ReadMsgContent();
-                
-                await Task.Delay(1);
+                    break;
+
+                isContinue = await ReadMsgContent();
+                if (!isContinue)
+                    break;
             }
             
-            log.Log($"Finish receive server msg data.");
+            Log.Log($"Finish receive server msg data.");
         }
 
         void ResetStream()
@@ -129,79 +159,95 @@ namespace Engine.Scripts.Runtime.Net
             _stream.SetLength(0);
         }
 
-        void ReadMsgHeader()
+        private TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
+        async Task<bool> ReadMsgHeader()
         {
-            if (_stream.Length < HEADER_LEN)
+            if (_stream.Length < MsgPack.HeadLen())
             {
-                int length = Socket.Receive(_bytes);
+                int length = 0;
+
+                try
+                {
+                    length = await Socket.ReceiveAsync(_bytes, SocketFlags.None);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Receive msg error: '{e.Message}'.");
+                    
+                    Shutdown();
+                    
+                    return false;
+                }
 
                 if (length == 0 && _stream.Length == 0)
-                    return;
+                    return true;
                 
                 if (length > 0)
                     _stream.Write(_bytes, 0, length);
             
-                if (_stream.Length < HEADER_LEN)
+                if (_stream.Length < MsgPack.HeadLen())
                 {
-                    log.Error($"Msg head length '{_stream.Length}' not enough.");
+                    Log.Error($"Msg head length '{_stream.Length}' not enough.");
                 
                     ResetStream();
-                
-                    return;
+
+                    return true;
                 }
             }
-            
-            _serialId = ReadByte2FromStream();
-            _protoId = ReadByte2FromStream();
-            _contentLen = ReadByte4FromStream();
+
+            MsgPack.UnPackHead(_stream, IsEncrypt);
             
             _isHasData = true;
+
+            return true;
         }
 
-        void ReadMsgContent()
+        async Task<bool> ReadMsgContent()
         {
-            if (_stream.Length < _contentLen)
+            int contentLen = MsgPack.ContentLen();
+            
+            if (_stream.Length < contentLen)
             {
-                int length = Socket.Receive(_bytes);
+                int length = 0;
 
+                try
+                {
+                    length = await Socket.ReceiveAsync(_bytes, SocketFlags.None);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Receive msg error: '{e.Message}'.");
+                    
+                    Shutdown();
+                    
+                    return false;
+                }
+                
                 if (length > 0)
                     _stream.Write(_bytes, 0, length);
                 else
                 {
-                    log.Error($"Msg content length '{_stream.Length}' not enough. Head set length is: '{_contentLen}'");
+                    Log.Error($"Msg content length '{_stream.Length}' not enough. Head set length is: '{contentLen}'");
 
                     ResetStream();
                     
                     _isHasData = false;
                     
-                    return;
+                    return true;
                 }
 
-                if (_stream.Length < _contentLen)
-                    return;
+                if (_stream.Length < contentLen)
+                    return true;
             }
-            
-            var contentBytes = new byte[_contentLen];
-            _stream.Read(contentBytes, 0, _contentLen);
 
             _isHasData = false;
+
+            var msg = MsgPack.UnPackContent(_stream, IsEncrypt);
             
             // 回调
-            OnRecData?.Invoke(_protoId, _serialId, contentBytes);
-        }
-        
-        protected int ReadByte2FromStream()
-        {
-            _stream.Read(_byte2, 0, 2);
+            OnRecData?.Invoke(msg);
 
-            return BitConverter.ToInt32(_byte2);
-        }
-
-        protected int ReadByte4FromStream()
-        {
-            _stream.Read(_byte4, 0, 4);
-
-            return BitConverter.ToInt32(_byte2);
+            return true;
         }
     }
 }
