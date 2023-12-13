@@ -9,7 +9,7 @@ namespace Engine.Scripts.Runtime.Timer
     public class TimerMgr : SingletonClass<TimerMgr>, IManager
     {
         // 计时器计次，用于自增作为id
-        private static int _timerCnt = 0;
+        private static int _timerCnt = 1;
         
         private Dictionary<int, TimerInfo> _timerDic = new Dictionary<int, TimerInfo>();
         
@@ -22,6 +22,7 @@ namespace Engine.Scripts.Runtime.Timer
 
         public void Reset()
         {
+            _timerCnt = 1;
             Clear();
         }
 
@@ -193,7 +194,7 @@ namespace Engine.Scripts.Runtime.Timer
         private int GetNewTimerId()
         {
             if (_timerCnt == int.MaxValue)
-                _timerCnt = 0;
+                _timerCnt = 1;
             else
                 _timerCnt++;
             
