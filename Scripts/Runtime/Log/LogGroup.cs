@@ -26,8 +26,14 @@
             if (!IsEnabled)
                 return;
 
-            var content = $"【{Title}】 {string.Format(msg, args)}";
-            LogMgr.Ins.Log(content);
+            if (args.Length > 0)
+            {
+                var content = $"【{Title}】 {string.Format(msg, args)}";
+                LogMgr.Ins.Log(content);
+                return;
+            }
+            
+            LogMgr.Ins.Log(msg);
         }
 
         public void Error(string msg, params object[] args)
@@ -35,8 +41,14 @@
             if (!IsEnabled)
                 return;
             
-            var content = $"【{Title}】 {string.Format(msg, args)}";
-            LogMgr.Ins.LogError(content);
+            if (args.Length > 0)
+            {
+                var content = $"【{Title}】 {string.Format(msg, args)}";
+                LogMgr.Ins.LogError(content);
+                return;
+            }
+            
+            LogMgr.Ins.LogError(msg);
         }
 
         public void Warning(string msg, params object[] args)
@@ -44,8 +56,14 @@
             if (!IsEnabled)
                 return;
             
-            var content = $"【{Title}】 {string.Format(msg, args)}";
-            LogMgr.Ins.LogWarning(content);
+            if (args.Length > 0)
+            {
+                var content = $"【{Title}】 {string.Format(msg, args)}";
+                LogMgr.Ins.LogWarning(content);
+                return;
+            }
+            
+            LogMgr.Ins.LogWarning(msg);
         }
     }
 }
