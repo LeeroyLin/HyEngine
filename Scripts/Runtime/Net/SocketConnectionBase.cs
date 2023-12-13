@@ -43,13 +43,13 @@ namespace Engine.Scripts.Runtime.Net
             MsgId = 0;
         }
 
-        public void Connect()
+        public async void Connect()
         {
             Log.Log($"Start connect to {Host}:{Port}");
             
             try
             {
-                Socket.Connect(Host, Port);
+                await Socket.ConnectAsync(Host, Port);
             }
             catch (Exception e)
             {
@@ -101,7 +101,7 @@ namespace Engine.Scripts.Runtime.Net
             Socket = null;
         }
 
-        public void SendMsg(ushort protoId, byte[] bytes)
+        public async void SendMsg(ushort protoId, byte[] bytes)
         {
             if (bytes.Length > MaxMsgContentLen)
             {
@@ -116,7 +116,7 @@ namespace Engine.Scripts.Runtime.Net
             
             try
             {
-                Socket.Send(bytes, 0, bytes.Length, SocketFlags.None);
+                await Socket.SendAsync(bytes, SocketFlags.None);
             }
             catch (Exception e)
             {
