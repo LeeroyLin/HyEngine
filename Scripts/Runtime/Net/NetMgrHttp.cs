@@ -13,10 +13,14 @@ namespace Engine.Scripts.Runtime.Net
         /// Http Get 请求。
         /// </summary>
         /// <param name="url">url</param>
+        /// <param name="callback">回调</param>
+        /// <param name="failedCallback">失败回调</param>
         /// <param name="searchStrData">查询字符串数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <returns></returns>
-        public async Task<byte[]> HttpGet(string url, Dictionary<string, string> searchStrData = null, Dictionary<string, string> headerData = null)
+        public async void HttpGet(string url, Action<byte[]> callback, Action failedCallback, 
+            Dictionary<string, string> searchStrData = null, 
+            Dictionary<string, string> headerData = null)
         {
             url = GetUrlWithSearchStrData(url, searchStrData);
             
@@ -33,27 +37,33 @@ namespace Engine.Scripts.Runtime.Net
             catch (Exception e)
             {
                 _log.Error($"[string] Http 'get' request to url:'{url}' error. err:'{e.Message}'");
-                return null;
+                failedCallback?.Invoke();
+                return;
             }
             
             if (!string.IsNullOrEmpty(webRequest.error))
             {
                 _log.Error($"[string] Http 'get' request to url:'{url}' failed. err:'{webRequest.error}'");
-                return null;
+                failedCallback?.Invoke();
+                return;
             }
             
-            return webRequest.downloadHandler.data;
+            callback?.Invoke(webRequest.downloadHandler.data);
         }
 
         /// <summary>
         /// Http Post 请求。
         /// </summary>
         /// <param name="url">url</param>
+        /// <param name="callback">回调</param>
+        /// <param name="failedCallback">失败回调</param>
         /// <param name="formData">表单数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
-        /// <returns></returns>
-        public async Task<byte[]> HttpPose(string url, Dictionary<string, string> formData = null, Dictionary<string, string> headerData = null, Dictionary<string, string> searchStrData = null)
+        public async void HttpPose(string url, Action<byte[]> callback, Action failedCallback,
+            Dictionary<string, string> formData = null, 
+            Dictionary<string, string> headerData = null, 
+            Dictionary<string, string> searchStrData = null)
         {
             url = GetUrlWithSearchStrData(url, searchStrData);
             
@@ -70,16 +80,57 @@ namespace Engine.Scripts.Runtime.Net
             catch (Exception e)
             {
                 _log.Error($"[byte[]] Http 'post' request to url:'{url}' error. err:'{e.Message}'");
-                return null;
+                failedCallback.Invoke();
+                return;
             }
             
             if (!string.IsNullOrEmpty(webRequest.error))
             {
                 _log.Error($"[byte[]] Http 'post' request to url:'{url}' failed. err:'{webRequest.error}'");
-                return null;
+                failedCallback.Invoke();
+                return;
             }
-            
-            return webRequest.downloadHandler.data;
+
+            callback.Invoke(webRequest.downloadHandler.data);
+        }
+
+        /// <summary>
+        /// Http Get 请求。
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="callback">回调</param>
+        /// <param name="failedCallback">失败回调</param>
+        /// <param name="searchStrData">查询字符串数据</param>
+        /// <param name="headerData">请求头数据</param>
+        /// <returns></returns>
+        public void HttpGet(string url, Action<string> callback, Action failedCallback,  
+            Dictionary<string, string> searchStrData = null, 
+            Dictionary<string, string> headerData = null)
+        {
+            HttpGet(url, bytes =>
+            {
+                callback.Invoke(Encoding.UTF8.GetString(bytes));
+            }, failedCallback, searchStrData, headerData);
+        }
+
+        /// <summary>
+        /// Http Post 请求。
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="callback">回调</param>
+        /// <param name="failedCallback">失败回调</param>
+        /// <param name="formData">表单数据</param>
+        /// <param name="headerData">请求头数据</param>
+        /// <param name="searchStrData">查询字符串数据</param>
+        public void HttpPose(string url, Action<string> callback, Action failedCallback,
+            Dictionary<string, string> formData = null, 
+            Dictionary<string, string> headerData = null, 
+            Dictionary<string, string> searchStrData = null)
+        {
+            HttpPose(url, bytes =>
+            {
+                callback.Invoke(Encoding.UTF8.GetString(bytes));
+            }, failedCallback, formData, headerData, searchStrData);
         }
 
         /// <summary>

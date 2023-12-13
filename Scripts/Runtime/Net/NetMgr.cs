@@ -21,16 +21,8 @@ namespace Engine.Scripts.Runtime.Net
             ClearConnDic();
         }
 
-        public void Init(List<SocketConnectionBase> connList = null)
+        public void Init()
         {
-            if (connList == null)
-                return;
-            
-            _connDic.Clear();
-            foreach (var conn in connList)
-            {
-                AddConn(conn);
-            }
         }
 
         public void AddConn(SocketConnectionBase conn)
