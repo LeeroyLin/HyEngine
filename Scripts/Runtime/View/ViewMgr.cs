@@ -64,7 +64,7 @@ namespace Engine.Scripts.Runtime.View
             // 注册计时器
             TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
-        
+
         /// <summary>
         /// 打开界面
         /// </summary>
@@ -92,8 +92,8 @@ namespace Engine.Scripts.Runtime.View
             // 是否已经激活
             else if (FindViewIdx(_activeUIList, key, out var i))
             {
-                // 关闭该下标及之后的所有UI
-                CloseAfter(i);
+                // 关闭该界面
+                CloseAt(i);
             }
             
             // 新建实例
