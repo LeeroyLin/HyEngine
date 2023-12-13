@@ -5,7 +5,7 @@ using Engine.Scripts.Runtime.Utils;
 
 namespace Engine.Scripts.Runtime.Net
 {
-    public class NetMgr : SingletonClass<NetMgr>, IManager
+    public partial class NetMgr : SingletonClass<NetMgr>, IManager
     {
         private Dictionary<string, SocketConnectionBase> _connDic = new Dictionary<string, SocketConnectionBase>();
 
@@ -21,14 +21,22 @@ namespace Engine.Scripts.Runtime.Net
             ClearConnDic();
         }
 
-        public void Init(List<SocketConnectionBase> connList)
+        public void Init(List<SocketConnectionBase> connList = null)
         {
+            if (connList == null)
+                return;
+            
             _connDic.Clear();
             foreach (var conn in connList)
             {
-                var key = GetKey(conn.Host, conn.Port);
-                _connDic.Add(key, conn);
+                AddConn(conn);
             }
+        }
+
+        public void AddConn(SocketConnectionBase conn)
+        {
+            var key = GetKey(conn.Host, conn.Port);
+            _connDic.Add(key, conn);
         }
 
         public void Dispose()
