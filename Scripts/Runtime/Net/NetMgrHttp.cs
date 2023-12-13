@@ -60,7 +60,7 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="formData">表单数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
-        public async void HttpPose(string url, Action<byte[]> callback, Action failedCallback,
+        public async void HttpPost(string url, Action<byte[]> callback, Action failedCallback,
             Dictionary<string, string> formData = null, 
             Dictionary<string, string> headerData = null, 
             Dictionary<string, string> searchStrData = null)
@@ -122,12 +122,12 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="formData">表单数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
-        public void HttpPose(string url, Action<string> callback, Action failedCallback,
+        public void HttpPost(string url, Action<string> callback, Action failedCallback,
             Dictionary<string, string> formData = null, 
             Dictionary<string, string> headerData = null, 
             Dictionary<string, string> searchStrData = null)
         {
-            HttpPose(url, bytes =>
+            HttpPost(url, bytes =>
             {
                 callback.Invoke(Encoding.UTF8.GetString(bytes));
             }, failedCallback, formData, headerData, searchStrData);
