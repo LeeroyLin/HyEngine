@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Log;
@@ -13,7 +12,8 @@ namespace Engine.Scripts.Runtime.Net
         public Socket Socket { get; private set; }
         public bool IsEncrypt { get; private set; }
         
-        public Action<Socket> OnConnected { get; set; }
+        public Action OnConnected { get; set; }
+        public Action OnConnectFailed { get; set; }
         public Action OnDisconnected { get; set; }
         public Action<NetMsg> OnSendData { get; set; }
         public Action<NetMsg> OnRecData { get; set; }
@@ -55,6 +55,8 @@ namespace Engine.Scripts.Runtime.Net
             {
                 Log.Error($"Connect to {Host}:{Port} failed. {e.Message}");
                 
+                OnConnectFailed?.Invoke();
+                
                 return;
             }
 
@@ -62,7 +64,7 @@ namespace Engine.Scripts.Runtime.Net
 
             StartReceive();
 
-            OnConnected?.Invoke(Socket);
+            OnConnected?.Invoke();
         }
 
         public void Disconnect()
