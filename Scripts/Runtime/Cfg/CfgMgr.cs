@@ -61,6 +61,26 @@ namespace Engine.Scripts.Runtime.Cfg
             return content;
         }
 
+        /// <summary>
+        /// 是否有多语言键
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public bool HasI18nKey(string key)
+        {
+            if (!GetI18nCfgNameByKey(key, out var cfgName))
+            {
+                return false;
+            }
+
+            if (!_i18nCfgDic.TryGetValue(cfgName, out var cfg))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         bool GetI18nCfgNameByKey(string key, out string cfgName)
         {            
             var strs = key.Split("_");
