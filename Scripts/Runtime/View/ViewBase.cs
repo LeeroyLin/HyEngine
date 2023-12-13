@@ -52,7 +52,7 @@ namespace Engine.Scripts.Runtime.View
 
         public void DoClose()
         {
-            vm.EventGroup.ClearCurrentAllEvents();
+            vm.Close();
             
             OnCloseChildren();
             
@@ -61,6 +61,8 @@ namespace Engine.Scripts.Runtime.View
 
         public void DoDispose()
         {
+            vm.Dispose();
+
             OnDisposeChildren();
             
             OnDispose();

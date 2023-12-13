@@ -23,8 +23,23 @@ namespace Engine.Scripts.Runtime.View
             
             OnInit(view);
         }
+
+        public void Close()
+        {
+            OnClose();
+            
+            EventGroup.ClearCurrentAllEvents();
+        }
+
+        public void Dispose()
+        {
+            OnDispose();
+        }
         
         public abstract void OnInit(ViewBase view);
+
+        public virtual void OnClose() {}
+        public virtual void OnDispose() {}
         
         protected abstract void OnRegGameEvents();
 
