@@ -69,14 +69,13 @@ namespace Engine.Scripts.Runtime.Cfg
         public bool HasI18nKey(string key)
         {
             if (!GetI18nCfgNameByKey(key, out var cfgName))
-            {
                 return false;
-            }
 
             if (!_i18nCfgDic.TryGetValue(cfgName, out var cfg))
-            {
                 return false;
-            }
+
+            if (!cfg.HasKey(key))
+                return false;
 
             return true;
         }

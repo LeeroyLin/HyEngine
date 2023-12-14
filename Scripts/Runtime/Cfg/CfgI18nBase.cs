@@ -46,5 +46,10 @@ namespace Engine.Scripts.Runtime.Cfg
 
             return idx < dataList.Length ? dataList[idx] : key;
         }
+
+        public bool HasKey(string key)
+        {
+            return _dataDic.ContainsKey(key);
+        }
     }
 }
