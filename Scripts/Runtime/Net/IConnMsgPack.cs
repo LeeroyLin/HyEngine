@@ -5,7 +5,7 @@
         int HeadLen();
         int ContentLen();
         byte[] Pack(NetMsg msg, bool isEncrypt);
-        void UnPackHead(QueueBuffer buffer, bool isEncrypt);
-        NetMsg UnPackContent(QueueBuffer buffer, bool isEncrypt);
+        void UnPackHead(QueueBuffer buf, bool isEncrypt);
+        NetMsg UnPackContent(QueueBuffer buf, bool isEncrypt);
     }
 }

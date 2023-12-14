@@ -2,19 +2,23 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Log;
+using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Net
 {
     public abstract class SocketConnectionBase : ISocketConnection
     {
+        public string Key { get; private set; }
         public string Host { get; private set; }
         public int Port { get; private set; }
         public Socket Socket { get; private set; }
         public bool IsEncrypt { get; private set; }
         
-        public Action OnConnected { get; set; }
-        public Action OnConnectFailed { get; set; }
-        public Action OnDisconnected { get; set; }
+        public Action<string> OnConnected { get; set; }
+        public Action<string> OnConnectFailed { get; set; }
+        public Action<string> OnDisconnected { get; set; }
+        public Action<string> OnShutdown { get; set; }
         public Action<NetMsg, object> OnSendData { get; set; }
         public Action<NetMsg> OnRecData { get; set; }
         public IConnMsgPack MsgPack { get; protected set; }
@@ -31,7 +35,9 @@ namespace Engine.Scripts.Runtime.Net
 
         public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt, int maxMsgContentLen)
         {
-            Log = new LogGroup($"Conn {host}:{port}");
+            Key = GetKey(host, port);
+            
+            Log = new LogGroup(Key);
             
             Host = host;
             Port = port;
@@ -41,6 +47,11 @@ namespace Engine.Scripts.Runtime.Net
             
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             MsgId = 0;
+        }
+
+        public static string GetKey(string host, int port)
+        {
+            return $"Conn {host}:{port}";
         }
 
         public async void Connect()
@@ -55,7 +66,7 @@ namespace Engine.Scripts.Runtime.Net
             {
                 Log.Error($"Connect to {Host}:{Port} failed. {e.Message}");
                 
-                OnConnectFailed?.Invoke();
+                OnConnectFailed?.Invoke(Key);
                 
                 return;
             }
@@ -64,7 +75,7 @@ namespace Engine.Scripts.Runtime.Net
 
             StartReceive();
 
-            OnConnected?.Invoke();
+            OnConnected?.Invoke(Key);
         }
 
         public void Disconnect()
@@ -82,7 +93,7 @@ namespace Engine.Scripts.Runtime.Net
 
             Log.Log($"Disconnect to {Host}:{Port} success.");
             
-            OnDisconnected?.Invoke();
+            OnDisconnected?.Invoke(Key);
         }
 
         public void Shutdown()
@@ -99,6 +110,8 @@ namespace Engine.Scripts.Runtime.Net
             
             Socket.Close();
             Socket = null;
+            
+            OnShutdown?.Invoke(Key);
         }
 
         public async void SendMsg(ushort protoId, byte[] bytes, object userData = null)
@@ -161,8 +174,9 @@ namespace Engine.Scripts.Runtime.Net
 
                 if (!_isHasData)
                     continue;
-
+                
                 isContinue = await ReadMsgContent();
+                
                 if (!isContinue)
                     break;
             }
@@ -214,7 +228,7 @@ namespace Engine.Scripts.Runtime.Net
             }
 
             MsgPack.UnPackHead(_buffer, IsEncrypt);
-
+            
             int contentLen = MsgPack.ContentLen();
             if (contentLen > MaxMsgContentLen)
             {

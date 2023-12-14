@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Client.Scripts.Runtime.Gen.Proto;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
@@ -10,6 +9,11 @@ namespace Engine.Scripts.Runtime.Net
 {
     public partial class NetMgr : SingletonClass<NetMgr>, IManager
     {
+        /// <summary>
+        /// 是否有主连接
+        /// </summary>
+        public bool HasMainConn => !string.IsNullOrEmpty(_mainConnKey);
+        
         private Dictionary<string, SocketConnectionBase> _connDic = new Dictionary<string, SocketConnectionBase>();
 
         private LogGroup _log;
@@ -24,6 +28,7 @@ namespace Engine.Scripts.Runtime.Net
         public void Reset()
         {
             ClearConnDic();
+            _mainConnKey = null;
         }
 
         public void Init()
@@ -36,9 +41,11 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="conn"></param>
         public void AddMainConn(SocketConnectionBase conn)
         {
-            var key = GetKey(conn.Host, conn.Port);
+            var key = conn.Key;
             _mainConnKey = key;
             _connDic.Add(key, conn);
+
+            conn.OnShutdown += OnConnShutdown;
         }
 
         /// <summary>
@@ -47,8 +54,10 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="conn"></param>
         public void AddConn(SocketConnectionBase conn)
         {
-            var key = GetKey(conn.Host, conn.Port);
+            var key = conn.Key;
             _connDic.Add(key, conn);
+
+            conn.OnShutdown += OnConnShutdown;
         }
 
         public void Dispose()
@@ -64,7 +73,7 @@ namespace Engine.Scripts.Runtime.Net
         /// <returns></returns>
         public SocketConnectionBase GetConn(string host, int port)
         {
-            var key = GetKey(host, port);
+            var key = SocketConnectionBase.GetKey(host, port);
 
             _connDic.TryGetValue(key, out var data);
 
@@ -79,7 +88,7 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="userData"></param>
         public void SendMsg(ushort protoId, byte[] bytes, object userData = null)
         {
-            if (string.IsNullOrEmpty(_mainConnKey))
+            if (!HasMainConn)
             {
                 _log.Error("Not set main tcp connection.");
                 return;   
@@ -93,16 +102,15 @@ namespace Engine.Scripts.Runtime.Net
         /// </summary>
         /// <param name="eProto"></param>
         /// <param name="message"></param>
-        /// <param name="userData"></param>
-        public void SendMsg(EProto eProto, IMessage message, object userData = null)
+        public void SendMsg(EProto eProto, IMessage message)
         {
-            if (string.IsNullOrEmpty(_mainConnKey))
+            if (!HasMainConn)
             {
                 _log.Error("Not set main tcp connection.");
                 return;   
             }
             
-            _connDic[_mainConnKey].SendMsg((ushort)eProto, message.ToByteArray(), userData);
+            _connDic[_mainConnKey].SendMsg((ushort)eProto, message.ToByteArray(), message);
         }
 
         void ClearConnDic()
@@ -113,9 +121,12 @@ namespace Engine.Scripts.Runtime.Net
             _connDic.Clear();
         }
         
-        string GetKey(string host, int port)
+        void OnConnShutdown(string key)
         {
-            return $"{host}:{port}";
+            _connDic.Remove(key);
+
+            if (_mainConnKey == key)
+                _mainConnKey = null;
         }
     }
 }

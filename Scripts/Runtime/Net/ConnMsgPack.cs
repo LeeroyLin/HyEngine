@@ -1,5 +1,7 @@
 ﻿using System;
 using Engine.Scripts.Runtime.Encrypt;
+using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Net
 {
@@ -64,14 +66,15 @@ namespace Engine.Scripts.Runtime.Net
             return bytes;
         }
 
-        public void UnPackHead(QueueBuffer buffer, bool isEncrypt)
+        public void UnPackHead(QueueBuffer buf, bool isEncrypt)
         {
             ushort serialId = 0;
             ushort protoId = 0;
             
             if (isEncrypt)
             {
-                buffer.Read(_byte8, 8);
+                buf.Read(_byte8, 8);
+                
                 _byte8 = RC4.Decrypt(_byte8);
                 
                 serialId = GetIntFromByteArrWith2Bit(_byte8, 0);
@@ -80,34 +83,34 @@ namespace Engine.Scripts.Runtime.Net
             }
             else
             {
-                serialId = ReadByte2FromStream(buffer);
-                protoId = ReadByte2FromStream(buffer);
-                contentLen = ReadByte4FromStream(buffer);
+                serialId = ReadByte2FromStream(buf);
+                protoId = ReadByte2FromStream(buf);
+                contentLen = ReadByte4FromStream(buf);
             }
             
             netMsg = new NetMsg(serialId, protoId, contentLen);
         }
 
-        public NetMsg UnPackContent(QueueBuffer buffer, bool isEncrypt)
+        public NetMsg UnPackContent(QueueBuffer buf, bool isEncrypt)
         {
             var contentBytes = new byte[ContentLen()];
-            buffer.Read(contentBytes, ContentLen());
+            buf.Read(contentBytes, ContentLen());
             
             netMsg.SetData(contentBytes);
 
             return netMsg;
         }
         
-        protected ushort ReadByte2FromStream(QueueBuffer buffer)
+        protected ushort ReadByte2FromStream(QueueBuffer buf)
         {
-            buffer.Read(_byte2, 2);
+            buf.Read(_byte2, 2);
 
             return BitConverter.ToUInt16(_byte2);
         }
 
-        protected UInt32 ReadByte4FromStream(QueueBuffer buffer)
+        protected UInt32 ReadByte4FromStream(QueueBuffer buf)
         {
-            buffer.Read(_byte4, 4);
+            buf.Read(_byte4, 4);
 
             return BitConverter.ToUInt32(_byte2);
         }
