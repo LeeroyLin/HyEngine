@@ -15,7 +15,7 @@ namespace Engine.Scripts.Runtime.Net
         public Action OnConnected { get; set; }
         public Action OnConnectFailed { get; set; }
         public Action OnDisconnected { get; set; }
-        public Action<NetMsg> OnSendData { get; set; }
+        public Action<NetMsg, object> OnSendData { get; set; }
         public Action<NetMsg> OnRecData { get; set; }
         public IConnMsgPack MsgPack { get; protected set; }
         public LogGroup Log { get; protected set; }
@@ -101,7 +101,7 @@ namespace Engine.Scripts.Runtime.Net
             Socket = null;
         }
 
-        public async void SendMsg(ushort protoId, byte[] bytes)
+        public async void SendMsg(ushort protoId, byte[] bytes, object userData = null)
         {
             if (bytes.Length > MaxMsgContentLen)
             {
@@ -123,7 +123,7 @@ namespace Engine.Scripts.Runtime.Net
                 Log.Error($"Send message failed. {e.Message}");
             }
             
-            OnSendData?.Invoke(msg);
+            OnSendData?.Invoke(msg, userData);
 
             AddMsgId();
         }

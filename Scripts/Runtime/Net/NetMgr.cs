@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Client.Scripts.Runtime.Gen.Proto;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
+using Google.Protobuf;
 
 namespace Engine.Scripts.Runtime.Net
 {
@@ -73,7 +76,8 @@ namespace Engine.Scripts.Runtime.Net
         /// </summary>
         /// <param name="protoId"></param>
         /// <param name="bytes"></param>
-        public void SendMsg(ushort protoId, byte[] bytes)
+        /// <param name="userData"></param>
+        public void SendMsg(ushort protoId, byte[] bytes, object userData = null)
         {
             if (string.IsNullOrEmpty(_mainConnKey))
             {
@@ -81,7 +85,24 @@ namespace Engine.Scripts.Runtime.Net
                 return;   
             }
 
-            _connDic[_mainConnKey].SendMsg(protoId, bytes);
+            _connDic[_mainConnKey].SendMsg(protoId, bytes, userData);
+        }
+
+        /// <summary>
+        /// 通过主连接发送消息
+        /// </summary>
+        /// <param name="eProto"></param>
+        /// <param name="message"></param>
+        /// <param name="userData"></param>
+        public void SendMsg(EProto eProto, IMessage message, object userData = null)
+        {
+            if (string.IsNullOrEmpty(_mainConnKey))
+            {
+                _log.Error("Not set main tcp connection.");
+                return;   
+            }
+            
+            _connDic[_mainConnKey].SendMsg((ushort)eProto, message.ToByteArray(), userData);
         }
 
         void ClearConnDic()

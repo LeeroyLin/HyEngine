@@ -5,6 +5,6 @@
         void Connect();
         void Disconnect();
         void Shutdown();
-        void SendMsg(ushort protoId, byte[] bytes);
+        void SendMsg(ushort protoId, byte[] bytes, object userData = null);
     }
 }
