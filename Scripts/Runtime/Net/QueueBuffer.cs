@@ -32,6 +32,7 @@ namespace Engine.Scripts.Runtime.Net
             _list.RemoveRange(0, len);
 
             Length -= len;
+            WritePosition -= len;
         }
 
         public void Write(byte[] data, int len = -1)
