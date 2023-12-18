@@ -12,7 +12,16 @@ namespace Engine.Scripts.Runtime.Net
         /// <summary>
         /// 是否有主连接
         /// </summary>
-        public bool HasMainConn => !string.IsNullOrEmpty(_mainConnKey);
+        public bool MainConnConnected {
+            get
+            {
+                if (string.IsNullOrEmpty(_mainConnKey))
+                    return false;
+
+                var conn = _connDic[_mainConnKey];
+                return conn.Socket.Connected;
+            }
+        }
         
         private Dictionary<string, SocketConnectionBase> _connDic = new Dictionary<string, SocketConnectionBase>();
 
@@ -88,7 +97,7 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="userData"></param>
         public void SendMsg(ushort protoId, byte[] bytes, object userData = null)
         {
-            if (!HasMainConn)
+            if (!MainConnConnected)
             {
                 _log.Error("Not set main tcp connection.");
                 return;   
@@ -104,7 +113,7 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="message"></param>
         public void SendMsg(EProto eProto, IMessage message)
         {
-            if (!HasMainConn)
+            if (!MainConnConnected)
             {
                 _log.Error("Not set main tcp connection.");
                 return;   
@@ -115,8 +124,12 @@ namespace Engine.Scripts.Runtime.Net
 
         void ClearConnDic()
         {
+            var list = new List<SocketConnectionBase>();
             foreach (var info in _connDic)
-                info.Value.Shutdown();
+                list.Add(info.Value);
+
+            foreach (var conn in list)
+                conn.Shutdown();
             
             _connDic.Clear();
         }

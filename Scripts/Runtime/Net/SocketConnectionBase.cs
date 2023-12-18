@@ -82,7 +82,7 @@ namespace Engine.Scripts.Runtime.Net
         {
             try
             {
-                Socket.Disconnect(false);
+                Socket.Disconnect(true);
             }
             catch (Exception e)
             {
