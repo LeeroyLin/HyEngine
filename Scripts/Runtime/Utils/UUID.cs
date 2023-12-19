@@ -1,8 +1,11 @@
-﻿namespace Engine.Scripts.Runtime.Utils
+﻿using UnityEngine;
+
+namespace Engine.Scripts.Runtime.Utils
 {
     public class UUID
     {
         public static int Count;
+        public static int CountTemp;
         public static long LastTimestamp;
 
         /// <summary>
@@ -23,6 +26,16 @@
 
             // pre：3位 秒级时间戳去掉第一位：9位 计次：7位
             return (ulong)(pre * 10000000000000000 + (LastTimestamp - 1000000000) * 10000000 + Count);
+        }
+
+        public static int GetUUIDTemp()
+        {
+            if (CountTemp == int.MinValue)
+                CountTemp = 0;
+            else
+                CountTemp--;
+            
+            return CountTemp;
         }
     }
 }
