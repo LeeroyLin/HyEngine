@@ -55,8 +55,10 @@ namespace Engine.Scripts.Runtime.Cfg
             {
                 var arg = args[i];
 
-                content = content.Replace("{0}", arg);
+                content = content.Replace($"{i}", arg);
             }
+
+            content.Replace("<br>", "\n");
             
             return content;
         }
