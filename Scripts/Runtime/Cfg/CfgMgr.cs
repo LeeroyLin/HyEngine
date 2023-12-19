@@ -56,8 +56,6 @@ namespace Engine.Scripts.Runtime.Cfg
             {
                 var arg = args[i];
                 
-                Debug.Log($"CCC replace {i} {arg}");
-
                 content = content.Replace($"{{{i}}}", arg);
             }
 
