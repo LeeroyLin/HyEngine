@@ -3,6 +3,7 @@ using Engine.Scripts.Runtime.Language;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Cfg
 {
@@ -54,11 +55,14 @@ namespace Engine.Scripts.Runtime.Cfg
             for (int i = 0; i < args.Length; i++)
             {
                 var arg = args[i];
+                
+                Debug.Log($"CCC replace {i} {arg}");
 
-                content = content.Replace($"{i}", arg);
+                content = content.Replace($"{{{i}}}", arg);
             }
 
             content = content.Replace("<br>", "\n");
+            content = content.Replace("[color=", "[color=#");
             
             return content;
         }
