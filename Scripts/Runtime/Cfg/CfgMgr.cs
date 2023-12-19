@@ -58,7 +58,7 @@ namespace Engine.Scripts.Runtime.Cfg
                 content = content.Replace($"{i}", arg);
             }
 
-            content.Replace("<br>", "\n");
+            content = content.Replace("<br>", "\n");
             
             return content;
         }
