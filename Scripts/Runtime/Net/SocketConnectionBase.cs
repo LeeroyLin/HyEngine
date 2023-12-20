@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Log;
-using Newtonsoft.Json;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Net
 {
+    struct MsgQueueData
+    {
+        public NetMsg NetMsg { get; set; }
+        public object UserData { get; set; }
+    }
+    
     public abstract class SocketConnectionBase : ISocketConnection
     {
         public string Key { get; private set; }
@@ -32,6 +37,9 @@ namespace Engine.Scripts.Runtime.Net
         QueueBuffer _buffer = new QueueBuffer();
         
         private bool _isHasData = false;
+
+        private Queue<MsgQueueData> _sendMsgQueue = new Queue<MsgQueueData>();
+        private bool _isSending = false;
 
         public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt, int maxMsgContentLen)
         {
@@ -92,6 +100,8 @@ namespace Engine.Scripts.Runtime.Net
             }
 
             Log.Log($"Disconnect to {Host}:{Port} success.");
+
+            _isSending = false;
             
             OnDisconnected?.Invoke(Key);
         }
@@ -111,10 +121,13 @@ namespace Engine.Scripts.Runtime.Net
             Socket.Close();
             Socket = null;
             
+            _sendMsgQueue.Clear();
+            _isSending = false;
+            
             OnShutdown?.Invoke(Key);
         }
 
-        public async void SendMsg(ushort protoId, byte[] bytes, object userData = null)
+        public void SendMsg(ushort protoId, byte[] bytes, object userData = null)
         {
             if (bytes.Length > MaxMsgContentLen)
             {
@@ -123,9 +136,32 @@ namespace Engine.Scripts.Runtime.Net
                 return;
             }
             
-            var msg = new NetMsg(MsgId, protoId, (UInt32)bytes.Length, bytes);
+            AddMsgId();
 
-            bytes = MsgPack.Pack(msg, IsEncrypt);
+            var msg = new NetMsg(MsgId, protoId, (UInt32)bytes.Length, bytes);
+            
+            _sendMsgQueue.Enqueue(new MsgQueueData()
+            {
+                NetMsg = msg,
+                UserData = userData,
+            });
+            
+            TrySendMsg();
+        }
+
+        async void TrySendMsg()
+        {
+            if (_isSending)
+                return;
+            
+            if (_sendMsgQueue.Count == 0)
+                return;
+
+            var data = _sendMsgQueue.Dequeue();
+            
+            var bytes = MsgPack.Pack(data.NetMsg, IsEncrypt);
+            
+            _isSending = true;
             
             try
             {
@@ -136,9 +172,11 @@ namespace Engine.Scripts.Runtime.Net
                 Log.Error($"Send message failed. {e.Message}");
             }
             
-            OnSendData?.Invoke(msg, userData);
+            _isSending = false;
+            
+            OnSendData?.Invoke(data.NetMsg, data.UserData);
 
-            AddMsgId();
+            TrySendMsg();
         }
 
         protected void AddMsgId()
