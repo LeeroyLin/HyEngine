@@ -63,9 +63,7 @@ namespace Engine.Scripts.Runtime.Utils
             long offset = serverMSTime - GetLocalTimeMS();
 
             if (serverTimeOffsetMSQueue.Count >= 10)
-            {
                 serverTimeOffsetMSQueue.Dequeue();
-            }
             
             serverTimeOffsetMSQueue.Enqueue(offset);
         }
@@ -103,10 +101,11 @@ namespace Engine.Scripts.Runtime.Utils
         /// 距离某毫秒级时间，已经经过多少时间
         /// </summary>
         /// <param name="timeMS">毫秒级时间戳</param>
+        /// <param name="isLocalTime">本地时间计算</param>
         /// <returns></returns>
-        public static int ExpireMS(long timeMS)
+        public static int ExpireMS(long timeMS, bool isLocalTime = false)
         {
-            var nowMS = GetTimestampMS();
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
             return Mathf.Max(0, (int)(nowMS - timeMS));
         }
 
@@ -125,10 +124,11 @@ namespace Engine.Scripts.Runtime.Utils
         /// 距离某毫秒级时间，还剩多久
         /// </summary>
         /// <param name="timeMS">毫秒级时间戳</param>
+        /// <param name="isLocalTime">本地时间计算</param>
         /// <returns></returns>
-        public static int LeftMS(long timeMS)
+        public static int LeftMS(long timeMS, bool isLocalTime = false)
         {
-            var nowMS = GetTimestampMS();
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
             return Mathf.Max(0, (int)(timeMS - nowMS));
         }
 
@@ -217,7 +217,7 @@ namespace Engine.Scripts.Runtime.Utils
         }
 
         // 获得本地时间戳
-        static long GetLocalTimeMS()
+        public static long GetLocalTimeMS()
         {
             DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 1970年1月1日零时
             long timestamp = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
