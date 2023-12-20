@@ -7,6 +7,31 @@ namespace Engine.Scripts.Runtime.Utils
 {
     public class TimeUtilBase
     {
+        /// <summary>
+        /// 本地转服务器时间的差量
+        /// </summary>
+        public static long Local2ServerTimeMSOffset
+        {
+            get
+            {
+                long sum = 0;
+            
+                foreach (var data in serverTimeOffsetMSQueue)
+                {
+                    sum += data;
+                }
+
+                sum /= serverTimeOffsetMSQueue.Count;
+
+                return sum;
+            }
+        }
+
+        /// <summary>
+        /// 本地转服务器时间的差量 队列
+        /// </summary>
+        private static Queue<long> serverTimeOffsetMSQueue = new Queue<long>();
+
         private static readonly Dictionary<string, int> TIME_FORMAT_DIC = new Dictionary<string, int>()
         {
             {"D", 86400},
@@ -28,6 +53,22 @@ namespace Engine.Scripts.Runtime.Utils
                 this.value = value;
             }
         }
+
+        /// <summary>
+        /// 设置服务器毫秒时间
+        /// </summary>
+        /// <param name="serverMSTime"></param>
+        public static void SetServerTimeMS(long serverMSTime)
+        {
+            long offset = serverMSTime - GetLocalTimeMS();
+
+            if (serverTimeOffsetMSQueue.Count >= 10)
+            {
+                serverTimeOffsetMSQueue.Dequeue();
+            }
+            
+            serverTimeOffsetMSQueue.Enqueue(offset);
+        }
         
         /// <summary>
         /// 获得时间戳 秒级
@@ -35,9 +76,7 @@ namespace Engine.Scripts.Runtime.Utils
         /// <returns></returns>
         public static long GetTimestamp()
         {
-            DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 1970年1月1日零时
-            long timestamp = (long)(DateTime.UtcNow.Subtract(startTime)).TotalSeconds;
-            return timestamp;
+            return GetTimestampMS() / 1000;
         }
 
         /// <summary>
@@ -46,9 +85,7 @@ namespace Engine.Scripts.Runtime.Utils
         /// <returns></returns>
         public static long GetTimestampMS()
         {
-            DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 1970年1月1日零时
-            long timestamp = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
-            return timestamp;
+            return GetLocalTimeMS() + Local2ServerTimeMSOffset;
         }
 
         /// <summary>
@@ -177,6 +214,15 @@ namespace Engine.Scripts.Runtime.Utils
             }
             
             return sb.ToString();
+        }
+
+        // 获得本地时间戳
+        static long GetLocalTimeMS()
+        {
+            DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 1970年1月1日零时
+            long timestamp = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
+
+            return timestamp;
         }
     }
 }
