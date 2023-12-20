@@ -30,6 +30,16 @@ namespace Engine.Scripts.Runtime.Timer
         {
         }
 
+        public void Dispose()
+        {
+            _timerDic.Clear();
+            _removeList.Clear();
+            _callList.Clear();
+            _updateDic.Clear();
+            _lateUpdateDic.Clear();
+            _fixedUpdateDic.Clear();
+        }
+
         public void OnUpdate()
         {
             List<Action> actions = new List<Action>();

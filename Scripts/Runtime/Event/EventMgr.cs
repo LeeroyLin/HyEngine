@@ -4,6 +4,7 @@ using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Timer;
 using Engine.Scripts.Runtime.Utils;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Event
 {
@@ -35,6 +36,13 @@ namespace Engine.Scripts.Runtime.Event
             
             // 使用计时器
             TimerMgr.Ins.UseLateUpdate(OnTimer);
+        }
+
+        public void Dispose()
+        {
+            _eventDic.Clear();
+            _cbDic.Clear();
+            _asyncList.Clear();
         }
         
         /// <summary>
