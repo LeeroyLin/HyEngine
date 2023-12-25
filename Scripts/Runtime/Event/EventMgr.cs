@@ -128,7 +128,14 @@ namespace Engine.Scripts.Runtime.Event
             }
 
             foreach (var cb in cbList)
-                cb(data);
+                try
+                {
+                    cb(data);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[EventMgr] callback error: {e.Message} \n {e.StackTrace}");
+                }
         }
 
         /// <summary>
