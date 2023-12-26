@@ -1,4 +1,5 @@
-﻿using Engine.Scripts.Runtime.Utils;
+﻿using Client.Scripts.Runtime.Global;
+using Engine.Scripts.Runtime.Utils;
 using FairyGUI;
 using UnityEngine;
 
@@ -32,6 +33,8 @@ namespace Engine.Scripts.Runtime.View
             IsActive = true;
 
             onCreated = DoInit;
+
+            sortingOrder = (int) EViewLayer.Normal;
         }
 
         protected void DoInit()
