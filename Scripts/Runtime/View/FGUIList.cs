@@ -130,6 +130,11 @@ namespace Engine.Scripts.Runtime.View
             List.scrollPane.ScrollBottom();
         }
 
+        public void ScrollToView(int index, bool isAnim = false)
+        {
+            List.ScrollToView(index, isAnim);
+        }
+
         void OnShowListCell(int idx, GObject obj)
         {
             _showCellHandler(idx, obj as T);
