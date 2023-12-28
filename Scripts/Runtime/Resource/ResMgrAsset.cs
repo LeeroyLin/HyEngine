@@ -209,6 +209,7 @@ namespace Engine.Scripts.Runtime.Resource
             
             if (_resLoadMode == EResLoadMode.Editor)
             {
+                #if UNITY_EDITOR
                 string atlasPath = $"{BUNDLE_ASSETS_PATH}Atlas/{atlasName}.spriteatlasv2";
                 var atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(atlasPath);
 
@@ -216,6 +217,7 @@ namespace Engine.Scripts.Runtime.Resource
                     _log.Error($"Can not load atlas : '{atlasPath}'");
                 
                 asset = atlas.GetSprite(spriteName) as T;
+                #endif
             }
             else if (_resLoadMode == EResLoadMode.Resource)
             {
