@@ -235,9 +235,13 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                 {
                     _list[i].path = evt.newValue;
                 }
-
-                _eventStringDic.Add($"path_textField_{i}", OnPathChanged);
-                textField.RegisterCallback<ChangeEvent<string>>(OnPathChanged);
+                
+                var key = $"path_textField_{i}";
+                if (!_eventStringDic.ContainsKey(key))
+                {
+                    _eventStringDic.Add(key, OnPathChanged);
+                    textField.RegisterCallback<ChangeEvent<string>>(OnPathChanged);
+                }
         
                 void OnSelectPath(ClickEvent evt)
                 {
@@ -262,8 +266,12 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     _list[i].path = relPath;
                 }
                 
-                _eventClickDic.Add($"path_selector_{i}", OnSelectPath);
-                selector.RegisterCallback<ClickEvent>(OnSelectPath);
+                key = $"path_selector_{i}";
+                if (!_eventClickDic.ContainsKey(key))
+                {
+                    _eventClickDic.Add(key, OnSelectPath);
+                    selector.RegisterCallback<ClickEvent>(OnSelectPath);
+                }
                 
                 textField.value = _list[i].path;
                 textField.isReadOnly = true;
@@ -277,8 +285,12 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     _list[i].packDirType = (EABPackDir) evt.newValue;
                 }
                 
-                _eventEnumDic.Add($"dirType_{i}", OnEnumChanged);
-                ele.RegisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
+                var key = $"dirType_{i}";
+                if (!_eventEnumDic.ContainsKey(key))
+                {
+                    _eventEnumDic.Add(key, OnEnumChanged);
+                    ele.RegisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
+                }
 
                 ele.value = _list[i].packDirType;
             };
@@ -291,8 +303,12 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     _list[i].packCompressType = (EABCompress) evt.newValue;
                 }
                 
-                _eventEnumDic.Add($"compressType_{i}", OnEnumChanged);
-                ele.RegisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
+                var key = $"compressType_{i}";
+                if (!_eventEnumDic.ContainsKey(key))
+                {
+                    _eventEnumDic.Add(key, OnEnumChanged);
+                    ele.RegisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
+                }
 
                 ele.value = _list[i].packCompressType;
             };
@@ -305,9 +321,13 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     _list[i].md5 = evt.newValue;
                 }
                 
-                _eventBoolDic.Add($"md5_{i}", OnToggleChanged);
-                toggle.RegisterCallback<ChangeEvent<bool>>(OnToggleChanged);
-
+                var key = $"md5_{i}";
+                if (!_eventBoolDic.ContainsKey(key))
+                {
+                    _eventBoolDic.Add(key, OnToggleChanged);
+                    toggle.RegisterCallback<ChangeEvent<bool>>(OnToggleChanged);
+                }
+                
                 toggle.value = _list[i].md5;
             };
         }
