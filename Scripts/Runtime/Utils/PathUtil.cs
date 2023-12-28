@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Utils
@@ -37,6 +39,52 @@ namespace Engine.Scripts.Runtime.Utils
                 return;
 
             Directory.CreateDirectory(dir);
+        }
+
+        /// <summary>
+        /// 获得目录下所有非meta文件
+        /// </summary>
+        /// <param name="absPath"></param>
+        /// <returns></returns>
+        public static List<string> GetAllFilesAtPath(string absPath)
+        {
+            List<string> list = new List<string>();
+            
+            DirectoryInfo dir = new DirectoryInfo(absPath);
+            
+            //获取目标路径下的所有文件
+            FileInfo[] allFiles = dir.GetFiles("*",SearchOption.AllDirectories);
+
+            foreach (var info in allFiles)
+            {
+                if (info.Extension == ".meta")
+                    continue;
+                
+                list.Add(info.FullName);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 遍历子目录
+        /// </summary>
+        /// <param name="absPath"></param>
+        /// <param name="isTopOnly"></param>
+        /// <param name="handler"></param>
+        /// <returns></returns>
+        public static void ForeachSubDirectoriesAtPath(string absPath, bool isTopOnly, Action<DirectoryInfo> handler)
+        {
+            if (handler == null)
+                return;
+            
+            DirectoryInfo dir = new DirectoryInfo(absPath);
+
+            var dirList = dir.GetDirectories("*", isTopOnly ? SearchOption.TopDirectoryOnly : SearchOption.AllDirectories);
+            foreach (var info in dirList)
+            {
+                handler(info);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
 using UnityEditor;
@@ -31,6 +32,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         static void StartBuild(BuildTarget buildTarget, BuildTargetGroup buildGroup)
         {
             List<AssetBundleBuild> buildInfos = new List<AssetBundleBuild>();
+
+            GetAssetsFromConfig(buildInfos);
+            
             var buildContent = new BundleBuildContent(buildInfos.ToArray());
 
             var outputPath = $"{OUTPUT_PATH}\\{buildTarget.ToString()}";
@@ -49,6 +53,72 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
             if (_config == null)
                 Debug.LogError($"【Bundle Builder】 There is no BundleConfigData.asset at {ResMgr.BUNDLE_ASSETS_PATH}BundleConfig");
+        }
+
+        static void GetAssetsFromConfig(List<AssetBundleBuild> list)
+        {
+            foreach (var data in _config.dataList)
+            {
+                var relPath = $"{ResMgr.BUNDLE_ASSETS_PATH}{data.path}";
+                var absPath = PathUtil.AssetsPath2AbsolutePath(relPath);
+
+                switch (data.packDirType)
+                {
+                    case EABPackDir.Single:
+                    {
+                        var pathList = PathUtil.GetAllFilesAtPath(absPath);
+
+                        var relPathList = new List<string>();
+                        
+                        foreach (var path in pathList)
+                        {
+                            relPathList.Add(PathUtil.AbsolutePath2AssetsPath(path));
+                        }
+                        
+                        list.Add(new AssetBundleBuild()
+                        {
+                            assetBundleName = data.path,
+                            assetNames = relPathList.ToArray(),
+                        });
+                    }
+                    break;
+                    case EABPackDir.File:
+                    {
+                        var pathList = PathUtil.GetAllFilesAtPath(absPath);
+
+                        foreach (var path in pathList)
+                        {
+                            list.Add(new AssetBundleBuild()
+                            {
+                                assetBundleName = $"{data.path}_{Path.GetFileNameWithoutExtension(path)}",
+                                assetNames = new string[]{PathUtil.AbsolutePath2AssetsPath(path)},
+                            });
+                        }
+                    }
+                    break;
+                    case EABPackDir.SubSingle:
+                    {
+                        PathUtil.ForeachSubDirectoriesAtPath(absPath, true, info =>
+                        {
+                            var pathList = PathUtil.GetAllFilesAtPath(info.FullName);
+
+                            var relPathList = new List<string>();
+                        
+                            foreach (var path in pathList)
+                            {
+                                relPathList.Add(PathUtil.AbsolutePath2AssetsPath(path));
+                            }
+                            
+                            list.Add(new AssetBundleBuild()
+                            {
+                                assetBundleName = $"{data.path}_{info.Name}",
+                                assetNames = relPathList.ToArray(),
+                            });
+                        });
+                    }
+                    break;
+                }
+            }
         }
     }
     
