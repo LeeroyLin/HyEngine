@@ -62,10 +62,11 @@ namespace Engine.Scripts.Runtime.Resource
                 (string name, string extension, Type type, out DestroyMethod method) =>
                 {
                     method = DestroyMethod.Unload;
-
-                    var assetName = name;
                     
-                    var assetPath = $"{path}/Res/{pkgName}/{assetName}{extension}";
+                    if (!IsCouldLoad(name))
+                        return null;
+                    
+                    var assetPath = $"{path}/Res/{pkgName}/{name}{extension}";
                     
                     var asset = AssetDatabase.LoadAssetAtPath(assetPath, type);
 
@@ -92,9 +93,10 @@ namespace Engine.Scripts.Runtime.Resource
                 {
                     method = DestroyMethod.Unload;
 
-                    var assetName = name;
+                    if (!IsCouldLoad(name))
+                        return null;
                     
-                    var assetPath = $"{path}/Res/{pkgName}/{assetName}{extension}";
+                    var assetPath = $"{path}/Res/{pkgName}/{name}{extension}";
 
                     var asset = GetAssetFromResource(assetPath, type);
 
@@ -105,13 +107,29 @@ namespace Engine.Scripts.Runtime.Resource
         // AB模式加载
         void LoadInABMode(string pkgName)
         {
-            var descABName = $"UI/Desc/{pkgName}_fui";
-            var resABName = $"UI/Res/{pkgName}";
+            var descRelPath = $"UI/{pkgName}/{pkgName}_fui.bytes";
+            
+            var ta = GetAsset<TextAsset>(descRelPath);
+            
+            UIPackage.AddPackage(ta.bytes, pkgName,
+                (string name, string extension, Type type, out DestroyMethod method) =>
+                {
+                    method = DestroyMethod.Unload;
 
-            var abDesc = LoadABWithABName(descABName);
-            var abRes = LoadABWithABName(resABName);
+                    if (!IsCouldLoad(name))
+                        return null;
+                    
+                    var relPath = $"UI/{pkgName}/{name}{extension}";
+                    
+                    var tex = GetAsset<Texture2D>(relPath);
 
-            UIPackage.AddPackage(abDesc, abRes);
+                    return tex;
+                });
+        }
+
+        bool IsCouldLoad(string name)
+        {
+            return !name.Contains("!");
         }
     }
 }

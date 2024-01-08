@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Timer;
 using Engine.Scripts.Runtime.Utils;
+using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -13,6 +15,11 @@ namespace Engine.Scripts.Runtime.Resource
     public partial class ResMgr : SingletonClass<ResMgr>, IManager
     {
         public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
+        public static readonly string SIM_BUNDLE_PATH = $"{Application.streamingAssetsPath}/Android";
+        public static readonly string CONFIG_ASSET_PATH = "Config/BundleConfigData.json";
+        public static readonly string CONFIG_PATH = $"{Application.streamingAssetsPath}/{CONFIG_ASSET_PATH}";
+        
+        private static BundleConfig _config;
         
         // 记录已加载的ab，键名为ab名
         private Dictionary<string, ABInfo> _abDic = new ();
@@ -35,6 +42,15 @@ namespace Engine.Scripts.Runtime.Resource
             TimerMgr.Ins.UseLateUpdate(OnTimer);
             
             SpriteAtlasManager.atlasRequested += RequestAtlas;
+
+            LoadConfig();
+        }
+
+        async void LoadConfig()
+        {
+            var content = await ReadTextRuntime.ReadSteamingAssetsText(CONFIG_PATH);
+            
+            _config = JsonConvert.DeserializeObject<BundleConfig>(content);
         }
         
         private void RequestAtlas(string atlasName, Action<SpriteAtlas> callback)
@@ -137,9 +153,11 @@ namespace Engine.Scripts.Runtime.Resource
             
             // 加载依赖
             LoadABDeps(abName);
+
+            var abPath = $"{SIM_BUNDLE_PATH}/{abName}";
             
             // 加载
-            var ab = AssetBundle.LoadFromFile(abName);
+            AssetBundle ab = AssetBundle.LoadFromFile(abPath);
 
             abInfo.AB = ab;
             abInfo.ABState = EABState.Loaded;
@@ -295,8 +313,71 @@ namespace Engine.Scripts.Runtime.Resource
 
         private string RelPath2ABName(string relPath)
         {
-            // todo 根据相对路径获得ab名
+            int maxLength = 0;
+            BundleConfigData data = null;
+            
+            foreach (var config in _config.dataList)
+            {
+                if (relPath.StartsWith(config.path))
+                {
+                    if (maxLength == 0 || config.path.Length > maxLength)
+                    {
+                        maxLength = config.path.Length;
+                        data = config;
+                    }
+                }
+            }
+
+            if (data == null)
+            {
+                _log.Error($"Can not get ab with relPath : {relPath}");
+                return "";
+            }
+
+            switch (data.packDirType)
+            {
+                case EABPackDir.Single:
+                    return GetABNameWithMd5(data.path, data.md5);
+                case EABPackDir.File:
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(relPath);
+
+                    return GetABNameWithMd5($"{data.path}_{fileName}", data.md5);
+                }
+                case EABPackDir.SubSingle:
+                {
+                    relPath = relPath.Replace(data.path, "");
+                    var strs = relPath.Split("/");
+                    var dirName = "";
+                    foreach (var str in strs)
+                    {
+                        if (string.IsNullOrEmpty(str))
+                            continue;
+                        
+                        dirName = str;
+
+                        break;
+                    }
+
+                    if (string.IsNullOrEmpty(dirName))
+                    {
+                        _log.Error($"Can not get ab use SubSingle with relPath : {relPath}");
+                        return "";
+                    }
+                    
+                    return GetABNameWithMd5($"{data.path}_{dirName}", data.md5);
+                }
+            }
+
             return "";
+        }
+
+        private string GetABNameWithMd5(string name, bool isMd5)
+        {
+            if (isMd5)
+                return Md5.EncryptMD5_32(name);
+
+            return name;
         }
     }
 }

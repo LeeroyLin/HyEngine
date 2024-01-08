@@ -14,7 +14,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 {
     public partial  class BundleBuilder
     {
-        public static string CONFIG_PATH = $"{Application.dataPath}/BundleAssets/BundleConfig/BundleConfigData.json";
+        public static string CONFIG_PATH = $"{Application.streamingAssetsPath}/Config/BundleConfigData.json";
         public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
         
         private static BundleConfig _config;

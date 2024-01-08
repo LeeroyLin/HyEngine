@@ -309,8 +309,7 @@ namespace Engine.Scripts.Runtime.Resource
         // 通过相对路径获得资源名
         private string GetAssetNameWithRelativePath(string relPath)
         {
-            // todo
-            return relPath;
+            return $"{BUNDLE_ASSETS_PATH}{relPath}";
         }
 
         // 是否相对路径是读取图集
