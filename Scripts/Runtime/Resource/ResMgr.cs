@@ -15,11 +15,11 @@ namespace Engine.Scripts.Runtime.Resource
     public partial class ResMgr : SingletonClass<ResMgr>, IManager
     {
         public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
+        public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/Android";
         public static readonly string SIM_BUNDLE_PATH = $"{Application.streamingAssetsPath}/Android";
-        public static readonly string CONFIG_ASSET_PATH = "Config/BundleConfigData.json";
-        public static readonly string CONFIG_PATH = $"{Application.streamingAssetsPath}/{CONFIG_ASSET_PATH}";
+        public static readonly string CONFIG_NAME = "manifest.json";
         
-        private static BundleConfig _config;
+        private static ABManifest _manifest;
         
         // 记录已加载的ab，键名为ab名
         private Dictionary<string, ABInfo> _abDic = new ();
@@ -43,14 +43,15 @@ namespace Engine.Scripts.Runtime.Resource
             
             SpriteAtlasManager.atlasRequested += RequestAtlas;
 
-            LoadConfig();
+            LoadManifest();
         }
 
-        async void LoadConfig()
+        async void LoadManifest()
         {
-            var content = await ReadTextRuntime.ReadSteamingAssetsText(CONFIG_PATH);
+            var path = $"{(Application.isEditor ? SIM_BUNDLE_PATH : RUNTIME_BUNDLE_PATH)}/{CONFIG_NAME}";
+            var content = await ReadTextRuntime.ReadSteamingAssetsText(path);
             
-            _config = JsonConvert.DeserializeObject<BundleConfig>(content);
+            _manifest = JsonConvert.DeserializeObject<ABManifest>(content);
         }
         
         private void RequestAtlas(string atlasName, Action<SpriteAtlas> callback)
@@ -154,7 +155,7 @@ namespace Engine.Scripts.Runtime.Resource
             // 加载依赖
             LoadABDeps(abName);
 
-            var abPath = $"{SIM_BUNDLE_PATH}/{abName}";
+            var abPath = $"{(Application.isEditor ? SIM_BUNDLE_PATH : RUNTIME_BUNDLE_PATH)}/{abName}";
             
             // 加载
             AssetBundle ab = AssetBundle.LoadFromFile(abPath);
@@ -275,7 +276,7 @@ namespace Engine.Scripts.Runtime.Resource
 
             foreach (var dep in deps)
             {
-                LoadAB(dep);
+                LoadABWithABName(dep);
             }
         }
         
@@ -293,7 +294,7 @@ namespace Engine.Scripts.Runtime.Resource
             
             foreach (var dep in deps)
             {
-                LoadABAsync(dep, (ab) =>
+                LoadABAsyncWithABName(dep, (ab) =>
                 {
                     cnt++;
 
@@ -307,7 +308,9 @@ namespace Engine.Scripts.Runtime.Resource
         
         private List<string> GetABDeps(string abName)
         {
-            // todo 获得ab的依赖
+            if (_manifest.dependenceDic.TryGetValue(abName, out var depList))
+                return depList;
+            
             return new List<string>();
         }
 
@@ -316,7 +319,7 @@ namespace Engine.Scripts.Runtime.Resource
             int maxLength = 0;
             BundleConfigData data = null;
             
-            foreach (var config in _config.dataList)
+            foreach (var config in _manifest.config.dataList)
             {
                 if (relPath.StartsWith(config.path))
                 {

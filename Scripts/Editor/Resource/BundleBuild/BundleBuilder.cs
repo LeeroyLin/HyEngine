@@ -14,7 +14,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 {
     public partial  class BundleBuilder
     {
-        public static string CONFIG_PATH = $"{Application.streamingAssetsPath}/Config/BundleConfigData.json";
+        public static string CONFIG_PATH = $"{Application.dataPath}/BundleAssets/BundleConfig/BundleConfigData.json";
         public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
         
         private static BundleConfig _config;
@@ -49,6 +49,28 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             buildParams.PerBundleCompression = compressionDic;
             
             ReturnCode exitCode = ContentPipeline.BuildAssetBundles(buildParams, buildContent, out IBundleBuildResults results);
+
+            // 保存目录文件
+            SaveManifestFile(results, outputPath);
+        }
+
+        // 保存目录文件
+        static void SaveManifestFile(IBundleBuildResults results, string outputPath)
+        {
+            var savePath = $"{outputPath}/manifest.json";
+
+            var dep = new ABManifest();
+            
+            foreach (var info in results.BundleInfos)
+            {
+                if (info.Value.Dependencies.Length > 0)
+                    dep.dependenceDic.Add(info.Key, new List<string>(info.Value.Dependencies));
+            }
+
+            dep.config = _config;
+            
+            var content = JsonConvert.SerializeObject(dep);
+            File.WriteAllText(savePath, content);
         }
 
         private static void LoadConfig()
