@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Engine.Scripts.Editor.Resource.BundleBuild;
 using Engine.Scripts.Runtime.Resource;
+using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,11 +17,6 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
         private static BundleConfig _config;
         private static List<BundleConfigData> _list;
 
-        private static Dictionary<string,  EventCallback<ChangeEvent<string>>> _eventStringDic = new ();
-        private static Dictionary<string, EventCallback<ClickEvent>> _eventClickDic = new ();
-        private static Dictionary<string, EventCallback<ChangeEvent<Enum>>> _eventEnumDic = new ();
-        private static Dictionary<string, EventCallback<ChangeEvent<bool>>> _eventBoolDic = new ();
-
         [MenuItem("Bundle/Bundle Config/Bundle Config Window")]
         public static void ShowExample()
         {
@@ -33,8 +29,20 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
 
         static void LoadConfig()
         {
-            if (!_config)
-                _config = AssetDatabase.LoadAssetAtPath<BundleConfig>(BundleBuilder.CONFIG_PATH);
+            if (_config == null)
+            {
+                if (File.Exists(BundleBuilder.CONFIG_PATH))
+                {
+                    var content = File.ReadAllText(BundleBuilder.CONFIG_PATH);
+                    _config = JsonConvert.DeserializeObject<BundleConfig>(content);
+                }
+                else
+                {
+                    _config = new BundleConfig();
+                    var jsonStr = JsonConvert.SerializeObject(_config);
+                    File.WriteAllText(BundleBuilder.CONFIG_PATH, jsonStr);
+                }
+            }
 
             if (_config == null)
             {
@@ -67,9 +75,6 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             // 创建列处理
             MakeCell(listView);
 
-            // 取消列绑定事件
-            UnbindColumnsEvent(listView);
-                
             // 绑定列事件
             BindColumnsEvent(listView);
         }
@@ -118,11 +123,12 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                 
                 _config.dataList = DeepCopyList(_list);
 
-                EditorUtility.SetDirty(_config);
-                
-                Debug.Log("【Bundle Config】 Save success.");
+                var jsonStr = JsonConvert.SerializeObject(_config);
+                File.WriteAllText(BundleBuilder.CONFIG_PATH, jsonStr);
                 
                 listView.RefreshItems();
+                
+                Debug.Log($"Save success.");
             });
         }
 
@@ -152,74 +158,55 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             listView.columns["md5"].makeCell = () => new Toggle();
         }
         
-        /// <summary>
-        /// 取消列绑定事件
-        /// </summary>
-        /// <param name="listView"></param>
-        private void UnbindColumnsEvent(MultiColumnListView listView)
+        void OnPathChanged(ChangeEvent<string> evt, int idx)
         {
-            listView.columns["path"].unbindCell = (element, i) =>
+            _list[idx].path = evt.newValue;
+        }
+        
+        void OnSelectPath(ClickEvent evt, PathSelectorArgs args)
+        {
+            var folder = Path.Combine(Application.dataPath, "BundleAssets").Replace("/", "\\");
+            string path = EditorUtility.OpenFolderPanel("SelectFolder", folder, "").Replace("/", "\\");
+                    
+            if (string.IsNullOrEmpty(path))
+                return;
+                    
+            // 目录是否没在BundleAssets下
+            if (!path.Contains(folder))
             {
-                var textField = element.Q<TextField>();
-                var selector = element.Q<Button>();
-                
-                var key = $"path_textField_{i}";
-                if (_eventStringDic.TryGetValue(key, out var handler1))
-                {
-                    textField.UnregisterCallback(handler1);
+                Debug.LogError($"【Bundle Config】 Path must under Assets/BundleAssets");
+                        
+                return;
+            }
+            
+            // 获得相对路径
+            var relPath = path.Substring(path.IndexOf("BundleAssets") + 13);
                     
-                    _eventStringDic.Remove(key);
-                }
-                
-                key = $"path_selector_{i}";
-                if (_eventClickDic.TryGetValue(key, out var handler2))
-                {
-                    selector.UnregisterCallback(handler2);
-                    
-                    _eventClickDic.Remove(key);
-                }
-            };
-            listView.columns["dirType"].unbindCell = (element, i) =>
-            {
-                var ele = (EnumField) element;
-
-                var key = $"dirType_{i}";
-                
-                if (_eventEnumDic.TryGetValue(key, out var handler))
-                {
-                    ele.UnregisterCallback(handler);
-                    
-                    _eventEnumDic.Remove(key);
-                }
-            };
-            listView.columns["compressType"].unbindCell = (element, i) =>
-            {
-                var ele = (EnumField) element;
-
-                var key = $"compressType_{i}";
-                
-                if (_eventEnumDic.TryGetValue(key, out var handler))
-                {
-                    ele.UnregisterCallback(handler);
-                    
-                    _eventEnumDic.Remove(key);
-                }
-            };
-            listView.columns["md5"].unbindCell = (element, i) =>
-            {
-                var ele = (Toggle) element;
-
-                var key = $"md5_{i}";
-                
-                if (_eventBoolDic.TryGetValue(key, out var handler))
-                {
-                    ele.UnregisterCallback(handler);
-                    
-                    _eventBoolDic.Remove(key);
-                }
-            };
+            args.textField.value = relPath;
+            _list[args.idx].path = relPath;
         }
 
+        struct PathSelectorArgs
+        {
+            public TextField textField;
+            public int idx;
+        }
+        
+        void OnDirTypeChanged(ChangeEvent<Enum> evt, int idx)
+        {
+            _list[idx].packDirType = (EABPackDir) evt.newValue;
+        }
+        
+        void OnCompressTypeChanged(ChangeEvent<Enum> evt, int idx)
+        {
+            _list[idx].packCompressType = (EABCompress) evt.newValue;
+        }
+        
+        void OnMd5Changed(ChangeEvent<bool> evt, int idx)
+        {
+            _list[idx].md5 = evt.newValue;
+        }
+        
         /// <summary>
         /// 列表绑定事件
         /// </summary>
@@ -231,47 +218,15 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                 var textField = element.Q<TextField>();
                 var selector = element.Q<Button>();
                 
-                void OnPathChanged(ChangeEvent<string> evt)
-                {
-                    _list[i].path = evt.newValue;
-                }
-                
-                var key = $"path_textField_{i}";
-                if (!_eventStringDic.ContainsKey(key))
-                {
-                    _eventStringDic.Add(key, OnPathChanged);
-                    textField.RegisterCallback<ChangeEvent<string>>(OnPathChanged);
-                }
+                textField.UnregisterCallback<ChangeEvent<string>, int>(OnPathChanged);
+                textField.RegisterCallback<ChangeEvent<string>, int>(OnPathChanged, i);
         
-                void OnSelectPath(ClickEvent evt)
+                selector.UnregisterCallback<ClickEvent, PathSelectorArgs>(OnSelectPath);
+                selector.RegisterCallback<ClickEvent, PathSelectorArgs>(OnSelectPath, new PathSelectorArgs()
                 {
-                    var folder = Path.Combine(Application.dataPath, "BundleAssets").Replace("/", "\\");
-                    string path = EditorUtility.OpenFolderPanel("SelectFolder", folder, "").Replace("/", "\\");
-                    
-                    if (string.IsNullOrEmpty(path))
-                        return;
-                    
-                    // 目录是否没在BundleAssets下
-                    if (!path.Contains(folder))
-                    {
-                        Debug.LogError($"【Bundle Config】 Path must under Assets/BundleAssets");
-                        
-                        return;
-                    }
-                    
-                    // 获得相对路径
-                    var relPath = path.Substring(path.IndexOf("BundleAssets") + 13);
-                    
-                    textField.value = relPath;
-                    _list[i].path = relPath;
-                }
-                
-                key = $"path_selector_{i}";
-                if (!_eventClickDic.ContainsKey(key))
-                {
-                    _eventClickDic.Add(key, OnSelectPath);
-                    selector.RegisterCallback<ClickEvent>(OnSelectPath);
-                }
+                    textField = textField,
+                    idx = i,
+                });
                 
                 textField.value = _list[i].path;
                 textField.isReadOnly = true;
@@ -280,17 +235,8 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             {
                 var ele = (EnumField) element;
 
-                void OnEnumChanged(ChangeEvent<Enum> evt)
-                {
-                    _list[i].packDirType = (EABPackDir) evt.newValue;
-                }
-                
-                var key = $"dirType_{i}";
-                if (!_eventEnumDic.ContainsKey(key))
-                {
-                    _eventEnumDic.Add(key, OnEnumChanged);
-                    ele.RegisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
-                }
+                ele.UnregisterCallback<ChangeEvent<Enum>, int>(OnDirTypeChanged);
+                ele.RegisterCallback<ChangeEvent<Enum>, int>(OnDirTypeChanged, i);
 
                 ele.value = _list[i].packDirType;
             };
@@ -298,35 +244,17 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             {
                 var ele = (EnumField) element;
 
-                void OnEnumChanged(ChangeEvent<Enum> evt)
-                {
-                    _list[i].packCompressType = (EABCompress) evt.newValue;
-                }
-                
-                var key = $"compressType_{i}";
-                if (!_eventEnumDic.ContainsKey(key))
-                {
-                    _eventEnumDic.Add(key, OnEnumChanged);
-                    ele.RegisterCallback<ChangeEvent<Enum>>(OnEnumChanged);
-                }
+                ele.UnregisterCallback<ChangeEvent<Enum>, int>(OnCompressTypeChanged);
+                ele.RegisterCallback<ChangeEvent<Enum>, int>(OnCompressTypeChanged, i);
 
                 ele.value = _list[i].packCompressType;
             };
             listView.columns["md5"].bindCell = (element, i) =>
             {
                 var toggle = (Toggle) element;
-
-                void OnToggleChanged(ChangeEvent<bool> evt)
-                {
-                    _list[i].md5 = evt.newValue;
-                }
                 
-                var key = $"md5_{i}";
-                if (!_eventBoolDic.ContainsKey(key))
-                {
-                    _eventBoolDic.Add(key, OnToggleChanged);
-                    toggle.RegisterCallback<ChangeEvent<bool>>(OnToggleChanged);
-                }
+                toggle.UnregisterCallback<ChangeEvent<bool>, int>(OnMd5Changed);
+                toggle.RegisterCallback<ChangeEvent<bool>, int>(OnMd5Changed, i);
                 
                 toggle.value = _list[i].md5;
             };

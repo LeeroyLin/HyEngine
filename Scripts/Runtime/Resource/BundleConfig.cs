@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Resource
 {
-    [CreateAssetMenu(fileName = "BundleConfigData", menuName = "ScriptableObjects/BundleConfig", order = 1)]
-    public class BundleConfig : ScriptableObject
+    public class BundleConfig
     {
         public List<BundleConfigData> dataList = new List<BundleConfigData>();
     }

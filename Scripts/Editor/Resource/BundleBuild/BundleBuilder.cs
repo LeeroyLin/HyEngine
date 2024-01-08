@@ -2,8 +2,8 @@
 using System.IO;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
+using Newtonsoft.Json;
 using UnityEditor;
-using UnityEditor.Build.Content;
 using UnityEditor.Build.Pipeline;
 using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
@@ -12,7 +12,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 {
     public partial  class BundleBuilder
     {
-        public static string CONFIG_PATH = $"{ResMgr.BUNDLE_ASSETS_PATH}BundleConfig/BundleConfigData.asset";
+        public static string CONFIG_PATH = $"{Application.dataPath}/BundleAssets/BundleConfig/BundleConfigData.json";
         public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
         
         private static BundleConfig _config;
@@ -48,11 +48,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
         private static void LoadConfig()
         {
-            if (!_config)
-                _config = AssetDatabase.LoadAssetAtPath<BundleConfig>(CONFIG_PATH);
+            if (_config == null)
+            {
+                var content = File.ReadAllText(CONFIG_PATH);
+                _config = JsonConvert.DeserializeObject<BundleConfig>(content);
+            }
 
             if (_config == null)
-                Debug.LogError($"【Bundle Builder】 There is no BundleConfigData.asset at {ResMgr.BUNDLE_ASSETS_PATH}BundleConfig");
+                Debug.LogError($"【Bundle Builder】 There is no BundleConfigData.json at {CONFIG_PATH}");
         }
 
         static void GetAssetsFromConfig(List<AssetBundleBuild> list)
