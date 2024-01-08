@@ -42,6 +42,7 @@ namespace Engine.Scripts.Runtime.Resource
     public enum EABCompress
     {
         LZ4,
-        LAMA,
+        LZMA,
+        Uncompressed,
     }
 }

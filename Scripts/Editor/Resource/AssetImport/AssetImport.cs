@@ -8,7 +8,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
 {
     public class AssetImport : AssetPostprocessor
     {
-        private static readonly string DEFAULT_OUT_UI_DIR = "Assets\\BundleAssets\\UI";
+        private static readonly string DEFAULT_OUT_UI_DIR = "Assets/BundleAssets/UI";
         
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
             string[] movedFromAssetPaths)
@@ -32,7 +32,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         /// <param name="p"></param>
         private static void FGUIExportPost(string p)
         {
-            var path = p.Replace("/", "\\");
+            var path = p.Replace("\\", "/");
 
             var dir = Path.GetDirectoryName(path);
 
@@ -40,7 +40,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
 
             var uiDir = DEFAULT_OUT_UI_DIR;
             if (GlobalConfig.ResLoadMode == EResLoadMode.Resource)
-                uiDir = "Assets\\Resources\\UI";
+                uiDir = "Assets/Resources/UI";
             
             if (dir == DEFAULT_OUT_UI_DIR)
             {
@@ -58,11 +58,11 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         private static void MoveDesc(string path, string dir)
         {
             var fileName = Path.GetFileName(path);
-            var newDir = $"{dir}\\Desc";
+            var newDir = $"{dir}/Desc";
             
             MakeSureDir(newDir);
 
-            var newPath = $"{newDir}\\{fileName}";
+            var newPath = $"{newDir}/{fileName}";
 
             if (File.Exists(newPath))
                 File.Delete(newPath);
@@ -74,11 +74,11 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         {
             var fileName = Path.GetFileName(path);
             var pkgName = fileName.Split("_")[0];
-            var newDir = $"{dir}\\Res\\{pkgName}";
+            var newDir = $"{dir}/Res/{pkgName}";
             
             MakeSureDir(newDir);
             
-            var newPath = $"{newDir}\\{fileName}";
+            var newPath = $"{newDir}/{fileName}";
             
             if (File.Exists(newPath))
                 File.Delete(newPath);

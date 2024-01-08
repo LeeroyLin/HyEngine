@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Client.Scripts.Runtime.Global;
+using Client.Scripts.Runtime.Utils;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
 using Newtonsoft.Json;
@@ -32,33 +34,33 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         static void StartBuild(BuildTarget buildTarget, BuildTargetGroup buildGroup)
         {
             List<AssetBundleBuild> buildInfos = new List<AssetBundleBuild>();
+            Dictionary<string, BuildCompression> compressionDic = new Dictionary<string, BuildCompression>();
 
-            GetAssetsFromConfig(buildInfos);
+            GetAssetsFromConfig(buildInfos, compressionDic);
             
             var buildContent = new BundleBuildContent(buildInfos.ToArray());
 
-            var outputPath = $"{OUTPUT_PATH}\\{buildTarget.ToString()}";
+            var outputPath = $"{OUTPUT_PATH}/{buildTarget.ToString()}/{GlobalConfig.Version}.{TimeUtil.GetLocalTimeMS() / 1000}";
             
             PathUtil.MakeSureDir(outputPath);
             
             var buildParams = new CustomBuildParameters(buildTarget, buildGroup, outputPath);
+
+            buildParams.PerBundleCompression = compressionDic;
             
             ReturnCode exitCode = ContentPipeline.BuildAssetBundles(buildParams, buildContent, out IBundleBuildResults results);
         }
 
         private static void LoadConfig()
         {
-            if (_config == null)
-            {
-                var content = File.ReadAllText(CONFIG_PATH);
-                _config = JsonConvert.DeserializeObject<BundleConfig>(content);
-            }
+            var content = File.ReadAllText(CONFIG_PATH);
+            _config = JsonConvert.DeserializeObject<BundleConfig>(content);
 
             if (_config == null)
                 Debug.LogError($"【Bundle Builder】 There is no BundleConfigData.json at {CONFIG_PATH}");
         }
 
-        static void GetAssetsFromConfig(List<AssetBundleBuild> list)
+        static void GetAssetsFromConfig(List<AssetBundleBuild> list, Dictionary<string, BuildCompression> compressionDic)
         {
             foreach (var data in _config.dataList)
             {
@@ -77,12 +79,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                         {
                             relPathList.Add(PathUtil.AbsolutePath2AssetsPath(path));
                         }
-                        
+
+                        var abName = GetABName(data.path, data.md5);
                         list.Add(new AssetBundleBuild()
                         {
-                            assetBundleName = data.path,
+                            assetBundleName = abName,
                             assetNames = relPathList.ToArray(),
                         });
+                        compressionDic.Add(abName, GetCompression(data.packCompressType));
                     }
                     break;
                     case EABPackDir.File:
@@ -91,11 +95,13 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
                         foreach (var path in pathList)
                         {
+                            var abName = GetABName($"{data.path}_{Path.GetFileNameWithoutExtension(path)}", data.md5);
                             list.Add(new AssetBundleBuild()
                             {
-                                assetBundleName = $"{data.path}_{Path.GetFileNameWithoutExtension(path)}",
+                                assetBundleName = abName,
                                 assetNames = new string[]{PathUtil.AbsolutePath2AssetsPath(path)},
                             });
+                            compressionDic.Add(abName, GetCompression(data.packCompressType));
                         }
                     }
                     break;
@@ -111,17 +117,40 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                             {
                                 relPathList.Add(PathUtil.AbsolutePath2AssetsPath(path));
                             }
-                            
+
+                            var abName = GetABName($"{data.path}_{info.Name}", data.md5);
                             list.Add(new AssetBundleBuild()
                             {
-                                assetBundleName = $"{data.path}_{info.Name}",
+                                assetBundleName = abName,
                                 assetNames = relPathList.ToArray(),
                             });
+                            compressionDic.Add(abName, GetCompression(data.packCompressType));
                         });
                     }
                     break;
                 }
             }
+        }
+        
+        static BuildCompression GetCompression(EABCompress compressType)
+        {
+            switch (compressType)
+            {
+                case EABCompress.LZ4:
+                    return BuildCompression.LZ4;
+                case EABCompress.LZMA:
+                    return BuildCompression.LZMA;
+            }
+            
+            return BuildCompression.Uncompressed;
+        }
+
+        static string GetABName(string oriABName, bool isMd5)
+        {
+            if (isMd5)
+                return Md5.EncryptMD5_32(oriABName);
+
+            return oriABName;
         }
     }
     

@@ -165,8 +165,8 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
         
         void OnSelectPath(ClickEvent evt, PathSelectorArgs args)
         {
-            var folder = Path.Combine(Application.dataPath, "BundleAssets").Replace("/", "\\");
-            string path = EditorUtility.OpenFolderPanel("SelectFolder", folder, "").Replace("/", "\\");
+            var folder = Path.Combine(Application.dataPath, "BundleAssets").Replace("\\", "/");
+            string path = EditorUtility.OpenFolderPanel("SelectFolder", folder, "").Replace("\\", "/");
                     
             if (string.IsNullOrEmpty(path))
                 return;
