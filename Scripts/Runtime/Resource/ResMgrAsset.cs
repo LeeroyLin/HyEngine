@@ -237,7 +237,8 @@ namespace Engine.Scripts.Runtime.Resource
                 var ab = LoadAB(abRelPath);
 
                 // 加载资源
-                var atlas = ab.LoadAsset<SpriteAtlas>(atlasName);
+                var assetPath = $"{BUNDLE_ASSETS_PATH}{abRelPath}.spriteatlasv2";
+                var atlas = ab.LoadAsset<SpriteAtlas>(assetPath);
                 
                 if (atlas == null)
                     _log.Error($"Can not load atlas : '{atlasName}'");
