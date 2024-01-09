@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Client.Scripts.Runtime.Global;
 using Client.Scripts.Runtime.Utils;
 using Engine.Scripts.Runtime.Resource;
@@ -24,6 +25,15 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
         // ab依赖的其他ab
         private static Dictionary<string, HashSet<string>> _abDepDic = new Dictionary<string, HashSet<string>>();
+        
+        // 构件信息
+        private static List<AssetBundleBuild> _buildInfos = new List<AssetBundleBuild>();
+        
+        // 非法资源名
+        private static List<string> _invalidAssetNames = new List<string>();
+        
+        // 压缩字典
+        private static Dictionary<string, BuildCompression> _compressionDic = new Dictionary<string, BuildCompression>();
 
         [MenuItem("Bundle/Build/Android")]
         public static void Build()
@@ -32,28 +42,38 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             Debug.Log("【Bundle Builder】 Start build bundle via Android platform.");
             
+            // 从配置整理资源
+            FormatAssetsFromConfig();
+            
+            // 是否有非法资源名
+            if (_invalidAssetNames.Count > 0)
+            {
+                var value = string.Join("\n", _invalidAssetNames);
+                Debug.Log($"【Bundle Builder】 Has invalid assets.\n{value}");
+                return;
+            }
+            
+            // 检测资源依赖
+            CheckAssetsDeps();
+            
+            // 循环依赖检测
+            if (CheckLoopDep())
+                return;
+
+            // 开始打包
             StartBuild(BuildTarget.Android, BuildTargetGroup.Android);
             
             Debug.Log("【Bundle Builder】 Build finished.");
         }
 
+        /// <summary>
+        /// 开始打包
+        /// </summary>
+        /// <param name="buildTarget"></param>
+        /// <param name="buildGroup"></param>
         static void StartBuild(BuildTarget buildTarget, BuildTargetGroup buildGroup)
         {
-            List<AssetBundleBuild> buildInfos = new List<AssetBundleBuild>();
-            Dictionary<string, BuildCompression> compressionDic = new Dictionary<string, BuildCompression>();
-
-            GetAssetsFromConfig(buildInfos, compressionDic);
-            
-            // 检测资源依赖
-            CheckAssetsDeps(buildInfos);
-            
-            // 循环依赖检测
-            bool isLoopDep = CheckLoopDep();
-
-            if (isLoopDep)
-                return;
-            
-            var buildContent = new BundleBuildContent(buildInfos.ToArray());
+            var buildContent = new BundleBuildContent(_buildInfos.ToArray());
             
             var outputPath = $"{OUTPUT_PATH}/{buildTarget.ToString()}/{GlobalConfig.Version}.{TimeUtil.GetLocalTimeMS() / 1000}";
             
@@ -61,7 +81,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             var buildParams = new CustomBuildParameters(buildTarget, buildGroup, outputPath);
 
-            buildParams.PerBundleCompression = compressionDic; 
+            buildParams.PerBundleCompression = _compressionDic; 
             
             ReturnCode exitCode = ContentPipeline.BuildAssetBundles(buildParams, buildContent, out IBundleBuildResults results);
             
@@ -70,12 +90,12 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         }
 
         // 检测资源依赖
-        static void CheckAssetsDeps(List<AssetBundleBuild> buildInfos)
+        static void CheckAssetsDeps()
         {
             _assetABDic.Clear();
             _abDepDic.Clear();
             
-            foreach (var info in buildInfos)
+            foreach (var info in _buildInfos)
             {
                 foreach (var assetName in info.assetNames)
                 {
@@ -83,7 +103,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 }
             }
             
-            foreach (var info in buildInfos)
+            foreach (var info in _buildInfos)
             {
                 // 获得ab内每个资源
                 foreach (var assetName in info.assetNames)
@@ -180,8 +200,15 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 Debug.LogError($"【Bundle Builder】 There is no BundleConfigData.json at {CONFIG_PATH}");
         }
 
-        static void GetAssetsFromConfig(List<AssetBundleBuild> list, Dictionary<string, BuildCompression> compressionDic)
+        /// <summary>
+        /// 从配置整理资源
+        /// </summary>
+        static void FormatAssetsFromConfig()
         {
+            _buildInfos.Clear();
+            _invalidAssetNames.Clear();
+            _compressionDic.Clear();
+            
             foreach (var data in _config.dataList)
             {
                 var relPath = $"{ResMgr.BUNDLE_ASSETS_PATH}{data.path}";
@@ -197,16 +224,17 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                         
                         foreach (var path in pathList)
                         {
+                            CheckAssetNameAvailableAndRecord(path);
                             relPathList.Add(PathUtil.AbsolutePath2AssetsPath(path));
                         }
 
                         var abName = GetABName(data.path, data.md5);
-                        list.Add(new AssetBundleBuild()
+                        _buildInfos.Add(new AssetBundleBuild()
                         {
                             assetBundleName = abName,
                             assetNames = relPathList.ToArray(),
                         });
-                        compressionDic.Add(abName, GetCompression(data.packCompressType));
+                        _compressionDic.Add(abName, GetCompression(data.packCompressType));
                     }
                     break;
                     case EABPackDir.File:
@@ -215,13 +243,15 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
                         foreach (var path in pathList)
                         {
+                            CheckAssetNameAvailableAndRecord(path);
+                            
                             var abName = GetABName($"{data.path}_{Path.GetFileNameWithoutExtension(path)}", data.md5);
-                            list.Add(new AssetBundleBuild()
+                            _buildInfos.Add(new AssetBundleBuild()
                             {
                                 assetBundleName = abName,
                                 assetNames = new string[]{PathUtil.AbsolutePath2AssetsPath(path)},
                             });
-                            compressionDic.Add(abName, GetCompression(data.packCompressType));
+                            _compressionDic.Add(abName, GetCompression(data.packCompressType));
                         }
                     }
                     break;
@@ -235,21 +265,38 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                         
                             foreach (var path in pathList)
                             {
+                                CheckAssetNameAvailableAndRecord(path);
                                 relPathList.Add(PathUtil.AbsolutePath2AssetsPath(path));
                             }
 
                             var abName = GetABName($"{data.path}_{info.Name}", data.md5);
-                            list.Add(new AssetBundleBuild()
+                            _buildInfos.Add(new AssetBundleBuild()
                             {
                                 assetBundleName = abName,
                                 assetNames = relPathList.ToArray(),
                             });
-                            compressionDic.Add(abName, GetCompression(data.packCompressType));
+                            _compressionDic.Add(abName, GetCompression(data.packCompressType));
                         });
                     }
                     break;
                 }
             }
+        }
+
+        // 检测资源名，并记录非法资源名
+        private static void CheckAssetNameAvailableAndRecord(string assetName)
+        {
+            var name = Path.GetFileNameWithoutExtension(assetName);
+            if (!IsAssetNameAvailable(name))
+                _invalidAssetNames.Add(assetName);
+        }
+
+        // 是否资源名有效
+        private static bool IsAssetNameAvailable(string name)
+        {
+            Regex reg = new Regex(@"^[a-zA-Z0-9_]+$");
+
+            return reg.IsMatch(name);
         }
         
         static BuildCompression GetCompression(EABCompress compressType)
