@@ -14,7 +14,7 @@ namespace Engine.Scripts.Runtime.Utils
         /// <returns>Assets开头的路径</returns>
         public static string AbsolutePath2AssetsPath(string absolutePath)
         {
-            return absolutePath.Substring(absolutePath.IndexOf("Assets"));
+            return absolutePath.Substring(absolutePath.IndexOf("Assets")).Replace("\\", "/");
         }
         
         /// <summary>
