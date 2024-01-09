@@ -86,7 +86,36 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             ReturnCode exitCode = ContentPipeline.BuildAssetBundles(buildParams, buildContent, out IBundleBuildResults results);
             
             // 保存目录文件
-            SaveManifestFile(results, outputPath);
+            SaveManifestFile(outputPath, results);
+        }
+
+        // 保存目录文件
+        static void SaveManifestFile(string outputPath, IBundleBuildResults results)
+        {
+            var savePath = $"{outputPath}/manifest.json";
+
+            var dep = new ABManifest();
+
+            foreach (var info in _abDepDic)
+                dep.dependenceDic.Add(info.Key, new List<string>(info.Value));
+
+            dep.config = _config;
+
+            dep.version = GlobalConfig.Version;
+
+            var pre = outputPath + "/";
+            
+            foreach (var info in results.BundleInfos)
+            {
+                dep.files.Add(new ABManifestFile()
+                {
+                    fileName = info.Value.FileName.Replace(pre, ""),
+                    crc = info.Value.Crc,
+                });
+            }
+            
+            var content = JsonConvert.SerializeObject(dep);
+            File.WriteAllText(savePath, content);
         }
 
         // 检测资源依赖
@@ -133,22 +162,6 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                     }
                 }
             }
-        }
-
-        // 保存目录文件
-        static void SaveManifestFile(IBundleBuildResults results, string outputPath)
-        {
-            var savePath = $"{outputPath}/manifest.json";
-
-            var dep = new ABManifest();
-
-            foreach (var info in _abDepDic)
-                dep.dependenceDic.Add(info.Key, new List<string>(info.Value));
-
-            dep.config = _config;
-            
-            var content = JsonConvert.SerializeObject(dep);
-            File.WriteAllText(savePath, content);
         }
 
         // 检测循环依赖
