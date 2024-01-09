@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Client.Scripts.Runtime.Gen.Proto;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
@@ -109,9 +108,9 @@ namespace Engine.Scripts.Runtime.Net
         /// <summary>
         /// 通过主连接发送消息
         /// </summary>
-        /// <param name="eProto"></param>
+        /// <param name="protoId"></param>
         /// <param name="message"></param>
-        public void SendMsg(EProto eProto, IMessage message)
+        public void SendMsg(ushort protoId, IMessage message)
         {
             if (!MainConnConnected)
             {
@@ -119,7 +118,7 @@ namespace Engine.Scripts.Runtime.Net
                 return;   
             }
             
-            _connDic[_mainConnKey].SendMsg((ushort)eProto, message.ToByteArray(), message);
+            _connDic[_mainConnKey].SendMsg(protoId, message.ToByteArray(), message);
         }
 
         void ClearConnDic()

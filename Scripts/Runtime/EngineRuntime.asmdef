@@ -1,0 +1,16 @@
+{
+    "name": "EngineRuntime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:5c820dc69a915e8478e4b00188962874"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

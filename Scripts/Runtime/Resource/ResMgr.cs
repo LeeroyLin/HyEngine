@@ -52,6 +52,9 @@ namespace Engine.Scripts.Runtime.Resource
             var content = await ReadTextRuntime.ReadSteamingAssetsText(path);
             
             _manifest = JsonConvert.DeserializeObject<ABManifest>(content);
+
+            if (_manifest == null)
+                _log.Error("Can not find manifest file.");
         }
         
         private void RequestAtlas(string atlasName, Action<SpriteAtlas> callback)

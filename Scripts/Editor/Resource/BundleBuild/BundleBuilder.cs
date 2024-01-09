@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Client.Scripts.Runtime.Global;
-using Client.Scripts.Runtime.Utils;
+using System.Threading.Tasks;
+using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
 using Newtonsoft.Json;
@@ -18,7 +18,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         public static string CONFIG_PATH = $"{Application.dataPath}/BundleAssets/BundleConfig/BundleConfigData.json";
         public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
         
-        private static BundleConfig _config;
+        private static BundleConfig _bundleConfig;
         
         // 资源对应ab名
         private static Dictionary<string, string> _assetABDic = new Dictionary<string, string>();
@@ -35,10 +35,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         // 压缩字典
         private static Dictionary<string, BuildCompression> _compressionDic = new Dictionary<string, BuildCompression>();
 
+        private static GlobalConfigSO _globalConfig;
+        
         [MenuItem("Bundle/Build/Android")]
-        public static void Build()
+        public static async void Build()
         {
-            LoadConfig();
+            await LoadGlobalConfig();
+            
+            LoadBundleConfig();
             
             Debug.Log("【Bundle Builder】 Start build bundle via Android platform.");
             
@@ -62,6 +66,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
             // 开始打包
             StartBuild(BuildTarget.Android, BuildTargetGroup.Android);
+
+            // 保存全局配置文件
+            SaveGlobalConfigFile();
             
             Debug.Log("【Bundle Builder】 Build finished.");
         }
@@ -75,7 +82,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         {
             var buildContent = new BundleBuildContent(_buildInfos.ToArray());
             
-            var outputPath = $"{OUTPUT_PATH}/{buildTarget.ToString()}/{GlobalConfig.Version}.{TimeUtil.GetLocalTimeMS() / 1000}";
+            var outputPath = $"{OUTPUT_PATH}/{buildTarget.ToString()}/{_globalConfig.version}.{TimeUtilBase.GetLocalTimeMS() / 1000}";
             
             PathUtil.MakeSureDir(outputPath);
             
@@ -99,9 +106,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             foreach (var info in _abDepDic)
                 dep.dependenceDic.Add(info.Key, new List<string>(info.Value));
 
-            dep.config = _config;
+            dep.config = _bundleConfig;
 
-            dep.version = GlobalConfig.Version;
+            dep.version = _globalConfig.version;
 
             var pre = outputPath + "/";
             
@@ -116,6 +123,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             var content = JsonConvert.SerializeObject(dep);
             File.WriteAllText(savePath, content);
+        }
+        
+        /// <summary>
+        /// 保存全局配置文件
+        /// </summary>
+        static void SaveGlobalConfigFile()
+        {
+            GlobalConfig.SaveJsonFile(_globalConfig);
         }
 
         // 检测资源依赖
@@ -204,12 +219,17 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             return (false, "");
         }
 
-        private static void LoadConfig()
+        private static async Task LoadGlobalConfig()
+        {
+            _globalConfig = await GlobalConfig.LoadANewConf();
+        }
+
+        private static void LoadBundleConfig()
         {
             var content = File.ReadAllText(CONFIG_PATH);
-            _config = JsonConvert.DeserializeObject<BundleConfig>(content);
+            _bundleConfig = JsonConvert.DeserializeObject<BundleConfig>(content);
 
-            if (_config == null)
+            if (_bundleConfig == null)
                 Debug.LogError($"【Bundle Builder】 There is no BundleConfigData.json at {CONFIG_PATH}");
         }
 
@@ -222,7 +242,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             _invalidAssetNames.Clear();
             _compressionDic.Clear();
             
-            foreach (var data in _config.dataList)
+            foreach (var data in _bundleConfig.dataList)
             {
                 var relPath = $"{ResMgr.BUNDLE_ASSETS_PATH}{data.path}";
                 var absPath = PathUtil.AssetsPath2AbsolutePath(relPath);

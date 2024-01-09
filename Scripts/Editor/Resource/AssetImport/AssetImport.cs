@@ -1,5 +1,6 @@
 ﻿using System.IO;
-using Client.Scripts.Runtime.Global;
+using System.Threading.Tasks;
+using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using UnityEditor;
 
@@ -11,10 +12,22 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         
         // 定义文件和图片文件分离
         private static readonly bool IS_SEPARATE = false;
+
+        private static GlobalConfigSO _configSo;
+
+        private static async Task LoadConfig()
+        {
+            _configSo = await GlobalConfig.LoadANewConf();
+        }
         
-        private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
+        private static async void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
             string[] movedFromAssetPaths)
         {
+            await LoadConfig();
+
+            if (_configSo == null)
+                return;
+            
             foreach (var p in importedAssets)
             {
                 // 非文件
@@ -41,7 +54,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
             var extension = Path.GetExtension(path);
 
             var uiDir = DEFAULT_OUT_UI_DIR;
-            if (GlobalConfig.ResLoadMode == EResLoadMode.Resource)
+            if (_configSo.resLoadMode == EResLoadMode.Resource)
                 uiDir = "Assets/Resources/UI";
 
             if (dir == DEFAULT_OUT_UI_DIR)

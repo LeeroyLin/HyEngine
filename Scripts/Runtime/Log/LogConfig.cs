@@ -1,5 +1,8 @@
-﻿namespace Engine.Scripts.Runtime.Log
+﻿using System;
+
+namespace Engine.Scripts.Runtime.Log
 {
+    [Serializable]
     public class LogConfig
     {
         public bool isShowLog;
