@@ -26,6 +26,9 @@ namespace Engine.Scripts.Runtime.Log
         /// <param name="content">内容</param>
         public void Log(string content)
         {
+            if (_config == null)
+                return;
+            
             TryLog(content);
             TrySaveLog(content);
         }
@@ -36,6 +39,9 @@ namespace Engine.Scripts.Runtime.Log
         /// <param name="content">内容</param>
         public void LogWarning(string content)
         {
+            if (_config == null)
+                return;
+            
             TryWarning(content);
             TrySaveWarning(content);
         }
@@ -46,6 +52,9 @@ namespace Engine.Scripts.Runtime.Log
         /// <param name="content">内容</param>
         public void LogError(string content)
         {
+            if (_config == null)
+                return;
+            
             TryError(content);
             TrySaveError(content);
         }

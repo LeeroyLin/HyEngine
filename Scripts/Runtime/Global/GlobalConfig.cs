@@ -12,7 +12,7 @@ namespace Engine.Scripts.Runtime.Global
         /// <summary>
         /// 全局配置路径
         /// </summary>
-        private static readonly string GLOBAL_CONFIG_STREAMING_ASSETS_PATH = $"{Application.streamingAssetsPath}/Config/GlobalConfig.json";
+        private static readonly string GLOBAL_CONFIG_STREAMING_ASSETS_PATH = "Config/GlobalConfig.json";
         private static readonly string GLOBAL_CONFIG_ASSET_PATH = "Assets/Settings/GlobalConfig.asset";
 
         public static GlobalConfigSO Conf;

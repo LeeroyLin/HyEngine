@@ -12,11 +12,21 @@ namespace Engine.Scripts.Runtime.Utils
         {
             string filePath = Path.Combine(Application.streamingAssetsPath, streamingAssetsRelPath);
 
+            return await ReadText(filePath);
+        }
+        
+        public static async Task<string> ReadPersistentDataPathText(string persistentDataPathRelPath)
+        {
+            string filePath = Path.Combine(Application.persistentDataPath, persistentDataPathRelPath);
+
+            return await ReadText(filePath);
+        }
+        
+        static async Task<string> ReadText(string filePath)
+        {
             // 根据平台调整路径格式
             if (Application.platform == RuntimePlatform.Android)
-            {
                 filePath = "jar:file://" + filePath;
-            }
 
             UnityWebRequest request = UnityWebRequest.Get(filePath);
 #if UNITY_2020_1_OR_NEWER
@@ -26,14 +36,10 @@ namespace Engine.Scripts.Runtime.Utils
 #endif
 
             if (request.result == UnityWebRequest.Result.Success)
-            {
                 return Encoding.UTF8.GetString(request.downloadHandler.data);
-            }
-            else
-            {
-                Debug.LogError($"[LoadConfig] err: {request.error}");
-                return "";
-            }
+            
+            Debug.LogError($"[ReadText] failed. path: {filePath} err: {request.error}");
+            return "";
         }
     }
 }

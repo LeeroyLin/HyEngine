@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Timer;
@@ -32,8 +33,10 @@ namespace Engine.Scripts.Runtime.Resource
         {
         }
 
-        public void Init(EResLoadMode resLoadMode)
+        public async Task Init(EResLoadMode resLoadMode)
         {
+            Debug.Log("ResMgr InitMgr");
+            
             _resLoadMode = resLoadMode;
             
             _log = new LogGroup("ResMgr");
@@ -43,13 +46,20 @@ namespace Engine.Scripts.Runtime.Resource
             
             SpriteAtlasManager.atlasRequested += RequestAtlas;
 
-            LoadManifest();
+            await LoadManifest();
         }
 
-        async void LoadManifest()
+        async Task LoadManifest()
         {
-            var path = $"{(Application.isEditor ? SIM_BUNDLE_PATH : RUNTIME_BUNDLE_PATH)}/{CONFIG_NAME}";
-            var content = await ReadTextRuntime.ReadSteamingAssetsText(path);
+            _log.Log("LoadManifest");
+
+            string content = "";
+            
+            #if UNITY_EDITOR
+                content = await ReadTextRuntime.ReadSteamingAssetsText($"Android/{CONFIG_NAME}");
+            #else
+                content = await ReadTextRuntime.ReadPersistentDataPathText($"Android/{CONFIG_NAME}");
+            #endif
             
             _manifest = JsonConvert.DeserializeObject<ABManifest>(content);
 
