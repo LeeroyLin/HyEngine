@@ -2,7 +2,8 @@
     "name": "EngineRuntime",
     "rootNamespace": "",
     "references": [
-        "GUID:5c820dc69a915e8478e4b00188962874"
+        "GUID:5c820dc69a915e8478e4b00188962874",
+        "GUID:73bdcf5f3e4e0fb49ab33cf81f8c0cd5"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

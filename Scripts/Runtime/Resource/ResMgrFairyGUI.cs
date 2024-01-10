@@ -48,7 +48,7 @@ namespace Engine.Scripts.Runtime.Resource
         {
             #if UNITY_EDITOR
             var path = $"{BUNDLE_ASSETS_PATH}UI";
-            var descPath = $"{path}/Desc/{pkgName}_fui.bytes";
+            var descPath = $"{path}/{pkgName}/{pkgName}_fui.bytes";
                     
             // 从路径加载描述文件
             TextAsset ta = AssetDatabase.LoadAssetAtPath<TextAsset>(descPath);
@@ -66,7 +66,7 @@ namespace Engine.Scripts.Runtime.Resource
                     if (!IsCouldLoad(name))
                         return null;
                     
-                    var assetPath = $"{path}/Res/{pkgName}/{name}{extension}";
+                    var assetPath = $"{path}/{pkgName}/{name}{extension}";
                     
                     var asset = AssetDatabase.LoadAssetAtPath(assetPath, type);
 
