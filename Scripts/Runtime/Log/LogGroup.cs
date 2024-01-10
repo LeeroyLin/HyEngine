@@ -26,14 +26,14 @@
             if (!IsEnabled)
                 return;
 
-            if (args.Length > 0)
-            {
-                var content = $"【{Title}】 {string.Format(msg, args)}";
-                LogMgr.Ins.Log(content);
-                return;
-            }
+            string content;
             
-            LogMgr.Ins.Log(msg);
+            if (args.Length > 0)
+                content = $"【{Title}】 {string.Format(msg, args)}";
+            else
+                content = $"【{Title}】 {msg}";
+            
+            LogMgr.Ins.Log(content);
         }
 
         public void Error(string msg, params object[] args)
