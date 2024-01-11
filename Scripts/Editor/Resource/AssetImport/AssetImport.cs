@@ -3,12 +3,14 @@ using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using UnityEditor;
+using UnityEngine;
 
 namespace Engine.Scripts.Editor.Resource.AssetImport
 {
     public class AssetImport : AssetPostprocessor
     {
         private static readonly string DEFAULT_OUT_UI_DIR = "Assets/BundleAssets/UI";
+        private static readonly string RESOURCES_OUT_UI_DIR = "Assets/Resources/UI";
         
         // 定义文件和图片文件分离
         private static readonly bool IS_SEPARATE = false;
@@ -53,9 +55,12 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
 
             var extension = Path.GetExtension(path);
 
+            var fileName = Path.GetFileName(path);
+            var pkgName = fileName.Split("_")[0];
+            
             var uiDir = DEFAULT_OUT_UI_DIR;
-            if (_configSo.resLoadMode == EResLoadMode.Resource)
-                uiDir = "Assets/Resources/UI";
+            if (_configSo.resLoadMode == EResLoadMode.Resource || pkgName == "HotUpdate")
+                uiDir = RESOURCES_OUT_UI_DIR;
 
             if (dir == DEFAULT_OUT_UI_DIR)
             {
