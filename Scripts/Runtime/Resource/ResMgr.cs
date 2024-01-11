@@ -16,8 +16,8 @@ namespace Engine.Scripts.Runtime.Resource
     public partial class ResMgr : SingletonClass<ResMgr>, IManager
     {
         public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
-        public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/Android";
-        public static readonly string SIM_BUNDLE_PATH = $"{Application.streamingAssetsPath}/Android";
+        public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/{PlatformInfo.Platform}";
+        public static readonly string SIM_BUNDLE_PATH = $"{Application.streamingAssetsPath}/{PlatformInfo.Platform}";
         public static readonly string CONFIG_NAME = "manifest.json";
         
         private static ABManifest _manifest;
@@ -56,9 +56,9 @@ namespace Engine.Scripts.Runtime.Resource
             string content = "";
             
             #if UNITY_EDITOR
-                content = await ReadTextRuntime.ReadSteamingAssetsText($"Android/{CONFIG_NAME}");
+                content = await ReadTextRuntime.ReadSteamingAssetsText($"{PlatformInfo.Platform}/{CONFIG_NAME}");
             #else
-                content = await ReadTextRuntime.ReadPersistentDataPathText($"Android/{CONFIG_NAME}");
+                content = await ReadTextRuntime.ReadPersistentDataPathText($"{PlatformInfo.Platform}/{CONFIG_NAME}");
             #endif
             
             _manifest = JsonConvert.DeserializeObject<ABManifest>(content);

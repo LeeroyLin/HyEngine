@@ -9,23 +9,27 @@ namespace Engine.Scripts.Editor.Global
     {
         SerializedProperty _logField;
         SerializedProperty _env;
+        SerializedProperty _netConfig;
 
-        private int _lastEnv;
+        private EEnv _lastEnv;
         
         void OnEnable()
         {
             _logField = serializedObject.FindProperty("logConfig");
+            _netConfig = serializedObject.FindProperty("netConfig");
             _env = serializedObject.FindProperty("env");
         }
         
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            var env = (EEnv)_env.enumValueIndex;
             
-            if (_env.enumValueIndex != _lastEnv)
+            if (env != _lastEnv)
             {
                 var log = _logField.boxedValue as LogConfig;
-                if (_env.enumValueIndex == 0)
+                if (env == EEnv.Develop)
                 {
                     log.isShowLog = true;
                     log.isShowWarning = true;
@@ -34,7 +38,7 @@ namespace Engine.Scripts.Editor.Global
                     log.isSaveWarning = false;
                     log.isSaveError = false;
                 }
-                else if (_env.enumValueIndex == 1)
+                else if (env == EEnv.Release)
                 {
                     log.isShowLog = false;
                     log.isShowWarning = false;
@@ -52,9 +56,10 @@ namespace Engine.Scripts.Editor.Global
                     log.isSaveWarning = false;
                     log.isSaveError = false;
                 }
-                _logField.boxedValue = log;
                 
-                _lastEnv = _env.enumValueIndex;
+                _logField.boxedValue = log;
+            
+                _lastEnv = env;
             }
             
             serializedObject.ApplyModifiedProperties();

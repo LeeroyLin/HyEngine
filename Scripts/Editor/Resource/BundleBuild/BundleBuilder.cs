@@ -81,8 +81,10 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         static void StartBuild(BuildTarget buildTarget, BuildTargetGroup buildGroup)
         {
             var buildContent = new BundleBuildContent(_buildInfos.ToArray());
-            
-            var outputPath = $"{OUTPUT_PATH}/{buildTarget.ToString()}/{_globalConfig.version}.{TimeUtilBase.GetLocalTimeMS() / 1000}";
+
+            var timestamp = TimeUtilBase.GetLocalTimeMS() / 1000;
+            var finalVersion = $"{_globalConfig.version}.{timestamp}";
+            var outputPath = $"{OUTPUT_PATH}/{buildTarget.ToString()}/{finalVersion}";
             
             PathUtil.MakeSureDir(outputPath);
             
@@ -92,12 +94,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             ReturnCode exitCode = ContentPipeline.BuildAssetBundles(buildParams, buildContent, out IBundleBuildResults results);
             
+            Debug.Log($"Build exitCode : {exitCode}");
+            
             // 保存目录文件
-            SaveManifestFile(outputPath, results);
+            SaveManifestFile(outputPath, results, finalVersion);
         }
 
         // 保存目录文件
-        static void SaveManifestFile(string outputPath, IBundleBuildResults results)
+        static void SaveManifestFile(string outputPath, IBundleBuildResults results, string finalVersion)
         {
             var savePath = $"{outputPath}/manifest.json";
 
@@ -108,16 +112,29 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
             dep.config = _bundleConfig;
 
-            dep.version = _globalConfig.version;
+            dep.version = finalVersion;
 
             var pre = outputPath + "/";
-            
+
+            HashSet<string> md5Hash = new HashSet<string>();
+
             foreach (var info in results.BundleInfos)
             {
+                var md5 = Md5.EncryptFileMD5_32(info.Value.FileName);
+
+                if (md5Hash.Contains(md5))
+                {
+                    Debug.LogError($"Same file md5. file : {info.Value.FileName}");
+                    
+                    return;
+                }
+
+                md5Hash.Add(md5);
+                
                 dep.files.Add(new ABManifestFile()
                 {
                     fileName = info.Value.FileName.Replace(pre, ""),
-                    crc = info.Value.Crc,
+                    md5 = md5,
                 });
             }
             

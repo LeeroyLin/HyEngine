@@ -14,6 +14,7 @@ namespace Engine.Scripts.Runtime.Global
         /// </summary>
         private static readonly string GLOBAL_CONFIG_STREAMING_ASSETS_PATH = "Config/GlobalConfig.json";
         private static readonly string GLOBAL_CONFIG_ASSET_PATH = "Assets/Settings/GlobalConfig.asset";
+        private static readonly string NET_CONFIG_PATH = "Config/net.json";
 
         public static GlobalConfigSO Conf;
 
@@ -37,7 +38,10 @@ namespace Engine.Scripts.Runtime.Global
         public static void SaveJsonFile(GlobalConfigSO conf)
         {
             var content = JsonConvert.SerializeObject(conf);
-            File.WriteAllText(GLOBAL_CONFIG_STREAMING_ASSETS_PATH, content);
+            File.WriteAllText($"{Application.streamingAssetsPath}/{GLOBAL_CONFIG_STREAMING_ASSETS_PATH}", content);
+            
+            content = JsonConvert.SerializeObject(conf.GetCurrNetConfig());
+            File.WriteAllText($"{Application.streamingAssetsPath}/{NET_CONFIG_PATH}", content);
         }
     }
 }

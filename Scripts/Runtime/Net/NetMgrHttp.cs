@@ -24,7 +24,7 @@ namespace Engine.Scripts.Runtime.Net
         {
             url = GetUrlWithSearchStrData(url, searchStrData);
             
-            using var webRequest = UnityWebRequest.Get(url);
+            var webRequest = UnityWebRequest.Get(url);
 
             if (headerData != null)
                 foreach (var data in headerData)
@@ -67,7 +67,7 @@ namespace Engine.Scripts.Runtime.Net
         {
             url = GetUrlWithSearchStrData(url, searchStrData);
             
-            using var webRequest = UnityWebRequest.Post(url, formData);
+            var webRequest = UnityWebRequest.Post(url, formData);
             
             if (headerData != null)
                 foreach (var data in headerData)

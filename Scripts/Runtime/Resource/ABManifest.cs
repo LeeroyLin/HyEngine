@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Resource
 {
@@ -14,6 +13,6 @@ namespace Engine.Scripts.Runtime.Resource
     public class ABManifestFile
     {
         public string fileName;
-        public uint crc;
+        public string md5;
     }
 }
