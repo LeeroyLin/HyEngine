@@ -1,10 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
+using HybridCLR.Editor;
+using HybridCLR.Editor.AOT;
+using HybridCLR.Editor.Commands;
+using HybridCLR.Editor.Meta;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.Build.Pipeline;
@@ -13,10 +20,11 @@ using UnityEngine;
 
 namespace Engine.Scripts.Editor.Resource.BundleBuild
 {
-    public class BundleBuilder
+    public partial class BundleBuilder
     {
         public static string CONFIG_PATH = $"{Application.dataPath}/BundleAssets/BundleConfig/BundleConfigData.json";
         public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
+        public static string LOG_PATH = $"{Application.dataPath}/../BuildLogs";
         
         private static BundleConfig _bundleConfig;
         
@@ -36,16 +44,26 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         private static Dictionary<string, BuildCompression> _compressionDic = new Dictionary<string, BuildCompression>();
 
         private static GlobalConfigSO _globalConfig;
+
+        private static StringBuilder _sb = new StringBuilder();
         
         [MenuItem("Bundle/Build/Android")]
         public static async void Build()
         {
+            _sb.Clear();
+            
+            var buildTarget = BuildTarget.Android;
+            var timestamp = TimeUtilBase.GetLocalTimeMS() / 1000;
+            
             await LoadGlobalConfig();
+
+            if (!LoadBundleConfig())
+                return;
             
-            LoadBundleConfig();
-            
-            Debug.Log("【Bundle Builder】 Start build bundle via Android platform.");
-            
+            // 编译热更dlls
+            if (!CompileHybridDlls(buildTarget))
+                return;
+
             // 从配置整理资源
             FormatAssetsFromConfig();
             
@@ -53,7 +71,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             if (_invalidAssetNames.Count > 0)
             {
                 var value = string.Join("\n", _invalidAssetNames);
-                Debug.Log($"【Bundle Builder】 Has invalid assets.\n{value}");
+                LogError($"Has invalid assets.\n{value}");
                 return;
             }
             
@@ -65,24 +83,29 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 return;
 
             // 开始打包
-            StartBuild(BuildTarget.Android, BuildTargetGroup.Android);
+            if (!StartBuild(timestamp, buildTarget, BuildTargetGroup.Android))
+                return;
 
             // 保存全局配置文件
-            SaveGlobalConfigFile();
+            if (!SaveGlobalConfigFile())
+                return;
             
-            Debug.Log("【Bundle Builder】 Build finished.");
+            // 保存打包日志
+            SaveLogFile(timestamp);
         }
 
         /// <summary>
         /// 开始打包
         /// </summary>
+        /// <param name="timestamp"></param>
         /// <param name="buildTarget"></param>
         /// <param name="buildGroup"></param>
-        static void StartBuild(BuildTarget buildTarget, BuildTargetGroup buildGroup)
+        static bool StartBuild(long timestamp, BuildTarget buildTarget, BuildTargetGroup buildGroup)
         {
+            Log($"Start build. platform: {buildTarget}");
+
             var buildContent = new BundleBuildContent(_buildInfos.ToArray());
 
-            var timestamp = TimeUtilBase.GetLocalTimeMS() / 1000;
             var finalVersion = $"{_globalConfig.version}.{timestamp}";
             var outputPath = $"{OUTPUT_PATH}/{buildTarget.ToString()}/{finalVersion}";
             
@@ -94,15 +117,20 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             ReturnCode exitCode = ContentPipeline.BuildAssetBundles(buildParams, buildContent, out IBundleBuildResults results);
             
-            Debug.Log($"Build exitCode : {exitCode}");
+            Log($"Build finished with exit code : {exitCode}");
+
+            if (exitCode != ReturnCode.Success)
+                return false;
             
             // 保存目录文件
-            SaveManifestFile(outputPath, results, finalVersion);
+            return SaveManifestFile(outputPath, results, finalVersion);
         }
 
         // 保存目录文件
-        static void SaveManifestFile(string outputPath, IBundleBuildResults results, string finalVersion)
+        static bool SaveManifestFile(string outputPath, IBundleBuildResults results, string finalVersion)
         {
+            Log("Save manifest file.");
+
             var savePath = $"{outputPath}/manifest.json";
 
             var dep = new ABManifest();
@@ -124,9 +152,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
                 if (md5Hash.Contains(md5))
                 {
-                    Debug.LogError($"Same file md5. file : {info.Value.FileName}");
+                    LogError($"Same file md5. file : {info.Value.FileName}");
                     
-                    return;
+                    return false;
                 }
 
                 md5Hash.Add(md5);
@@ -139,20 +167,45 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             }
             
             var content = JsonConvert.SerializeObject(dep);
-            File.WriteAllText(savePath, content);
+
+            try
+            {
+                File.WriteAllText(savePath, content);
+            }
+            catch (Exception e)
+            {
+                LogError($"Write manifest file failed. path: {savePath} err : {e.Message}");
+                return false;
+            }
+
+            return true;
         }
         
         /// <summary>
         /// 保存全局配置文件
         /// </summary>
-        static void SaveGlobalConfigFile()
+        static bool SaveGlobalConfigFile()
         {
-            GlobalConfig.SaveJsonFile(_globalConfig);
+            Log("Save global config file.");
+
+            try
+            {
+                GlobalConfig.SaveJsonFile(_globalConfig);
+            }
+            catch (Exception e)
+            {
+                LogError($"Save global config file failed. err : {e.Message}");
+                return false;
+            }
+
+            return true;
         }
 
         // 检测资源依赖
         static void CheckAssetsDeps()
         {
+            Log("Check assets dependence.");
+
             _assetABDic.Clear();
             _abDepDic.Clear();
             
@@ -205,7 +258,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 if (isLoop)
                 {
                     var fullPath = $"{info.Key} -> {path}";
-                    Debug.LogError($"【Bundle Builder】 Has loop dep. {fullPath}");
+                    LogError($"Has loop dep. {fullPath}");
 
                     return true;
                 }
@@ -241,13 +294,26 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             _globalConfig = await GlobalConfig.LoadANewConf();
         }
 
-        private static void LoadBundleConfig()
+        private static bool LoadBundleConfig()
         {
-            var content = File.ReadAllText(CONFIG_PATH);
-            _bundleConfig = JsonConvert.DeserializeObject<BundleConfig>(content);
-
+            try
+            {
+                var content = File.ReadAllText(CONFIG_PATH);
+                _bundleConfig = JsonConvert.DeserializeObject<BundleConfig>(content);
+            }
+            catch (Exception e)
+            {
+                LogError($"Load bundle config failed. path:{CONFIG_PATH} err : {e.Message}");
+                return false;
+            }
+            
             if (_bundleConfig == null)
-                Debug.LogError($"【Bundle Builder】 There is no BundleConfigData.json at {CONFIG_PATH}");
+            {
+                LogError($"There is no BundleConfigData.json at {CONFIG_PATH}");
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -255,6 +321,8 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         /// </summary>
         static void FormatAssetsFromConfig()
         {
+            Log("Start format assets from config.");
+
             _buildInfos.Clear();
             _invalidAssetNames.Clear();
             _compressionDic.Clear();
@@ -344,7 +412,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         // 是否资源名有效
         private static bool IsAssetNameAvailable(string name)
         {
-            Regex reg = new Regex(@"^[a-zA-Z0-9_]+$");
+            Regex reg = new Regex(@"^[a-zA-Z0-9_\-\.]+$");
 
             return reg.IsMatch(name);
         }
@@ -368,6 +436,29 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 return Md5.EncryptMD5_32(oriABName);
 
             return oriABName;
+        }
+        
+        static void Log(string msg)
+        {
+            _sb.AppendLine($"【Log】 {msg}");
+            Debug.Log($"【Bundle Builder】 {msg}");
+        }
+
+        static void LogError(string msg)
+        {
+            _sb.AppendLine($"【ERROR】 {msg}");
+            Debug.LogError($"【Bundle Builder】 {msg}");
+        }
+
+        static void SaveLogFile(long timestamp)
+        {
+            Log("Save log file.");
+
+            if (!Directory.Exists(LOG_PATH))
+                Directory.CreateDirectory(LOG_PATH);
+
+            var path = $"{LOG_PATH}/{timestamp}.txt";
+            File.WriteAllText(path, _sb.ToString());
         }
     }
     
