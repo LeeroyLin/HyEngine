@@ -41,12 +41,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
         private static GlobalConfigSO _globalConfig;
 
-        private static StringBuilder _sb = new StringBuilder();
+        private static StringBuilder _sbLog = new StringBuilder();
+        private static StringBuilder _sbAssets = new StringBuilder();
         
         [MenuItem("Bundle/Build/Android")]
         public static async void Build()
         {
-            _sb.Clear();
+            _sbLog.Clear();
+            _sbAssets.Clear();
             
             var buildTarget = BuildTarget.Android;
             var timestamp = TimeUtilBase.GetLocalTimeMS() / 1000;
@@ -373,6 +375,8 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                             assetNames = relPathList.ToArray(),
                         });
                         _compressionDic.Add(abName, GetCompression(data.packCompressType));
+
+                        Append2AssetsSB(abName, relPathList);
                     }
                     break;
                     case EABPackDir.File:
@@ -384,12 +388,15 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                             CheckAssetNameAvailableAndRecord(path);
                             
                             var abName = GetABName($"{data.path}_{Path.GetFileNameWithoutExtension(path)}", data.md5);
+                            List<string> assetNames = new List<string>() { PathUtil.AbsolutePath2AssetsPath(path) };
                             _buildInfos.Add(new AssetBundleBuild()
                             {
                                 assetBundleName = abName,
-                                assetNames = new string[]{PathUtil.AbsolutePath2AssetsPath(path)},
+                                assetNames = assetNames.ToArray(),
                             });
                             _compressionDic.Add(abName, GetCompression(data.packCompressType));
+                            
+                            Append2AssetsSB(abName, assetNames);
                         }
                     }
                     break;
@@ -414,11 +421,22 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                                 assetNames = relPathList.ToArray(),
                             });
                             _compressionDic.Add(abName, GetCompression(data.packCompressType));
+                            
+                            Append2AssetsSB(abName, relPathList);
                         });
                     }
                     break;
                 }
             }
+        }
+
+        static void Append2AssetsSB(string abName, List<string> assetsList)
+        {
+            _sbAssets.Append("【AB】: ");
+            _sbAssets.AppendLine(abName);
+
+            foreach (var assetName in assetsList)
+                _sbAssets.AppendLine(assetName);   
         }
 
         // 检测资源名，并记录非法资源名
@@ -462,13 +480,13 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         
         static void Log(string msg)
         {
-            _sb.AppendLine($"【Log】 {msg}");
+            _sbLog.AppendLine($"【Log】 {msg}");
             Debug.Log($"【Bundle Builder】 {msg}");
         }
 
         static void LogError(string msg)
         {
-            _sb.AppendLine($"【ERROR】 {msg}");
+            _sbLog.AppendLine($"【ERROR】 {msg}");
             Debug.LogError($"【Bundle Builder】 {msg}");
         }
 
@@ -476,11 +494,19 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         {
             Log("Save log file.");
 
-            if (!Directory.Exists(LOG_PATH))
-                Directory.CreateDirectory(LOG_PATH);
+            var dir = $"{LOG_PATH}/{timestamp}";
+            
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
 
-            var path = $"{LOG_PATH}/{timestamp}.txt";
-            File.WriteAllText(path, _sb.ToString());
+            var logPath = $"{dir}/Log_{timestamp}.txt";
+            File.WriteAllText(logPath, _sbLog.ToString());
+
+            var assetPath = $"{dir}/Assets_{timestamp}.txt";
+            File.WriteAllText(assetPath, _sbAssets.ToString());
+
+            _sbLog.Clear();
+            _sbAssets.Clear();
         }
     }
     
