@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Entrance
 {
-    public abstract class EntranceBase : IEntrance
+    public abstract class EntranceBase
     {
         public void Start(MonoBehaviour behaviour)
         {
