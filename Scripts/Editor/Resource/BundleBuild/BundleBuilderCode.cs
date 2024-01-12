@@ -29,7 +29,21 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             AssetDatabase.Refresh();
             
             CompileDllCommand.CompileDll(target);
-            var aotRefs = GenerateAOTGenericReference(target);
+            var (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
+
+            if (!string.IsNullOrEmpty(errorMsg))
+            {
+                StripAOTDllCommand.GenerateStripedAOTDlls(target);
+                Log("Aot ref needs update.");
+            }
+            
+            (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
+            
+            if (!string.IsNullOrEmpty(errorMsg))
+            {
+                LogError($"Generate AOT reference failed.  err: {errorMsg}");
+                return false;
+            }
             
             var defDir = $"{Application.dataPath}/../{SettingsUtil.HybridCLRSettings.hotUpdateDllCompileOutputRootDir}/{PlatformInfo.Platform}";
             var aotDir = $"{Application.dataPath}/../{SettingsUtil.HybridCLRSettings.strippedAOTDllOutputRootDir}/{PlatformInfo.Platform}";
@@ -121,34 +135,52 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 Directory.CreateDirectory(dir);
         }
 
-        static List<string> GenerateAOTGenericReference(BuildTarget target)
+        /// <summary>
+        /// 生成aot引用
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns>错误信息，引用列表</returns>
+        static (string, List<string>) GenerateAOTGenericReference(BuildTarget target)
         {
             List<string> aotRefs = new List<string>();
             
             var gs = SettingsUtil.HybridCLRSettings;
             List<string> hotUpdateDllNames = SettingsUtil.HotUpdateAssemblyNamesExcludePreserved;
 
-            using (AssemblyReferenceDeepCollector collector = new AssemblyReferenceDeepCollector(MetaUtil.CreateHotUpdateAndAOTAssemblyResolver(target, hotUpdateDllNames), hotUpdateDllNames))
+            var assemblyResolver = MetaUtil.CreateHotUpdateAndAOTAssemblyResolver(target, hotUpdateDllNames);
+            AssemblyReferenceDeepCollector collector = null;
+
+            try
             {
-                var analyzer = new Analyzer(new Analyzer.Options
-                {
-                    MaxIterationCount = Math.Min(20, gs.maxGenericReferenceIteration),
-                    Collector = collector,
-                });
-
-                analyzer.Run();
-
-                var types = analyzer.AotGenericTypes.ToList();
-                var methods = analyzer.AotGenericMethods.ToList();
-                
-                List<dnlib.DotNet.ModuleDef> modules = new HashSet<dnlib.DotNet.ModuleDef>(
-                    types.Select(t => t.Type.Module).Concat(methods.Select(m => m.Method.Module))).ToList();
-                modules.Sort((a, b) => a.Name.CompareTo(b.Name));
-                foreach (dnlib.DotNet.ModuleDef module in modules)
-                    aotRefs.Add(module.Name);
+                collector = new AssemblyReferenceDeepCollector(assemblyResolver, hotUpdateDllNames);
             }
+            catch (Exception e)
+            {
+                collector?.Dispose();
+                
+                return (e.Message, null);
+            }
+            
+            var analyzer = new Analyzer(new Analyzer.Options
+            {
+                MaxIterationCount = Math.Min(20, gs.maxGenericReferenceIteration),
+                Collector = collector,
+            });
 
-            return aotRefs;
+            analyzer.Run();
+
+            var types = analyzer.AotGenericTypes.ToList();
+            var methods = analyzer.AotGenericMethods.ToList();
+            
+            List<dnlib.DotNet.ModuleDef> modules = new HashSet<dnlib.DotNet.ModuleDef>(
+                types.Select(t => t.Type.Module).Concat(methods.Select(m => m.Method.Module))).ToList();
+            modules.Sort((a, b) => a.Name.CompareTo(b.Name));
+            foreach (dnlib.DotNet.ModuleDef module in modules)
+                aotRefs.Add(module.Name);
+            
+            collector.Dispose();
+
+            return (null, aotRefs);
         }
     }
 }

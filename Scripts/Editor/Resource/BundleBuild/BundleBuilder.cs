@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
-using HybridCLR.Editor;
-using HybridCLR.Editor.AOT;
-using HybridCLR.Editor.Commands;
-using HybridCLR.Editor.Meta;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.Build.Pipeline;
@@ -25,6 +20,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         public static string CONFIG_PATH = $"{Application.dataPath}/BundleAssets/BundleConfig/BundleConfigData.json";
         public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
         public static string LOG_PATH = $"{Application.dataPath}/../BuildLogs";
+        public static string VERSION_FILE_SAVE_PATH = $"{Application.streamingAssetsPath}/Config/version.txt";
         
         private static BundleConfig _bundleConfig;
         
@@ -88,6 +84,10 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
             // 保存全局配置文件
             if (!SaveGlobalConfigFile())
+                return;
+
+            // 保存版本文件
+            if (!SaveVersionFile())
                 return;
             
             // 保存打包日志
@@ -195,6 +195,26 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             catch (Exception e)
             {
                 LogError($"Save global config file failed. err : {e.Message}");
+                return false;
+            }
+
+            return true;
+        }
+        
+        /// <summary>
+        /// 保存版本文件
+        /// </summary>
+        static bool SaveVersionFile()
+        {
+            Log("Save version file.");
+
+            try
+            {
+                File.WriteAllText(VERSION_FILE_SAVE_PATH, _globalConfig.version);
+            }
+            catch (Exception e)
+            {
+                LogError($"Save version file failed. err : {e.Message}");
                 return false;
             }
 
@@ -432,6 +452,8 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
         static string GetABName(string oriABName, bool isMd5)
         {
+            oriABName = oriABName.Replace("/", "__").Replace("\\", "__").Replace(".", "__");
+            
             if (isMd5)
                 return Md5.EncryptMD5_32(oriABName);
 
