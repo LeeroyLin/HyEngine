@@ -27,6 +27,8 @@ namespace Engine.Scripts.Runtime.Utils
             // 根据平台调整路径格式
             if (Application.platform == RuntimePlatform.Android)
                 filePath = "jar:file://" + filePath;
+            else if (Application.platform == RuntimePlatform.OSXEditor)
+                filePath = "file://" + filePath;
 
             UnityWebRequest request = UnityWebRequest.Get(filePath);
 #if UNITY_2020_1_OR_NEWER
