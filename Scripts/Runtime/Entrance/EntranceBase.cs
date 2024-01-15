@@ -1,12 +1,11 @@
 ﻿using Engine.Scripts.Runtime.Utils;
-using HotUpdate;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Entrance
 {
-    public abstract class EntranceBase
+    public abstract class EntranceBase : IEntrance
     {
-        public void Start(MonoBehaviour behaviour)
+        public void DoStart(MonoBehaviour behaviour)
         {
             MonoHelper.Ins.Behaviour = behaviour;
             
