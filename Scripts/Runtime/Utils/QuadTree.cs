@@ -69,6 +69,9 @@ namespace Engine.Scripts.Runtime.Utils
                     if (rData == data)
                     {
                         sideData.datas.RemoveAt(i);
+
+                        if (sideData.datas.Count == 0)
+                            node.sideDic.Remove(side);
                         
                         return;
                     }
