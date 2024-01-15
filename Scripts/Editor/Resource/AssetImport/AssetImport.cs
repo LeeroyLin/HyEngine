@@ -15,11 +15,11 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         // 定义文件和图片文件分离
         private static readonly bool IS_SEPARATE = false;
 
-        private static GlobalConfigSO _configSo;
+        private static GlobalConfig _config;
 
         private static async Task LoadConfig()
         {
-            _configSo = await GlobalConfig.LoadANewConf();
+            _config = await GlobalConfigUtil.LoadANewConf();
         }
         
         private static async void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
@@ -27,7 +27,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         {
             await LoadConfig();
 
-            if (_configSo == null)
+            if (_config == null)
                 return;
             
             foreach (var p in importedAssets)
@@ -59,7 +59,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
             var pkgName = fileName.Split("_")[0];
             
             var uiDir = DEFAULT_OUT_UI_DIR;
-            if (_configSo.resLoadMode == EResLoadMode.Resource || pkgName == "HotUpdate")
+            if (_config.resLoadMode == EResLoadMode.Resource || pkgName == "HotUpdate")
                 uiDir = RESOURCES_OUT_UI_DIR;
 
             if (dir == DEFAULT_OUT_UI_DIR)

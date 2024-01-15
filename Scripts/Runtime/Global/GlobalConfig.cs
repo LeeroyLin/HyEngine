@@ -1,47 +1,21 @@
-using System.IO;
-using System.Threading.Tasks;
-using Engine.Scripts.Runtime.Utils;
-using Newtonsoft.Json;
-using UnityEditor;
-using UnityEngine;
+using Engine.Scripts.Runtime.Log;
+using Engine.Scripts.Runtime.Resource;
 
 namespace Engine.Scripts.Runtime.Global
 {
     public class GlobalConfig
     {
-        /// <summary>
-        /// 全局配置路径
-        /// </summary>
-        private static readonly string GLOBAL_CONFIG_STREAMING_ASSETS_PATH = "Config/GlobalConfig.json";
-        private static readonly string GLOBAL_CONFIG_ASSET_PATH = "Assets/Settings/GlobalConfig.asset";
-        private static readonly string NET_CONFIG_PATH = "Config/net.json";
+        public EEnv env = EEnv.Develop;
+        public EResLoadMode resLoadMode = EResLoadMode.AB;
+        public int netMaxMsgLen = 1024 * 500; // 500k
+        public bool isNetEncrypt = true;
+        public string version = "0.1";
+        public LogConfig logConfig;
+        public NetConfig netConfig;
 
-        public static GlobalConfigSO Conf;
-
-        public static async Task LoadConf()
+        public EachNetConfig GetCurrNetConfig()
         {
-            Conf = await LoadANewConf();
-        }
-
-        public static async Task<GlobalConfigSO> LoadANewConf()
-        {
-#if UNITY_EDITOR
-                var conf = AssetDatabase.LoadAssetAtPath<GlobalConfigSO>(GLOBAL_CONFIG_ASSET_PATH);
-                return conf;
-#else
-                var content = await ReadTextRuntime.ReadSteamingAssetsText(GLOBAL_CONFIG_STREAMING_ASSETS_PATH);
-                var conf = JsonConvert.DeserializeObject<GlobalConfigSO>(content);
-                return conf;
-#endif
-        }
-
-        public static void SaveJsonFile(GlobalConfigSO conf)
-        {
-            var content = JsonConvert.SerializeObject(conf);
-            File.WriteAllText($"{Application.streamingAssetsPath}/{GLOBAL_CONFIG_STREAMING_ASSETS_PATH}", content);
-            
-            content = JsonConvert.SerializeObject(conf.GetCurrNetConfig());
-            File.WriteAllText($"{Application.streamingAssetsPath}/{NET_CONFIG_PATH}", content);
+            return netConfig.GetEnvNetConfig(env);
         }
     }
 }

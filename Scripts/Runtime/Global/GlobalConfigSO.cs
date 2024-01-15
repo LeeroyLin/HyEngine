@@ -1,3 +1,4 @@
+using System;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Resource;
 using UnityEngine;
@@ -12,8 +13,8 @@ namespace Engine.Scripts.Runtime.Global
         public int netMaxMsgLen = 1024 * 500; // 500k
         public bool isNetEncrypt = true;
         public string version = "0.1";
-        public LogConfig logConfig = new LogConfig();
-        public NetConfig netConfig = new NetConfig();
+        public LogConfig logConfig;
+        public NetConfig netConfig;
 
         public EachNetConfig GetCurrNetConfig()
         {

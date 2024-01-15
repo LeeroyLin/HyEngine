@@ -20,7 +20,6 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         public static string CONFIG_PATH = $"{Application.dataPath}/BundleAssets/BundleConfig/BundleConfigData.json";
         public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
         public static string LOG_PATH = $"{Application.dataPath}/../BuildLogs";
-        public static string VERSION_FILE_SAVE_PATH = $"{Application.streamingAssetsPath}/Config/version.txt";
         
         private static BundleConfig _bundleConfig;
         
@@ -39,7 +38,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         // 压缩字典
         private static Dictionary<string, BuildCompression> _compressionDic = new Dictionary<string, BuildCompression>();
 
-        private static GlobalConfigSO _globalConfig;
+        private static GlobalConfig _globalConfig;
 
         private static StringBuilder _sbLog = new StringBuilder();
         private static StringBuilder _sbAssets = new StringBuilder();
@@ -84,14 +83,6 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             if (!StartBuild(timestamp, buildTarget, BuildTargetGroup.Android))
                 return;
 
-            // 保存全局配置文件
-            if (!SaveGlobalConfigFile())
-                return;
-
-            // 保存版本文件
-            if (!SaveVersionFile())
-                return;
-            
             // 保存打包日志
             SaveLogFile(timestamp);
         }
@@ -183,46 +174,6 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             return true;
         }
         
-        /// <summary>
-        /// 保存全局配置文件
-        /// </summary>
-        static bool SaveGlobalConfigFile()
-        {
-            Log("Save global config file.");
-
-            try
-            {
-                GlobalConfig.SaveJsonFile(_globalConfig);
-            }
-            catch (Exception e)
-            {
-                LogError($"Save global config file failed. err : {e.Message}");
-                return false;
-            }
-
-            return true;
-        }
-        
-        /// <summary>
-        /// 保存版本文件
-        /// </summary>
-        static bool SaveVersionFile()
-        {
-            Log("Save version file.");
-
-            try
-            {
-                File.WriteAllText(VERSION_FILE_SAVE_PATH, _globalConfig.version);
-            }
-            catch (Exception e)
-            {
-                LogError($"Save version file failed. err : {e.Message}");
-                return false;
-            }
-
-            return true;
-        }
-
         // 检测资源依赖
         static void CheckAssetsDeps()
         {
@@ -313,7 +264,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
         private static async Task LoadGlobalConfig()
         {
-            _globalConfig = await GlobalConfig.LoadANewConf();
+            _globalConfig = await GlobalConfigUtil.LoadANewConf();
         }
 
         private static bool LoadBundleConfig()

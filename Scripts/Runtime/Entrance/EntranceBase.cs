@@ -1,4 +1,5 @@
 ﻿using Engine.Scripts.Runtime.Utils;
+using EngineRuntimeAOT;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Entrance

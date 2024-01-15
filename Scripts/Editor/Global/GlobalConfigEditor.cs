@@ -1,22 +1,25 @@
+using System.IO;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Log;
+using Newtonsoft.Json;
 using UnityEditor;
+using UnityEngine;
 
 namespace Engine.Scripts.Editor.Global
 {
     [CustomEditor(typeof(GlobalConfigSO))]
     public class GlobalConfigEditor : UnityEditor.Editor
     {
+        private static readonly string GLOBAL_CONFIG_STREAMING_ASSETS_PATH = "Config/GlobalConfig.json";
+        
         SerializedProperty _logField;
         SerializedProperty _env;
-        SerializedProperty _netConfig;
 
         private EEnv _lastEnv;
         
         void OnEnable()
         {
             _logField = serializedObject.FindProperty("logConfig");
-            _netConfig = serializedObject.FindProperty("netConfig");
             _env = serializedObject.FindProperty("env");
         }
         
@@ -63,8 +66,24 @@ namespace Engine.Scripts.Editor.Global
             }
             
             serializedObject.ApplyModifiedProperties();
-            
+
             base.OnInspectorGUI();
+            
+            if (GUILayout.Button("Save"))
+            {
+                var content = JsonConvert.SerializeObject(target);
+
+                var path = $"{Application.streamingAssetsPath}/{GLOBAL_CONFIG_STREAMING_ASSETS_PATH}";
+                var dir = Path.GetDirectoryName(path);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+                
+                File.WriteAllText(path, content);
+                
+                Debug.Log($"Save global config finished.");
+                
+                AssetDatabase.Refresh();
+            }
         }
     }
 }
