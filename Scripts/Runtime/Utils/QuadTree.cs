@@ -8,24 +8,26 @@ namespace Engine.Scripts.Runtime.Utils
     /// <summary>
     /// 四叉树
     /// </summary>
-    public class QuadTree<T> where T : class
+    public class QuadTree<T>
     {
         public QuadTreeNode<T> RootNode { get; private set; }
 
         private int _divideChildrenNum;
         private int _maxTreeLayer;
         private Func<T, Vector2> _getPosHandler;
+        private Func<T, T, bool> _compareHandler;
 
         private StringBuilder _sb;
         
         public int Count { get; private set; }
 
         public QuadTree(Vector2 ltPos, Vector2 rbPos, int divideChildrenNum, int maxTreeLayer, 
-            Func<T, Vector2> getPosHandler)
+            Func<T, Vector2> getPosHandler, Func<T, T, bool> compareHandler)
         {
             _divideChildrenNum = divideChildrenNum;
             _maxTreeLayer = maxTreeLayer;
             _getPosHandler = getPosHandler;
+            _compareHandler = compareHandler;
 
             RootNode = new QuadTreeNode<T>(ltPos, rbPos);
         }
@@ -69,7 +71,7 @@ namespace Engine.Scripts.Runtime.Utils
                 {
                     var rData = sideData.datas[i];
 
-                    if (rData == data)
+                    if (_compareHandler(rData, data))
                     {
                         sideData.datas.RemoveAt(i);
 
@@ -99,6 +101,20 @@ namespace Engine.Scripts.Runtime.Utils
             CheckNodeInRect(ltPos, rbPos, RootNode, list);
             
             return list;
+        }
+        
+        /// <summary>
+        /// 获得矩形范围内所有的数据
+        /// </summary>
+        /// <param name="ltPos"></param>
+        /// <param name="rbPos"></param>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public void GetAllInRectWithList(Vector2 ltPos, Vector2 rbPos, List<T> list)
+        {
+            list.Clear();
+            
+            CheckNodeInRect(ltPos, rbPos, RootNode, list);
         }
         
         public override string ToString()
