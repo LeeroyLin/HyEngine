@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Resource
@@ -42,6 +43,7 @@ namespace Engine.Scripts.Runtime.Resource
 
         private Action<GameObject> _destroyHandler;
         private Func<string, GameObject> _createHandler;
+        private Func<string, Task<GameObject>> _createAsyncHandler;
 
         /// <summary>
         /// 构造方法
@@ -50,10 +52,13 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="poolRoot">对象池根节点</param>
         /// <param name="destroyHandler">对象移除方法</param>
         /// <param name="createHandler">对象创建方法</param>
-        public PoolData(string key, Transform poolRoot, Action<GameObject> destroyHandler, Func<string, GameObject> createHandler)
+        /// <param name="createAsyncHandler">对象创建方法</param>
+        public PoolData(string key, Transform poolRoot, Action<GameObject> destroyHandler, 
+            Func<string, GameObject> createHandler, Func<string, Task<GameObject>> createAsyncHandler)
         {
             _destroyHandler = destroyHandler;
             _createHandler = createHandler;
+            _createAsyncHandler = createAsyncHandler;
             PoolRoot = poolRoot;
             
             Key = key;
@@ -111,6 +116,31 @@ namespace Engine.Scripts.Runtime.Resource
         {
             if (listTrans.Count == 0)
                 return _createHandler?.Invoke(Key);
+
+            // 取出最后一个
+            Transform node = listTrans[listTrans.Count - 1];
+
+            // 去除数据
+            listTrans.RemoveAt(listTrans.Count - 1);
+
+            node.SetParent(null);
+
+            var obj = node.gameObject;
+            
+            // 显示
+            obj.SetActive(true);
+
+            return obj;
+        }
+
+        /// <summary>
+        /// 尝试异步获取
+        /// </summary>
+        /// <returns></returns>
+        public async Task<GameObject> TryGetAsync()
+        {
+            if (listTrans.Count == 0)
+                return await _createAsyncHandler(Key);
 
             // 取出最后一个
             Transform node = listTrans[listTrans.Count - 1];

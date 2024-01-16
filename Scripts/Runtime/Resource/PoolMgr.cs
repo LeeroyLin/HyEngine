@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
@@ -27,14 +28,16 @@ namespace Engine.Scripts.Runtime.Resource
 
         private Action<GameObject> _destroyHandler;
         private Func<string, GameObject> _createHandler;
+        private Func<string, Task<GameObject>> _createAsyncHandler;
         
         public void Reset()
         {
         }
 
-        public void Init(Func<string, GameObject> createHandler, Action<GameObject> destroyHandler)
+        public void Init(Func<string, GameObject> createHandler, Func<string, Task<GameObject>> createAsyncHandler, Action<GameObject> destroyHandler)
         {
             _createHandler = createHandler;
+            _createAsyncHandler = createAsyncHandler;
             _destroyHandler = destroyHandler;
             
             CreateNode();
@@ -67,7 +70,7 @@ namespace Engine.Scripts.Runtime.Resource
             if (!_dicPool.TryGetValue(key, out PoolData poolData))
             {
                 // 创建数据
-                poolData = new PoolData(key, PoolRoot, _destroyHandler, _createHandler);
+                poolData = new PoolData(key, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
                 _dicPool.Add(key, poolData);
             }
 
@@ -85,8 +88,22 @@ namespace Engine.Scripts.Runtime.Resource
             // 是否有数据
             if (_dicPool.TryGetValue(key, out PoolData poolData))
                 return poolData.TryGet();
-
+            
             return _createHandler?.Invoke(key);
+        }
+
+        /// <summary>
+        /// 尝试异步获取
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public async Task<GameObject> GetAsync(string key)
+        {
+            // 是否有数据
+            if (_dicPool.TryGetValue(key, out PoolData poolData))
+                return await poolData.TryGetAsync();
+            
+            return await _createAsyncHandler(key);
         }
 
         /// <summary>
@@ -99,7 +116,7 @@ namespace Engine.Scripts.Runtime.Resource
             // 是否没有数据
             if (!_dicPool.TryGetValue(key, out PoolData poolData))
             {
-                poolData = new PoolData(key, PoolRoot, _destroyHandler, _createHandler);
+                poolData = new PoolData(key, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
                 _dicPool.Add(key, poolData);
             }
             

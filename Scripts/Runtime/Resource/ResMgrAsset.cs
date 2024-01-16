@@ -52,7 +52,7 @@ namespace Engine.Scripts.Runtime.Resource
                 switch (info.AssetState)
                 {
                     case EAssetState.Loaded:
-                        return AssetPost(info.Asset as T, relPath) as T;
+                        return AssetPost(info.Asset as T, relPath);
                     case EAssetState.SyncLoading:
                         return null;
                     case EAssetState.AsyncLoading:
@@ -121,12 +121,16 @@ namespace Engine.Scripts.Runtime.Resource
                 switch (info.AssetState)
                 {
                     case EAssetState.Loaded:
-                        var obj = AssetPost(info.Asset, relPath) as T;
+                        var obj = AssetPost(info.Asset as T, relPath);
                         callback?.Invoke(obj);
                         return;
                     case EAssetState.SyncLoading:
                     case EAssetState.AsyncLoading:
-                        info.OnLoaded += o=>{callback?.Invoke(o as T);};
+                        info.OnLoaded += o =>
+                        {
+                            var obj = AssetPost(o as T, relPath);
+                            callback?.Invoke(obj);
+                        };
                         break;
                 }
             }
@@ -154,8 +158,11 @@ namespace Engine.Scripts.Runtime.Resource
                         _log.Error($"Load asset '{relPath}' failed.");
 
                     // 完成后的回调
-                    info.OnLoaded?.Invoke(newAsset);
-                    info.OnLoaded = null;
+                    if (info.OnLoaded != null)
+                    {
+                        info.OnLoaded(newAsset);
+                        info.OnLoaded = null;
+                    }
                     #endif
                 }
                 else if (_resLoadMode == EResLoadMode.Resource)
@@ -169,8 +176,11 @@ namespace Engine.Scripts.Runtime.Resource
                         _log.Error($"Load asset '{relPath}' failed.");
 
                     // 完成后的回调
-                    info.OnLoaded?.Invoke(newAsset);
-                    info.OnLoaded = null;
+                    if (info.OnLoaded != null)
+                    {
+                        info.OnLoaded(newAsset);
+                        info.OnLoaded = null;
+                    }
                 }
                 else
                 {
