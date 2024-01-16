@@ -10,13 +10,15 @@ namespace Engine.Scripts.Runtime.Utils
     /// </summary>
     public class QuadTree<T> where T : class
     {
-        private QuadTreeNode<T> _rootNode;
+        public QuadTreeNode<T> RootNode { get; private set; }
 
         private int _divideChildrenNum;
         private int _maxTreeLayer;
         private Func<T, Vector2> _getPosHandler;
 
         private StringBuilder _sb;
+        
+        public int Count { get; private set; }
 
         public QuadTree(Vector2 ltPos, Vector2 rbPos, int divideChildrenNum, int maxTreeLayer, 
             Func<T, Vector2> getPosHandler)
@@ -25,7 +27,7 @@ namespace Engine.Scripts.Runtime.Utils
             _maxTreeLayer = maxTreeLayer;
             _getPosHandler = getPosHandler;
 
-            _rootNode = new QuadTreeNode<T>(ltPos, rbPos);
+            RootNode = new QuadTreeNode<T>(ltPos, rbPos);
         }
 
         /// <summary>
@@ -34,7 +36,8 @@ namespace Engine.Scripts.Runtime.Utils
         /// <param name="data"></param>
         public void Add(T data)
         {
-            AddData2Node(_rootNode, 1, data);
+            AddData2Node(RootNode, 1, data);
+            Count++;
         }
 
         /// <summary>
@@ -43,7 +46,7 @@ namespace Engine.Scripts.Runtime.Utils
         /// <param name="data"></param>
         public void Remove(T data)
         {
-            var node = _rootNode;
+            var node = RootNode;
             
             var pos = _getPosHandler(data);
             
@@ -79,6 +82,8 @@ namespace Engine.Scripts.Runtime.Utils
 
                 break;
             }
+            
+            Count--;
         }
         
         /// <summary>
@@ -91,7 +96,7 @@ namespace Engine.Scripts.Runtime.Utils
         {
             List<T> list = new List<T>();
             
-            CheckNodeInRect(ltPos, rbPos, _rootNode, list);
+            CheckNodeInRect(ltPos, rbPos, RootNode, list);
             
             return list;
         }
@@ -102,7 +107,7 @@ namespace Engine.Scripts.Runtime.Utils
                 _sb = new StringBuilder();
             
             _sb.AppendLine("【QuadTree】 Log start.");
-            LogNode(_rootNode, 1, "");
+            LogNode(RootNode, 1, "");
             _sb.AppendLine("【QuadTree】 Log end.");
 
             return _sb.ToString();
@@ -123,20 +128,20 @@ namespace Engine.Scripts.Runtime.Utils
                 return;
 
             // 矩形超出下范围
-            if (ltPos.y >= node.rbPos.y)
+            if (ltPos.y <= node.rbPos.y)
                 return;
             
             // 矩形在中心上
             bool isTopFromCenter = rbPos.y >= node.centerPos.y;
             
             // 矩形在中心下
-            bool isBottomFromCenter = rbPos.y < node.centerPos.y;
+            bool isBottomFromCenter = ltPos.y < node.centerPos.y;
 
             // 矩形在中心左
             bool isLeftFromCenter = rbPos.x <= node.centerPos.x;
 
             // 矩形在中心右
-            bool isRightFromCenter = rbPos.x > node.centerPos.x;
+            bool isRightFromCenter = ltPos.x > node.centerPos.x;
 
             if (!isRightFromCenter && !isBottomFromCenter)
                 CheckSideInRect(ltPos, rbPos, node, ESide.LT, list);
@@ -153,8 +158,9 @@ namespace Engine.Scripts.Runtime.Utils
 
         void CheckSideInRect(Vector2 ltPos, Vector2 rbPos, QuadTreeNode<T> node, ESide side, List<T> list)
         {
-            var sideData = node.sideDic[side];
-
+            if (!node.sideDic.TryGetValue(side, out var sideData))
+                return;
+            
             if (sideData.child != null)
             {
                 CheckNodeInRect(ltPos, rbPos, sideData.child, list);
