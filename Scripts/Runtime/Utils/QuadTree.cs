@@ -167,29 +167,10 @@ namespace Engine.Scripts.Runtime.Utils
             }
             else
             {
-                foreach (var data in sideData.datas)
-                    if (IsDataInRect(data, ltPos, rbPos))
+                if (MathUtil.IsRectCross(node.ltPos, node.rbPos, ltPos, rbPos))
+                    foreach (var data in sideData.datas)
                         list.Add(data);
             }
-        }
-
-        bool IsDataInRect(T data, Vector2 ltPos, Vector2 rbPos)
-        {
-            var pos = _getPosHandler(data);
-
-            if (pos.x < ltPos.x)
-                return false;
-            
-            if (pos.x > rbPos.x)
-                return false;
-            
-            if (pos.y < rbPos.y)
-                return false;
-            
-            if (pos.y > ltPos.y)
-                return false;
-
-            return true;
         }
 
         void AddData2Node(QuadTreeNode<T> node, int layer, T data)
