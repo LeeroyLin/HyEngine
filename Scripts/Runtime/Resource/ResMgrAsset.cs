@@ -18,11 +18,8 @@ namespace Engine.Scripts.Runtime.Resource
             {
                 if (info.Value.AssetState == EAssetState.AsyncLoading)
                 {
-                    if (info.Value.Req.isDone)
+                    if (info.Value.Req != null && info.Value.Req.isDone)
                     {
-                        info.Value.AssetState = EAssetState.Loaded;
-                        info.Value.Req = null;
-
                         if (info.Value.IsAtlas)
                         {
                             var atlas = info.Value.Asset as SpriteAtlas;
@@ -36,6 +33,9 @@ namespace Engine.Scripts.Runtime.Resource
                         if (info.Value.Asset == null)
                             _log.Error($"Load asset '{info.Key}' failed.");
                         
+                        info.Value.AssetState = EAssetState.Loaded;
+                        info.Value.Req = null;
+
                         // 完成后的回调
                         info.Value.OnLoaded?.Invoke(info.Value.Asset);
                         info.Value.OnLoaded = null;
@@ -46,6 +46,8 @@ namespace Engine.Scripts.Runtime.Resource
         
         public T GetAsset<T>(string relPath) where T: Object
         {
+            bool isAtlas = IsRelPathAtlas(relPath, out var atlasName, out var spriteName);
+            
             // 是否已经有
             if (_assetDic.TryGetValue(relPath, out var info))
             {
@@ -62,15 +64,16 @@ namespace Engine.Scripts.Runtime.Resource
                         break;
                 }
             }
+            else
+            {
+                info = new AssetInfo(EAssetState.SyncLoading, isAtlas);
+                _assetDic.Add(relPath, info);
+            }
 
             T newAsset = null;
 
-            bool isAtlas = IsRelPathAtlas(relPath, out var atlasName, out var spriteName);
-            
             if (isAtlas)
-            {
                 newAsset = TryGetSpriteFromAtlas<T>(atlasName, spriteName);
-            }
             else
             {
                 if (_resLoadMode == EResLoadMode.Editor)
@@ -97,9 +100,6 @@ namespace Engine.Scripts.Runtime.Resource
                 }   
             }
 
-            info = new AssetInfo(EAssetState.SyncLoading, isAtlas);
-            _assetDic.TryAdd(relPath, info);
-
             if (newAsset == null)
                 _log.Error($"Load asset '{relPath}' failed.");
             
@@ -115,6 +115,8 @@ namespace Engine.Scripts.Runtime.Resource
 
         public void GetAssetAsync<T>(string relPath, Action<T> callback) where T : Object
         {
+            bool isAtlas = IsRelPathAtlas(relPath, out var atlasName, out var spriteName);
+            
             // 是否已经有
             if (_assetDic.TryGetValue(relPath, out var info))
             {
@@ -134,11 +136,11 @@ namespace Engine.Scripts.Runtime.Resource
                         break;
                 }
             }
-
-            bool isAtlas = IsRelPathAtlas(relPath, out var atlasName, out var spriteName);
-            
-            info = new AssetInfo(EAssetState.AsyncLoading, isAtlas);
-            _assetDic.TryAdd(relPath, info);
+            else
+            {
+                info = new AssetInfo(EAssetState.AsyncLoading, isAtlas);
+                _assetDic.Add(relPath, info);
+            }
             
             if (isAtlas)
             {

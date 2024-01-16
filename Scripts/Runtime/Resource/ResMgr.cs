@@ -155,10 +155,11 @@ namespace Engine.Scripts.Runtime.Resource
                         break;
                 }
             }
-            
-            abInfo = new ABInfo(EABState.SyncLoading);
-
-            _abDic.TryAdd(abName, abInfo);
+            else
+            {
+                abInfo = new ABInfo(EABState.SyncLoading);
+                _abDic.Add(abName, abInfo);
+            }
             
             // 加载依赖
             LoadABDeps(abName);
@@ -234,16 +235,19 @@ namespace Engine.Scripts.Runtime.Resource
                         return;
                 }
             }
-            
-            abInfo = new ABInfo(EABState.AsyncLoading);
-
-            _abDic.TryAdd(abName, abInfo);
+            else
+            {
+                abInfo = new ABInfo(EABState.AsyncLoading);
+                _abDic.Add(abName, abInfo);
+            }
             
             // 加载依赖
             LoadABDepsAsync(abName, () =>
             {
+                var abPath = $"{RUNTIME_BUNDLE_PATH}/{abName}";
+
                 // 异步加载ab
-                var req = AssetBundle.LoadFromFileAsync(abName);
+                var req = AssetBundle.LoadFromFileAsync(abPath);
                 abInfo.Req = req;
             });
         }
@@ -260,7 +264,7 @@ namespace Engine.Scripts.Runtime.Resource
             {
                 if (abInfo.Value.ABState == EABState.AsyncLoading)
                 {
-                    if (abInfo.Value.Req.isDone)
+                    if (abInfo.Value.Req != null && abInfo.Value.Req.isDone)
                     {
                         abInfo.Value.ABState = EABState.Loaded;
                         abInfo.Value.AB = abInfo.Value.Req.assetBundle;
@@ -299,6 +303,9 @@ namespace Engine.Scripts.Runtime.Resource
 
             int length = deps.Count;
             int cnt = 0;
+
+            if (length == 0)
+                onLoaded();
             
             foreach (var dep in deps)
             {
