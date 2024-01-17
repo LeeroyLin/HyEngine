@@ -48,6 +48,12 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
         private static StringBuilder _sbLog = new StringBuilder();
         private static StringBuilder _sbAssets = new StringBuilder();
+
+        [MenuItem("Bundle/Build/BuildTest")]
+        public static async void BuildTest()
+        {
+            Debug.Log("BuildTest");
+        }
         
         [MenuItem("Bundle/Build/Android")]
         public static async void Build()
