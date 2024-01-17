@@ -50,11 +50,13 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         private static StringBuilder _sbAssets = new StringBuilder();
 
         [MenuItem("Bundle/Build/BuildTest")]
-        public static async void BuildTest()
+        public static async Task<int> BuildTest()
         {
             Debug.Log("BuildTest");
 
             var config = GetBuildCmdConfig();
+
+            return 1;
         }
 
         static BuildCmdConfig GetBuildCmdConfig()
@@ -74,27 +76,18 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 }
                 string param = paramArr[1];
                 if(str.StartsWith("Environment"))
-                {
-                    Debug.Log($"CCC env {param}");
                     buildCmdConf.env = param;
-                }
                 else if(str.StartsWith("Version"))
-                {
-                    Debug.Log($"CCC version {param}");
                     buildCmdConf.version = param;
-                }
                 else if(str.StartsWith("IsCompileAllCode"))
-                {
-                    Debug.Log($"CCC isCompileAllCode {param}");
-                    // buildCmdConf.isCompileAllCode = param;
-                }
+                    buildCmdConf.isCompileAllCode = param == "true";
             }
  
             return buildCmdConf;
         }
         
         [MenuItem("Bundle/Build/Android")]
-        public static async void Build()
+        public static async void BuildAndroid()
         {
             _sbLog.Clear();
             _sbAssets.Clear();
