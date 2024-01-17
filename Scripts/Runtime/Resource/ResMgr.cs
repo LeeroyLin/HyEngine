@@ -290,6 +290,8 @@ namespace Engine.Scripts.Runtime.Resource
                     // 异步加载ab
                     var req = AssetBundle.LoadFromFileAsync(abPath);
                     abInfo.Req = req;
+
+                    _log.Log($"Start async load 'InGame' ab '{abName}'");
                 }
             });
         }
