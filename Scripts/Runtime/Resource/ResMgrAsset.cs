@@ -139,6 +139,11 @@ namespace Engine.Scripts.Runtime.Resource
             else
             {
                 info = new AssetInfo(EAssetState.AsyncLoading, isAtlas);
+                info.OnLoaded += o =>
+                {
+                    var obj = AssetPost(o as T, relPath);
+                    callback?.Invoke(obj);
+                };
                 _assetDic.Add(relPath, info);
             }
             

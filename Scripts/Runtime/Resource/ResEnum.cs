@@ -15,6 +15,8 @@
         SyncLoading,
         AsyncLoading,
         Loaded,
+        Downloading,
+        Downloaded,
     }
     
     public enum EAssetState

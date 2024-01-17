@@ -84,6 +84,10 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             // 循环依赖检测
             if (CheckLoopDep())
                 return;
+            
+            // 循环游戏内更新的ab相关的依赖
+            if (!CheckInGameDepOK())
+                return;
 
             // 开始打包
             if (!StartBuild(timestamp, buildTarget, BuildTargetGroup.Android))
@@ -217,21 +221,27 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 switch (updateType)
                 {
                     case EABUpdate.Advance:
-                        files = dep.advanceFiles;
+                        dep.advanceFiles.Add(new ABManifestFile()
+                        {
+                            fileName = abName,
+                            md5 = md5,
+                        });
                         break;
                     case EABUpdate.Package:
-                        files = dep.packageFiles;
+                        dep.packageFiles.Add(new ABManifestFile()
+                        {
+                            fileName = abName,
+                            md5 = md5,
+                        });
                         break;
                     case EABUpdate.InGame:
-                        files = dep.inGameFiles;
+                        dep.inGameFiles.Add(abName, new ABManifestFile()
+                        {
+                            fileName = abName,
+                            md5 = md5,
+                        });
                         break;
                 }
-                
-                files.Add(new ABManifestFile()
-                {
-                    fileName = abName,
-                    md5 = md5,
-                });
             }
             
             var content = JsonConvert.SerializeObject(dep);
@@ -313,6 +323,33 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             }
 
             return false;
+        }
+
+        // 检测游戏内更新的ab包的引用
+        static bool CheckInGameDepOK()
+        {
+            foreach (var info in _abUpdateDic)
+            {
+                // 是否是游戏内更新
+                if (info.Value == EABUpdate.InGame)
+                    continue;
+                
+                if (!_abDepDic.TryGetValue(info.Key, out var deps))
+                    continue;
+
+                foreach (var dep in deps)
+                {
+                    // 是否依赖了游戏内更新的ab
+                    if (_abUpdateDic[dep] == EABUpdate.InGame)
+                    {
+                        LogError($"ab {info.Key} which is not 'InGame', dependence the 'InGame' ab {dep}.");
+
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         // 检测单个ab的循环依赖

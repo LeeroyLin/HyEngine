@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
+using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Timer;
@@ -9,6 +11,7 @@ using Engine.Scripts.Runtime.Utils;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.U2D;
 
 namespace Engine.Scripts.Runtime.Resource
@@ -18,6 +21,7 @@ namespace Engine.Scripts.Runtime.Resource
         public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
         public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/{PlatformInfo.Platform}";
         public static readonly string CONFIG_NAME = "manifest.json";
+        private static readonly string RES_SERVER_PATH = "/Res";
         
         private static ABManifest _manifest;
         
@@ -27,6 +31,8 @@ namespace Engine.Scripts.Runtime.Resource
         private LogGroup _log;
         
         private EResLoadMode _resLoadMode;
+
+        private List<string> _removeList = new List<string>();
 
         public void Reset()
         {
@@ -50,6 +56,9 @@ namespace Engine.Scripts.Runtime.Resource
 
         async Task LoadManifest()
         {
+            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB)
+                return;
+            
             _log.Log("LoadManifest");
 
             string content = "";
@@ -95,13 +104,14 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="relPath">相对资源目录的资源路径</param>
         public void ReduceABRef(string relPath)
         {
+            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB)
+                return;
+            
             // ab名
-            var abName = RelPath2ABName(relPath);
+            var abName = RelPath2ABName(relPath, out var isInGame);
 
             if (_abDic.TryGetValue(abName, out var ab))
-            {
                 ab.ReduceRef();
-            }
         }
 
         /// <summary>
@@ -127,8 +137,14 @@ namespace Engine.Scripts.Runtime.Resource
             }
 
             // ab名
-            var abName = RelPath2ABName(relPath);
+            var abName = RelPath2ABName(relPath, out var isInGame);
 
+            if (isInGame)
+            {
+                _log.Error("Can not sync load 'InGame' ab. Use async instead.");
+                return null;
+            }
+            
             // 通过AB名加载AB
             return LoadABWithABName(abName);
         }
@@ -209,19 +225,22 @@ namespace Engine.Scripts.Runtime.Resource
             }
             
             // ab名
-            var abName = RelPath2ABName(relPath);
+            var abName = RelPath2ABName(relPath, out var isInGame);
 
             // 通过AB名，异步加载AB
-            LoadABAsyncWithABName(abName, callback);
+            LoadABAsyncWithABName(abName, isInGame, callback);
         }
 
         /// <summary>
         /// 通过AB名，异步加载AB
         /// </summary>
         /// <param name="abName"></param>
+        /// <param name="isInGame"></param>
         /// <param name="callback"></param>
-        public void LoadABAsyncWithABName(string abName, Action<AssetBundle> callback)
+        public void LoadABAsyncWithABName(string abName, bool isInGame, Action<AssetBundle> callback)
         {
+            var abPath = $"{RUNTIME_BUNDLE_PATH}/{abName}";
+
             if (_abDic.TryGetValue(abName, out var abInfo))
             {
                 switch (abInfo.ABState)
@@ -231,25 +250,76 @@ namespace Engine.Scripts.Runtime.Resource
                         return;
                     case EABState.SyncLoading:
                     case EABState.AsyncLoading:
+                    case EABState.Downloading:
+                    case EABState.Downloaded:
                         abInfo.OnLoaded += callback;
                         return;
                 }
             }
             else
             {
+                if (isInGame)
+                {
+                    // 是否需要更新
+                    if (IsInGameABNeedUpdate(abPath, abName))
+                    {
+                        abInfo = new ABInfo(EABState.Downloading);
+                        _abDic.Add(abName, abInfo);
+                        
+                        // 更新
+                        abInfo.DownloadReq = DownloadABFile(abName);
+
+                        return;
+                    }
+                }
+                
                 abInfo = new ABInfo(EABState.AsyncLoading);
+                abInfo.OnLoaded += callback;
                 _abDic.Add(abName, abInfo);
             }
-            
+
             // 加载依赖
             LoadABDepsAsync(abName, () =>
             {
-                var abPath = $"{RUNTIME_BUNDLE_PATH}/{abName}";
-
-                // 异步加载ab
-                var req = AssetBundle.LoadFromFileAsync(abPath);
-                abInfo.Req = req;
+                abInfo.IsDepLoaded = true;
+                
+                if (abInfo.ABState == EABState.Downloaded)
+                {
+                    abInfo.ABState = EABState.AsyncLoading;
+                    
+                    // 异步加载ab
+                    var req = AssetBundle.LoadFromFileAsync(abPath);
+                    abInfo.Req = req;
+                }
             });
+        }
+        
+        // 下载ab文件
+        UnityWebRequestAsyncOperation DownloadABFile(string abName)
+        {
+            var netConf = GlobalConfigUtil.Conf.GetCurrNetConfig();
+            
+            var uri = $"{netConf.res.host}:{netConf.res.port}{RES_SERVER_PATH}/{PlatformInfo.Platform}/{_manifest.version}/{abName}";
+            
+            var webRequest = UnityWebRequest.Get(uri);
+
+            _log.Log($"Start download ab file '{uri}'");
+
+            return webRequest.SendWebRequest();
+        }
+
+        // 是否该游戏内更新的ab，需要被更新
+        bool IsInGameABNeedUpdate(string abPath, string abName)
+        {
+            if (!File.Exists(abPath))
+                return true;
+            
+            // 获得本地文件md5
+            string md5 = Md5.EncryptFileMD5_32(abPath);
+
+            var info = _manifest.inGameFiles[abName];
+
+            return md5 != info.md5;
         }
 
         private void OnTimer()
@@ -257,25 +327,65 @@ namespace Engine.Scripts.Runtime.Resource
             OnABTimer();
             OnAssetTimer();
         }
-        
+
         private void OnABTimer()
         {
+            _removeList.Clear();
+            
             foreach (var abInfo in _abDic)
             {
                 if (abInfo.Value.ABState == EABState.AsyncLoading)
                 {
-                    if (abInfo.Value.Req != null && abInfo.Value.Req.isDone)
+                    if (abInfo.Value.Req == null || !abInfo.Value.Req.isDone)
+                        continue;
+
+                    abInfo.Value.ABState = EABState.Loaded;
+                    abInfo.Value.AB = abInfo.Value.Req.assetBundle;
+                    abInfo.Value.Req = null;
+                    
+                    // 完成后的回调
+                    abInfo.Value.OnLoaded?.Invoke(abInfo.Value.AB);
+                    abInfo.Value.OnLoaded = null;
+                }
+                else if (abInfo.Value.ABState == EABState.Downloading)
+                {
+                    if (abInfo.Value.DownloadReq == null || !abInfo.Value.DownloadReq.isDone)
+                        continue;
+
+                    if (!string.IsNullOrEmpty(abInfo.Value.DownloadReq.webRequest.error))
                     {
-                        abInfo.Value.ABState = EABState.Loaded;
-                        abInfo.Value.AB = abInfo.Value.Req.assetBundle;
-                        abInfo.Value.Req = null;
+                        _log.Error($"Download ab '{abInfo.Key}' file failed. err: {abInfo.Value.DownloadReq.webRequest.error}");
                         
-                        // 完成后的回调
-                        abInfo.Value.OnLoaded?.Invoke(abInfo.Value.AB);
-                        abInfo.Value.OnLoaded = null;
+                        abInfo.Value.DownloadReq.webRequest.Dispose();
+                        
+                        _removeList.Add(abInfo.Key);
+                        
+                        continue;
+                    }
+
+                    abInfo.Value.ABState = EABState.Downloaded;
+
+                    abInfo.Value.DownloadReq.webRequest.Dispose();
+                    
+                    abInfo.Value.DownloadReq = null;
+                    
+                    if (abInfo.Value.IsDepLoaded)
+                    {
+                        var abPath = $"{RUNTIME_BUNDLE_PATH}/{abInfo.Key}";
+                        
+                        abInfo.Value.ABState = EABState.AsyncLoading;
+                        
+                        // 异步加载ab
+                        var req = AssetBundle.LoadFromFileAsync(abPath);
+                        abInfo.Value.Req = req;
+
+                        _log.Log($"Start async load 'InGame' ab '{abInfo.Key}'");
                     }
                 }
             }
+
+            foreach (var info in _removeList)
+                _abDic.Remove(info);
         }
 
         /// <summary>
@@ -309,7 +419,9 @@ namespace Engine.Scripts.Runtime.Resource
             
             foreach (var dep in deps)
             {
-                LoadABAsyncWithABName(dep, (ab) =>
+                bool isInGame = _manifest.inGameFiles.ContainsKey(dep);
+                
+                LoadABAsyncWithABName(dep, isInGame, ab =>
                 {
                     cnt++;
 
@@ -329,10 +441,12 @@ namespace Engine.Scripts.Runtime.Resource
             return new List<string>();
         }
 
-        private string RelPath2ABName(string relPath)
+        private string RelPath2ABName(string relPath, out bool isInGame)
         {
             int maxLength = 0;
             BundleConfigData data = null;
+
+            isInGame = false;
             
             foreach (var config in _manifest.config.dataList)
             {
@@ -351,6 +465,8 @@ namespace Engine.Scripts.Runtime.Resource
                 _log.Error($"Can not get ab with relPath : {relPath}");
                 return "";
             }
+
+            isInGame = data.updateType == EABUpdate.InGame;
 
             switch (data.packDirType)
             {

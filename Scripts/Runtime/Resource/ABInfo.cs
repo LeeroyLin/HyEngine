@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Engine.Scripts.Runtime.Resource
 {
@@ -19,6 +20,9 @@ namespace Engine.Scripts.Runtime.Resource
         
         // AB加载状态
         public EABState ABState { get; set; }
+        
+        // 是否依赖加载完毕
+        public bool IsDepLoaded { get; set; }
 
         // 是否加载完毕
         public bool IsLoaded => ABState == EABState.Loaded;
@@ -28,6 +32,9 @@ namespace Engine.Scripts.Runtime.Resource
         
         // 异步加载对象
         public AssetBundleCreateRequest Req { get; set; }
+        
+        // 异步下载对象
+        public UnityWebRequestAsyncOperation DownloadReq { get; set; }
         
         public ABInfo(EABState abState)
         {

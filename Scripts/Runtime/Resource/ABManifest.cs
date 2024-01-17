@@ -19,7 +19,7 @@ namespace Engine.Scripts.Runtime.Resource
         /// <summary>
         /// 游戏内更新的文件
         /// </summary>
-        public List<ABManifestFile> inGameFiles = new List<ABManifestFile>();
+        public Dictionary<string, ABManifestFile> inGameFiles = new Dictionary<string, ABManifestFile>();
         
         public Dictionary<string, List<string>> dependenceDic = new Dictionary<string, List<string>>();
         public BundleConfig config;
