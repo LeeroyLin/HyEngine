@@ -49,60 +49,73 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         private static StringBuilder _sbLog = new StringBuilder();
         private static StringBuilder _sbAssets = new StringBuilder();
 
-        [MenuItem("Bundle/Build/BuildTest")]
-        public static async Task<int> BuildTest()
+        private static BuildCmdConfig _buildCmdConfig;
+        
+        /// <summary>
+        /// 通过命令打包资源
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<int> BuildWithCmd()
         {
-            Debug.Log("BuildTest");
+            // 加载命令行参数
+            LoadBuildCmdConfig();
 
-            var config = GetBuildCmdConfig();
-
-            return 1;
+            return await Build(_buildCmdConfig.platform, true);
         }
 
-        static BuildCmdConfig GetBuildCmdConfig()
+        [MenuItem("Bundle/Build/Android")]
+        public static void BuildAndroid()
+        {
+            Build(BuildTarget.Android, false);
+        }
+        
+        // 加载命令行参数
+        static void LoadBuildCmdConfig()
         {
             // 获取命令行参数
             string[] parameters = Environment.GetCommandLineArgs();
             
-            BuildCmdConfig buildCmdConf = new BuildCmdConfig();
+            _buildCmdConfig = new BuildCmdConfig();
             for (int i = 0; i < parameters.Length; i++)
             {
                 string str = parameters[i];
                 string[] paramArr = str.Split('=');
                 if (paramArr.Length <= 1)
-                {
-                    Debug.Log(paramArr.Length+":" +  paramArr[0]);
                     continue;
-                }
                 string param = paramArr[1];
                 if(str.StartsWith("Environment"))
-                    buildCmdConf.env = param;
+                    _buildCmdConfig.env = (EEnv)Enum.Parse(typeof(EEnv), param);
+                if(str.StartsWith("Platform"))
+                    _buildCmdConfig.platform = (BuildTarget)Enum.Parse(typeof(BuildTarget), param);
                 else if(str.StartsWith("Version"))
-                    buildCmdConf.version = param;
+                    _buildCmdConfig.version = param;
                 else if(str.StartsWith("IsCompileAllCode"))
-                    buildCmdConf.isCompileAllCode = param == "true";
+                    _buildCmdConfig.isCompileAllCode = param == "true";
             }
- 
-            return buildCmdConf;
         }
-        
-        [MenuItem("Bundle/Build/Android")]
-        public static async void BuildAndroid()
+
+        public static async Task<int> Build(BuildTarget buildTarget, bool isCmd)
         {
             _sbLog.Clear();
             _sbAssets.Clear();
             
-            var buildTarget = BuildTarget.Android;
             var timestamp = TimeUtilBase.GetLocalTimeMS() / 1000;
             
             await LoadGlobalConfig();
 
             if (!LoadBundleConfig())
-                return;
+                return 1;
+
+            if (isCmd)
+            {
+                // 尝试通过命令行修改全局配置
+                if (!TryChangeGlobalConfByCmdConf())
+                    return 1;
+            }
             
             // 编译热更dlls
             if (!CompileHybridDlls(buildTarget))
-                return;
+                return 1;
 
             // 从配置整理资源
             FormatAssetsFromConfig();
@@ -112,7 +125,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             {
                 var value = string.Join("\n", _invalidAssetNames);
                 LogError($"Has invalid assets.\n{value}");
-                return;
+                return 1;
             }
             
             // 检测资源依赖
@@ -120,18 +133,43 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             // 循环依赖检测
             if (CheckLoopDep())
-                return;
+                return 1;
             
             // 循环游戏内更新的ab相关的依赖
             if (!CheckInGameDepOK())
-                return;
+                return 1;
 
             // 开始打包
             if (!StartBuild(timestamp, buildTarget, BuildTargetGroup.Android))
-                return;
+                return 1;
 
             // 保存打包日志
             SaveLogFile(timestamp);
+
+            return 0;
+        }
+
+        // 尝试通过命令行修改全局配置
+        static bool TryChangeGlobalConfByCmdConf()
+        {
+            bool isChanged = false;
+
+            if (_globalConfig.version != _buildCmdConfig.version)
+            {
+                _globalConfig.version = _buildCmdConfig.version;
+                isChanged = true;
+            }
+            
+            if (_globalConfig.env != _buildCmdConfig.env)
+            {
+                _globalConfig.env = _buildCmdConfig.env;
+                isChanged = true;
+            }
+
+            if (!isChanged)
+                return true;
+
+            return GlobalConfigUtil.SaveConf(_globalConfig);
         }
 
         /// <summary>

@@ -1,6 +1,9 @@
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Utils;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Global
 {
@@ -23,6 +26,27 @@ namespace Engine.Scripts.Runtime.Global
             var content = await ReadTextRuntime.ReadSteamingAssetsText(GLOBAL_CONFIG_STREAMING_ASSETS_PATH);
             var conf = JsonConvert.DeserializeObject<GlobalConfig>(content);
             return conf;
+        }
+
+        public static bool SaveConf(GlobalConfig conf)
+        {
+#if UNITY_EDITOR
+            var savePath = $"{Application.streamingAssetsPath}/GLOBAL_CONFIG_STREAMING_ASSETS_PATH";
+            var content = JsonConvert.SerializeObject(conf);
+
+            try
+            {
+                File.WriteAllText(savePath, content);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Save global config to {savePath} failed. err: {e.Message}");
+                
+                return false;
+            }
+#endif
+            
+            return true;
         }
     }
 }
