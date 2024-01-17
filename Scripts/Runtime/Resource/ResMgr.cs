@@ -264,16 +264,16 @@ namespace Engine.Scripts.Runtime.Resource
                     if (IsInGameABNeedUpdate(abPath, abName))
                     {
                         abInfo = new ABInfo(EABState.Downloading);
-                        _abDic.Add(abName, abInfo);
                         
                         // 更新
                         abInfo.DownloadReq = DownloadABFile(abName);
-
-                        return;
                     }
+                    else
+                        abInfo = new ABInfo(EABState.AsyncLoading);
                 }
+                else
+                    abInfo = new ABInfo(EABState.AsyncLoading);
                 
-                abInfo = new ABInfo(EABState.AsyncLoading);
                 abInfo.OnLoaded += callback;
                 _abDic.Add(abName, abInfo);
             }
@@ -283,7 +283,7 @@ namespace Engine.Scripts.Runtime.Resource
             {
                 abInfo.IsDepLoaded = true;
                 
-                if (abInfo.ABState == EABState.Downloaded)
+                if (abInfo.ABState == EABState.Downloaded || abInfo.ABState == EABState.AsyncLoading)
                 {
                     abInfo.ABState = EABState.AsyncLoading;
                     
@@ -365,10 +365,31 @@ namespace Engine.Scripts.Runtime.Resource
 
                     abInfo.Value.ABState = EABState.Downloaded;
 
+                    _log.Log($"'InGame' ab '{abInfo.Key}' downloaded. Start save file.");
+
+                    var data = abInfo.Value.DownloadReq.webRequest.downloadHandler.data;
+                    
                     abInfo.Value.DownloadReq.webRequest.Dispose();
+
+                    var savePath = $"{RUNTIME_BUNDLE_PATH}/{abInfo.Key}";
                     
+                    try
+                    {
+                        File.WriteAllBytes(savePath, data);
+                    }
+                    catch (Exception e)
+                    {
+                        _log.Error($"Save ab '{abInfo.Key}' file failed. err: {e.Message}");
+                        
+                        _removeList.Add(abInfo.Key);
+                        
+                        continue;
+                    }
+                    
+                    _log.Log($"'InGame' ab '{abInfo.Key}' saved.");
+
                     abInfo.Value.DownloadReq = null;
-                    
+
                     if (abInfo.Value.IsDepLoaded)
                     {
                         var abPath = $"{RUNTIME_BUNDLE_PATH}/{abInfo.Key}";
