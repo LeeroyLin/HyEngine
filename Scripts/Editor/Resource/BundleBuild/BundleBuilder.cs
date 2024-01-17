@@ -53,6 +53,44 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         public static async void BuildTest()
         {
             Debug.Log("BuildTest");
+
+            var config = GetBuildCmdConfig();
+        }
+
+        static BuildCmdConfig GetBuildCmdConfig()
+        {
+            // 获取命令行参数
+            string[] parameters = Environment.GetCommandLineArgs();
+            
+            BuildCmdConfig buildCmdConf = new BuildCmdConfig();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                string str = parameters[i];
+                string[] paramArr = str.Split('=');
+                if (paramArr.Length <= 1)
+                {
+                    Debug.Log(paramArr.Length+":" +  paramArr[0]);
+                    continue;
+                }
+                string param = paramArr[1];
+                if(str.StartsWith("Environment"))
+                {
+                    Debug.Log($"CCC env {param}");
+                    buildCmdConf.env = param;
+                }
+                else if(str.StartsWith("Version"))
+                {
+                    Debug.Log($"CCC version {param}");
+                    buildCmdConf.version = param;
+                }
+                else if(str.StartsWith("IsCompileAllCode"))
+                {
+                    Debug.Log($"CCC isCompileAllCode {param}");
+                    // buildCmdConf.isCompileAllCode = param;
+                }
+            }
+ 
+            return buildCmdConf;
         }
         
         [MenuItem("Bundle/Build/Android")]
