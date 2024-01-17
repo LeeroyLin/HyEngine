@@ -55,14 +55,12 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         /// 通过命令打包资源
         /// </summary>
         /// <returns></returns>
-        public static async Task<int> BuildWithCmd()
+        public static int BuildWithCmd()
         {
             // 加载命令行参数
             LoadBuildCmdConfig();
 
-            var res = await Build(_buildCmdConfig.platform, true);
-
-            return res;
+            return Build(_buildCmdConfig.platform, true);
         }
 
         [MenuItem("Bundle/Build/Android")]
@@ -96,14 +94,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             }
         }
 
-        public static async Task<int> Build(BuildTarget buildTarget, bool isCmd)
+        public static int Build(BuildTarget buildTarget, bool isCmd)
         {
             _sbLog.Clear();
             _sbAssets.Clear();
             
             var timestamp = TimeUtilBase.GetLocalTimeMS() / 1000;
             
-            await LoadGlobalConfig();
+            LoadGlobalConfig();
 
             if (!LoadBundleConfig())
                 return 1;
@@ -451,9 +449,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             return (false, "");
         }
 
-        private static async Task LoadGlobalConfig()
+        private static void LoadGlobalConfig()
         {
-            _globalConfig = await GlobalConfigUtil.LoadANewConf();
+            _globalConfig = GlobalConfigUtil.LoadANewConfEditor();
         }
 
         private static bool LoadBundleConfig()

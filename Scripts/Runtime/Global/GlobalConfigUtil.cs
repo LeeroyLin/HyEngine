@@ -18,14 +18,24 @@ namespace Engine.Scripts.Runtime.Global
 
         public static async Task LoadConf()
         {
-            Conf = await LoadANewConf();
+            Conf = await LoadANewConfRuntime();
         }
 
-        public static async Task<GlobalConfig> LoadANewConf()
+        public static async Task<GlobalConfig> LoadANewConfRuntime()
         {
             var content = await ReadTextRuntime.ReadSteamingAssetsText(GLOBAL_CONFIG_STREAMING_ASSETS_PATH);
             var conf = JsonConvert.DeserializeObject<GlobalConfig>(content);
             return conf;
+        }
+
+        public static GlobalConfig LoadANewConfEditor()
+        {
+#if UNITY_EDITOR
+            var path = $"{Application.streamingAssetsPath}/GLOBAL_CONFIG_STREAMING_ASSETS_PATH";
+            var content = File.ReadAllText(path);
+            var conf = JsonConvert.DeserializeObject<GlobalConfig>(content);
+            return conf;
+#endif
         }
 
         public static bool SaveConf(GlobalConfig conf)

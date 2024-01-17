@@ -19,7 +19,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
 
         private static async Task LoadConfig()
         {
-            _config = await GlobalConfigUtil.LoadANewConf();
+            _config = await GlobalConfigUtil.LoadANewConfRuntime();
         }
         
         private static async void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
