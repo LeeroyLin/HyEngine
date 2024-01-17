@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Resource
 {
@@ -14,10 +13,13 @@ namespace Engine.Scripts.Runtime.Resource
         public string path;
         
         // AB打包目录类型
-        public EABPackDir packDirType;
+        public EABPackDir packDirType = EABPackDir.Single;
         
         // AB压缩策略
-        public EABCompress packCompressType;
+        public EABCompress packCompressType = EABCompress.LZ4;
+        
+        // AB更新方式
+        public EABUpdate updateType = EABUpdate.Advance;
         
         // 是否md5命名
         public bool md5;
@@ -44,5 +46,26 @@ namespace Engine.Scripts.Runtime.Resource
         LZ4,
         LZMA,
         Uncompressed,
+    }
+
+    /// <summary>
+    /// AB更新方式
+    /// </summary>
+    public enum EABUpdate
+    {
+        /// <summary>
+        /// 包体内
+        /// </summary>
+        Package,
+        
+        /// <summary>
+        /// 进游戏前更新
+        /// </summary>
+        Advance,
+        
+        /// <summary>
+        /// 游戏内更新
+        /// </summary>
+        InGame,
     }
 }

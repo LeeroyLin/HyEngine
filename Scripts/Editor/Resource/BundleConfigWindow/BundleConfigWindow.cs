@@ -155,6 +155,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             };
             listView.columns["dirType"].makeCell = () => new EnumField(EABPackDir.File);
             listView.columns["compressType"].makeCell = () => new EnumField(EABCompress.LZ4);
+            listView.columns["updateType"].makeCell = () => new EnumField(EABUpdate.Advance);
             listView.columns["md5"].makeCell = () => new Toggle();
         }
         
@@ -200,6 +201,11 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
         void OnCompressTypeChanged(ChangeEvent<Enum> evt, int idx)
         {
             _list[idx].packCompressType = (EABCompress) evt.newValue;
+        }
+        
+        void OnUpdateTypeChanged(ChangeEvent<Enum> evt, int idx)
+        {
+            _list[idx].updateType = (EABUpdate) evt.newValue;
         }
         
         void OnMd5Changed(ChangeEvent<bool> evt, int idx)
@@ -249,6 +255,15 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
 
                 ele.value = _list[i].packCompressType;
             };
+            listView.columns["updateType"].bindCell = (element, i) =>
+            {
+                var ele = (EnumField) element;
+
+                ele.UnregisterCallback<ChangeEvent<Enum>, int>(OnUpdateTypeChanged);
+                ele.RegisterCallback<ChangeEvent<Enum>, int>(OnUpdateTypeChanged, i);
+
+                ele.value = _list[i].updateType;
+            };
             listView.columns["md5"].bindCell = (element, i) =>
             {
                 var toggle = (Toggle) element;
@@ -273,6 +288,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
                     md5 = data.md5,
                     packCompressType = data.packCompressType,
                     packDirType = data.packDirType,
+                    updateType = data.updateType,
                 });
             }
             

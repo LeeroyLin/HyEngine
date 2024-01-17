@@ -8,8 +8,9 @@
         <ui:Columns>
             <ui:Column name="path" title="Path" width="300" />
             <ui:Column name="dirType" title="DirType" width="80" />
-            <ui:Column name="compressType" title="CompressType" width="80" />
-            <ui:Column name="md5" title="Md5" width="80" />
+            <ui:Column name="compressType" title="CompressType" width="100" />
+            <ui:Column name="updateType" title="UpdateType" width="100" />
+            <ui:Column name="md5" title="Md5" width="40" />
         </ui:Columns>
     </ui:MultiColumnListView>
 </ui:UXML>

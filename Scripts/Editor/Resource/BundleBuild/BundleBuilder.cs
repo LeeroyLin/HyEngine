@@ -17,9 +17,12 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 {
     public partial class BundleBuilder
     {
-        public static string CONFIG_PATH = $"{Application.dataPath}/BundleAssets/BundleConfig/BundleConfigData.json";
-        public static string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
-        public static string LOG_PATH = $"{Application.dataPath}/../BuildLogs";
+        public static readonly string CONFIG_PATH = $"{Application.dataPath}/Settings/BundleConfigData.json";
+        public static readonly string OUTPUT_PATH = Application.dataPath.Substring(0, Application.dataPath.Length - 6) + "BundleOut";
+        public static readonly string LOG_PATH = $"{Application.dataPath}/../BuildLogs";
+
+        // 包内 ab资源 根目录
+        private static readonly string PACKAGE_AB_DIR = $"{Application.streamingAssetsPath}/AB";
         
         private static BundleConfig _bundleConfig;
         
@@ -37,6 +40,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         
         // 压缩字典
         private static Dictionary<string, BuildCompression> _compressionDic = new Dictionary<string, BuildCompression>();
+        
+        // 记录ab的更新策略
+        private static Dictionary<string, EABUpdate> _abUpdateDic = new Dictionary<string, EABUpdate>();
 
         private static GlobalConfig _globalConfig;
 
@@ -116,7 +122,57 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 return false;
             
             // 保存目录文件
-            return SaveManifestFile(outputPath, results, finalVersion);
+            if (!SaveManifestFile(outputPath, results, finalVersion))
+                return false;
+
+            // 移动包内资源
+            if (!MovePackageFiles(buildTarget, results, outputPath))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// 移动包内资源
+        /// </summary>
+        /// <param name="buildTarget"></param>
+        /// <param name="results"></param>
+        /// <param name="outputPath"></param>
+        /// <returns></returns>
+        static bool MovePackageFiles(BuildTarget buildTarget, IBundleBuildResults results, string outputPath)
+        {
+            PathUtil.MakeSureDir(PACKAGE_AB_DIR);
+            PathUtil.ClearDir(PACKAGE_AB_DIR);
+            
+            var packageABDir = $"{PACKAGE_AB_DIR}/{buildTarget}";
+            PathUtil.MakeSureDir(packageABDir);
+
+            var pre = outputPath + "/";
+
+            foreach (var info in results.BundleInfos)
+            {
+                var abName = info.Value.FileName.Replace(pre, "");
+                
+                var updateType = _abUpdateDic[abName];
+
+                if (updateType != EABUpdate.Package)
+                    continue;
+
+                var path = $"{packageABDir}/{abName}";
+
+                try
+                {
+                    File.Move(info.Value.FileName, path);
+                }
+                catch (Exception e)
+                {
+                    LogError($"Move file from {info.Value.FileName} to {path} failed. err: {e.Message}");
+
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // 保存目录文件
@@ -149,12 +205,31 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                     
                     return false;
                 }
-
+                
                 md5Hash.Add(md5);
                 
-                dep.files.Add(new ABManifestFile()
+                var abName = info.Value.FileName.Replace(pre, "");
+
+                var updateType = _abUpdateDic[abName];
+
+                List<ABManifestFile> files = null;
+                
+                switch (updateType)
                 {
-                    fileName = info.Value.FileName.Replace(pre, ""),
+                    case EABUpdate.Advance:
+                        files = dep.advanceFiles;
+                        break;
+                    case EABUpdate.Package:
+                        files = dep.packageFiles;
+                        break;
+                    case EABUpdate.InGame:
+                        files = dep.inGameFiles;
+                        break;
+                }
+                
+                files.Add(new ABManifestFile()
+                {
+                    fileName = abName,
                     md5 = md5,
                 });
             }
@@ -299,6 +374,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             _buildInfos.Clear();
             _invalidAssetNames.Clear();
             _compressionDic.Clear();
+            _abUpdateDic.Clear();
             
             foreach (var data in _bundleConfig.dataList)
             {
@@ -326,6 +402,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                             assetNames = relPathList.ToArray(),
                         });
                         _compressionDic.Add(abName, GetCompression(data.packCompressType));
+                        _abUpdateDic.Add(abName, data.updateType);
 
                         Append2AssetsSB(abName, relPathList);
                     }
@@ -346,6 +423,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                                 assetNames = assetNames.ToArray(),
                             });
                             _compressionDic.Add(abName, GetCompression(data.packCompressType));
+                            _abUpdateDic.Add(abName, data.updateType);
                             
                             Append2AssetsSB(abName, assetNames);
                         }
@@ -372,6 +450,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                                 assetNames = relPathList.ToArray(),
                             });
                             _compressionDic.Add(abName, GetCompression(data.packCompressType));
+                            _abUpdateDic.Add(abName, data.updateType);
                             
                             Append2AssetsSB(abName, relPathList);
                         });

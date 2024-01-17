@@ -42,6 +42,24 @@ namespace Engine.Scripts.Runtime.Utils
         }
 
         /// <summary>
+        /// 清空目录
+        /// </summary>
+        /// <param name="dir"></param>
+        public static void ClearDir(string dir)
+        {
+            if (!Directory.Exists(dir))
+                return;
+
+            var files = Directory.GetFiles(dir, "*", SearchOption.AllDirectories);
+            foreach (var file in files)
+                File.Delete(file);
+
+            var dirs = Directory.GetDirectories(dir, "*", SearchOption.AllDirectories);
+            foreach (var d in dirs)
+                Directory.Delete(d);
+        }
+
+        /// <summary>
         /// 获得目录下所有非meta文件
         /// </summary>
         /// <param name="absPath"></param>
