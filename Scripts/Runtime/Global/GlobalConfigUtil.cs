@@ -31,7 +31,7 @@ namespace Engine.Scripts.Runtime.Global
         public static GlobalConfig LoadANewConfEditor()
         {
 #if UNITY_EDITOR
-            var path = $"{Application.streamingAssetsPath}/GLOBAL_CONFIG_STREAMING_ASSETS_PATH";
+            var path = $"{Application.streamingAssetsPath}/{GLOBAL_CONFIG_STREAMING_ASSETS_PATH}";
             var content = File.ReadAllText(path);
             var conf = JsonConvert.DeserializeObject<GlobalConfig>(content);
             return conf;
@@ -41,7 +41,7 @@ namespace Engine.Scripts.Runtime.Global
         public static bool SaveConf(GlobalConfig conf)
         {
 #if UNITY_EDITOR
-            var savePath = $"{Application.streamingAssetsPath}/GLOBAL_CONFIG_STREAMING_ASSETS_PATH";
+            var savePath = $"{Application.streamingAssetsPath}/{GLOBAL_CONFIG_STREAMING_ASSETS_PATH}";
             var content = JsonConvert.SerializeObject(conf);
 
             try
