@@ -60,7 +60,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             // 加载命令行参数
             LoadBuildCmdConfig();
 
-            return await Build(_buildCmdConfig.platform, true);
+            var res = await Build(_buildCmdConfig.platform, true);
+
+            return res;
         }
 
         [MenuItem("Bundle/Build/Android")]
