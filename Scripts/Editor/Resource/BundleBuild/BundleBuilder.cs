@@ -58,6 +58,8 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         /// <returns></returns>
         public static int BuildWithCmd()
         {
+            return -1;
+            
             // 检测是否安装热更
             CheckHybridCLRInstalled();
                 
