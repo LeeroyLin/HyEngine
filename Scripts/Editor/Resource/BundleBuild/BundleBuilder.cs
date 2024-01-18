@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
+using HybridCLR.Editor.Installer;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.Build.Pipeline;
@@ -57,10 +58,21 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         /// <returns></returns>
         public static int BuildWithCmd()
         {
+            // 检测是否安装热更
+            CheckHybridCLRInstalled();
+                
             // 加载命令行参数
             LoadBuildCmdConfig();
 
             return Build(_buildCmdConfig.platform, true);
+        }
+
+        // 检测是否安装热更
+        static void CheckHybridCLRInstalled()
+        {
+            var installer = new InstallerController();
+            if (!installer.HasInstalledHybridCLR())
+                installer.InstallDefaultHybridCLR();
         }
 
         [MenuItem("Bundle/Build/Android")]

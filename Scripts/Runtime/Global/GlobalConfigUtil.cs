@@ -36,6 +36,8 @@ namespace Engine.Scripts.Runtime.Global
             var conf = JsonConvert.DeserializeObject<GlobalConfig>(content);
             return conf;
 #endif
+
+            return null;
         }
 
         public static bool SaveConf(GlobalConfig conf)
