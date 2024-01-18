@@ -64,9 +64,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             // 加载命令行参数
             LoadBuildCmdConfig();
 
-            return 1;
-            
-            return Build(_buildCmdConfig.platform, true);
+            return Build(_buildCmdConfig.platform, true, _buildCmdConfig.time);
         }
 
         // 检测是否安装热更
@@ -105,20 +103,17 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                     _buildCmdConfig.version = param;
                 else if(str.StartsWith("IsCompileAllCode"))
                     _buildCmdConfig.isCompileAllCode = param == "true";
-                else if (str.StartsWith("Timestamp"))
-                {
-                    Debug.Log($"CCC timestamp {param}");
-                    _buildCmdConfig.timestamp = long.Parse(param);
-                }
+                else if (str.StartsWith("Time"))
+                    _buildCmdConfig.time = long.Parse(param);
             }
         }
 
-        public static int Build(BuildTarget buildTarget, bool isCmd)
+        public static int Build(BuildTarget buildTarget, bool isCmd, long time = 0)
         {
             _sbLog.Clear();
             _sbAssets.Clear();
             
-            var timestamp = TimeUtilBase.GetLocalTimeMS() / 1000;
+            var timestamp = time > 0 ? time : TimeUtilBase.GetLocalTimeMS() / 1000;
             
             LoadGlobalConfig();
 
