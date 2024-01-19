@@ -25,6 +25,8 @@ namespace Engine.Scripts.Editor.Resource.Build
             // 加载命令行参数
             LoadBuildCmdConfig();
 
+            return 1;
+            
             // 打包资源
             var bundleRes = BundleBuilder.BuildWithCmd(_buildCmdConfig);
 
