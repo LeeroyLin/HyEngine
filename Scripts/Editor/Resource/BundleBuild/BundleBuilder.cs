@@ -54,18 +54,17 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         private static BuildCmdConfig _buildCmdConfig;
         
         /// <summary>
-        /// 通过命令打包资源
+        /// 通过命令打包
         /// </summary>
         /// <returns></returns>
-        public static int BuildWithCmd()
+        public static int BuildWithCmd(BuildCmdConfig cmdConfig)
         {
+            _buildCmdConfig = cmdConfig;
+            
             // 检测是否安装热更
             CheckHybridCLRInstalled();
                 
-            // 加载命令行参数
-            LoadBuildCmdConfig();
-
-            return Build(_buildCmdConfig.platform, true, _buildCmdConfig.time);
+            return BuildBundle(_buildCmdConfig.platform, true, _buildCmdConfig.time);
         }
 
         // 检测是否安装热更
@@ -76,40 +75,13 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 installer.InstallDefaultHybridCLR();
         }
 
-        [MenuItem("Bundle/Build/Android")]
-        public static void BuildAndroid()
+        [MenuItem("Build/Bundle/Build/Android")]
+        public static void BuildBundleAndroid()
         {
-            Build(BuildTarget.Android, false);
-        }
-        
-        // 加载命令行参数
-        static void LoadBuildCmdConfig()
-        {
-            // 获取命令行参数
-            string[] parameters = Environment.GetCommandLineArgs();
-            
-            _buildCmdConfig = new BuildCmdConfig();
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                string str = parameters[i];
-                string[] paramArr = str.Split('=');
-                if (paramArr.Length <= 1)
-                    continue;
-                string param = paramArr[1];
-                if(str.StartsWith("Environment"))
-                    _buildCmdConfig.env = (EEnv)Enum.Parse(typeof(EEnv), param);
-                if(str.StartsWith("Platform"))
-                    _buildCmdConfig.platform = (BuildTarget)Enum.Parse(typeof(BuildTarget), param);
-                else if(str.StartsWith("Version"))
-                    _buildCmdConfig.version = param;
-                else if(str.StartsWith("IsCompileAllCode"))
-                    _buildCmdConfig.isCompileAllCode = param == "true";
-                else if (str.StartsWith("Time"))
-                    _buildCmdConfig.time = long.Parse(param);
-            }
+            BuildBundle(BuildTarget.Android, false);
         }
 
-        public static int Build(BuildTarget buildTarget, bool isCmd, long time = 0)
+        public static int BuildBundle(BuildTarget buildTarget, bool isCmd, long time = 0)
         {
             _sbLog.Clear();
             _sbAssets.Clear();

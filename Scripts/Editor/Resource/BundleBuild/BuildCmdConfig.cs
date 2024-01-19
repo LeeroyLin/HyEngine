@@ -9,6 +9,8 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         public EEnv env;
         public BuildTarget platform;
         public bool isCompileAllCode;
+        public bool isApk;
+        public bool isAAB;
         public long time;
     }
 }

@@ -17,7 +17,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
         private static BundleConfig _config;
         private static List<BundleConfigData> _list;
 
-        [MenuItem("Bundle/Bundle Config/Bundle Config Window")]
+        [MenuItem("Build/Bundle/Bundle Config/Bundle Config Window")]
         public static void ShowExample()
         {
             // 加载配置
