@@ -87,9 +87,8 @@ namespace Engine.Scripts.Editor.Resource.Build
 
             if (isSuccess)
                 return 0;
-            
-            Debug.LogError("Build apk failed.");
-            return 1;
+
+            throw new Exception("Build apk failed.");
         }
 
         private static void LoadGlobalConfig()
