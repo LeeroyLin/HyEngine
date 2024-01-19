@@ -18,7 +18,7 @@ namespace Engine.Scripts.Editor.Resource.Build
         /// 通过命令打包
         /// </summary>
         /// <returns></returns>
-        public static int BuildWithCmd()
+        public static void BuildWithCmd()
         {
             LoadGlobalConfig();
 
@@ -28,8 +28,8 @@ namespace Engine.Scripts.Editor.Resource.Build
             // 打包资源
             var bundleRes = BundleBuilder.BuildWithCmd(_buildCmdConfig);
 
-            if (bundleRes != 0)
-                return bundleRes;
+            if (!bundleRes)
+                throw new Exception("Build bundle error.");
 
             if (_buildCmdConfig.isApk)
             {
@@ -47,12 +47,10 @@ namespace Engine.Scripts.Editor.Resource.Build
                     EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
 
                     // 打包apk
-                    return BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
+                    BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
                 }
-                
-                Debug.LogError("Wrong platform");
-        
-                return 1;
+
+                throw new Exception("Wrong platform");
             }
             
             if (_buildCmdConfig.isAAB)
@@ -60,11 +58,9 @@ namespace Engine.Scripts.Editor.Resource.Build
                 // 打包aab
                 // todo
             }
-
-            return 0;
         }
         
-        public static int BuildApk(string apkName = "")
+        public static void BuildApk(string apkName = "")
         {
             List<string> levels = new List<string>();
             
@@ -81,14 +77,8 @@ namespace Engine.Scripts.Editor.Resource.Build
             var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{apkName}", 
                 BuildTarget.Android, BuildOptions.None);
 
-            var isSuccess = res.summary.result == BuildResult.Succeeded;
-            
-            Debug.Log($"Build apk Result : {res.summary.result}");
-
-            if (isSuccess)
-                return 0;
-
-            throw new Exception("Build apk failed.");
+            if (res.summary.result != BuildResult.Succeeded)
+                throw new Exception("Build apk failed.");
         }
 
         private static void LoadGlobalConfig()

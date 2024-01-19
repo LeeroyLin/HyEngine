@@ -57,7 +57,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         /// 通过命令打包
         /// </summary>
         /// <returns></returns>
-        public static int BuildWithCmd(BuildCmdConfig cmdConfig)
+        public static bool BuildWithCmd(BuildCmdConfig cmdConfig)
         {
             _buildCmdConfig = cmdConfig;
             
@@ -83,7 +83,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             BuildBundle(BuildTarget.Android, false);
         }
 
-        public static int BuildBundle(BuildTarget buildTarget, bool isCmd, long time = 0)
+        public static bool BuildBundle(BuildTarget buildTarget, bool isCmd, long time = 0)
         {
             _sbLog.Clear();
             _sbAssets.Clear();
@@ -93,18 +93,18 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             LoadGlobalConfig();
 
             if (!LoadBundleConfig())
-                return 1;
+                return false;
 
             if (isCmd)
             {
                 // 尝试通过命令行修改全局配置
                 if (!TryChangeGlobalConfByCmdConf())
-                    return 1;
+                    return false;
             }
 
             // 编译热更dlls
             if (!CompileHybridDlls(buildTarget))
-                return 1;
+                return false;
             
             // 从配置整理资源
             FormatAssetsFromConfig();
@@ -114,7 +114,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             {
                 var value = string.Join("\n", _invalidAssetNames);
                 LogError($"Has invalid assets.\n{value}");
-                return 1;
+                return false;
             }
             
             // 检测资源依赖
@@ -122,20 +122,20 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             // 循环依赖检测
             if (CheckLoopDep())
-                return 1;
+                return false;
             
             // 循环游戏内更新的ab相关的依赖
             if (!CheckInGameDepOK())
-                return 1;
+                return false;
 
             // 开始打包
             if (!StartBuild(timestamp, buildTarget, BuildTargetGroup.Android))
-                return 1;
+                return false;
 
             // 保存打包日志
             SaveLogFile(timestamp);
 
-            return 0;
+            return true;
         }
 
         // 尝试通过命令行修改全局配置
