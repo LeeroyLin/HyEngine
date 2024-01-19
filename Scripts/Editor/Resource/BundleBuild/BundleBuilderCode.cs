@@ -28,7 +28,11 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
             AssetDatabase.Refresh();
             
-            CompileDllCommand.CompileDll(target);
+            if (_buildCmdConfig.isCompileAllCode)
+                PrebuildCommand.GenerateAll();
+            else
+                CompileDllCommand.CompileDll(target);
+                
             var (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
 
             if (!string.IsNullOrEmpty(errorMsg))
@@ -38,7 +42,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             }
             
             (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
-            
+                
             if (!string.IsNullOrEmpty(errorMsg))
             {
                 LogError($"Generate AOT reference failed.  err: {errorMsg}");

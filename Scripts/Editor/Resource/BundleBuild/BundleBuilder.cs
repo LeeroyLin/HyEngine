@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
+using HybridCLR.Editor.Commands;
 using HybridCLR.Editor.Installer;
 using Newtonsoft.Json;
 using UnityEditor;
@@ -58,8 +59,6 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         /// <returns></returns>
         public static int BuildWithCmd()
         {
-            return 0;
-            
             // 检测是否安装热更
             CheckHybridCLRInstalled();
                 
@@ -128,11 +127,11 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 if (!TryChangeGlobalConfByCmdConf())
                     return 1;
             }
-            
+
             // 编译热更dlls
             if (!CompileHybridDlls(buildTarget))
                 return 1;
-
+            
             // 从配置整理资源
             FormatAssetsFromConfig();
             
