@@ -73,6 +73,8 @@ namespace Engine.Scripts.Editor.Resource.Build
             var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{apkName}", 
                 BuildTarget.Android, BuildOptions.None);
             
+            Debug.Log($"Build apk Result : {res.summary.result}");
+            
             return res.summary.result == BuildResult.Succeeded ? 0 : 1;
         }
         
