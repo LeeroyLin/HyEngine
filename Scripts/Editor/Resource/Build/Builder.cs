@@ -47,7 +47,9 @@ namespace Engine.Scripts.Editor.Resource.Build
                     EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
 
                     // 打包apk
-                    return BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
+                    var res = BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
+                    Debug.Log($"Build apk res code: {res}");
+                    return res;
                 }
                 
                 Debug.LogError("Wrong platform");
