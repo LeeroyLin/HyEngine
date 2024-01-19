@@ -24,8 +24,6 @@ namespace Engine.Scripts.Editor.Resource.Build
 
             // 加载命令行参数
             LoadBuildCmdConfig();
-
-            return 1;
             
             // 打包资源
             var bundleRes = BundleBuilder.BuildWithCmd(_buildCmdConfig);
@@ -49,9 +47,7 @@ namespace Engine.Scripts.Editor.Resource.Build
                     EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
 
                     // 打包apk
-                    var res = BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
-                    Debug.Log($"Build apk res code: {res}");
-                    return res;
+                    return BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
                 }
                 
                 Debug.LogError("Wrong platform");
@@ -84,10 +80,16 @@ namespace Engine.Scripts.Editor.Resource.Build
             
             var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{apkName}", 
                 BuildTarget.Android, BuildOptions.None);
+
+            var isSuccess = res.summary.result == BuildResult.Succeeded;
             
             Debug.Log($"Build apk Result : {res.summary.result}");
+
+            if (isSuccess)
+                return 0;
             
-            return res.summary.result == BuildResult.Succeeded ? 0 : 1;
+            Debug.LogError("Build apk failed.");
+            return 1;
         }
 
         private static void LoadGlobalConfig()
