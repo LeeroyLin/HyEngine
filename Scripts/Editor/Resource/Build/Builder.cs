@@ -33,7 +33,10 @@ namespace Engine.Scripts.Editor.Resource.Build
                 if (_buildCmdConfig.platform == BuildTarget.Android)
                 {
                     PlayerSettings.bundleVersion = _buildCmdConfig.version;
-                    
+                    EditorUserBuildSettings.buildAppBundle = false;
+                    EditorUserBuildSettings.development = false;
+                    EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+
                     // 打包apk
                     return BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
                 }
