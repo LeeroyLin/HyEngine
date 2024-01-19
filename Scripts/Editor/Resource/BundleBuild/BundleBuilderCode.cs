@@ -27,26 +27,45 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             ResetDir();
 
             AssetDatabase.Refresh();
+
+            string errorMsg = null;
+            List<string> aotRefs = null;            
             
             if (_buildCmdConfig.isCompileAllCode)
-                PrebuildCommand.GenerateAll();
+            {
+                CompileDllCommand.CompileDll(target);
+                Il2CppDefGeneratorCommand.GenerateIl2CppDef();
+
+                // 这几个生成依赖HotUpdateDlls
+                LinkGeneratorCommand.GenerateLinkXml(target);
+
+                // 生成裁剪后的aot dll
+                StripAOTDllCommand.GenerateStripedAOTDlls(target);
+
+                // 桥接函数生成依赖于AOT dll，必须保证已经build过，生成AOT dll
+                MethodBridgeGeneratorCommand.GenerateMethodBridge(target);
+                ReversePInvokeWrapperGeneratorCommand.GenerateReversePInvokeWrapper(target);
+                (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
+            }
             else
+            {
                 CompileDllCommand.CompileDll(target);
                 
-            var (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
-
-            if (!string.IsNullOrEmpty(errorMsg))
-            {
-                StripAOTDllCommand.GenerateStripedAOTDlls(target);
-                Log("Aot ref needs update.");
-            }
-            
-            (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
+                (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
                 
-            if (!string.IsNullOrEmpty(errorMsg))
-            {
-                LogError($"Generate AOT reference failed.  err: {errorMsg}");
-                return false;
+                if (!string.IsNullOrEmpty(errorMsg))
+                {
+                    StripAOTDllCommand.GenerateStripedAOTDlls(target);
+                    Log("Aot ref needs update.");
+                }
+            
+                (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
+                
+                if (!string.IsNullOrEmpty(errorMsg))
+                {
+                    LogError($"Generate AOT reference failed.  err: {errorMsg}");
+                    return false;
+                }
             }
             
             var defDir = $"{Application.dataPath}/../{SettingsUtil.HybridCLRSettings.hotUpdateDllCompileOutputRootDir}/{PlatformInfo.Platform}";
