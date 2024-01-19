@@ -4,6 +4,7 @@ using Engine.Scripts.Editor.Resource.BundleBuild;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Utils;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 namespace Engine.Scripts.Editor.Resource.Build
@@ -66,10 +67,10 @@ namespace Engine.Scripts.Editor.Resource.Build
             if (string.IsNullOrEmpty(apkName))
                 apkName = TimeUtilBase.GetLocalTimeMS() + "";
             
-            BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{apkName}/{apkName}.apk", 
+            var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{apkName}", 
                 BuildTarget.Android, BuildOptions.None);
             
-            return 0;
+            return res.summary.result == BuildResult.Succeeded ? 0 : 1;
         }
         
         // 加载命令行参数
