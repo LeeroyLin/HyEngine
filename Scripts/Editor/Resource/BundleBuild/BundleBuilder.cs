@@ -90,6 +90,8 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             var timestamp = time > 0 ? time : TimeUtilBase.GetLocalTimeMS() / 1000;
             
+            LoadGlobalConfig();
+
             if (!LoadBundleConfig())
                 return 1;
 
