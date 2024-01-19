@@ -13,6 +13,7 @@ namespace Engine.Scripts.Runtime.Global
         public int netMaxMsgLen = 1024 * 500; // 500k
         public bool isNetEncrypt = true;
         public string version = "0.1";
+        public BuildConfig buildConfig;
         public LogConfig logConfig;
         public NetConfig netConfig;
 

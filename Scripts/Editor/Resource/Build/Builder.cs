@@ -12,6 +12,7 @@ namespace Engine.Scripts.Editor.Resource.Build
     public class Builder
     {
         private static BuildCmdConfig _buildCmdConfig;
+        private static GlobalConfig _globalConfig;
         
         /// <summary>
         /// 通过命令打包
@@ -19,6 +20,8 @@ namespace Engine.Scripts.Editor.Resource.Build
         /// <returns></returns>
         public static int BuildWithCmd()
         {
+            LoadGlobalConfig();
+
             // 加载命令行参数
             LoadBuildCmdConfig();
 
@@ -33,6 +36,12 @@ namespace Engine.Scripts.Editor.Resource.Build
                 if (_buildCmdConfig.platform == BuildTarget.Android)
                 {
                     PlayerSettings.bundleVersion = _buildCmdConfig.version;
+                    PlayerSettings.Android.useCustomKeystore = true;
+                    PlayerSettings.Android.keystoreName = _globalConfig.buildConfig.keystoreName;
+                    PlayerSettings.Android.keystorePass = _globalConfig.buildConfig.keystorePass;
+                    PlayerSettings.Android.keyaliasName = _globalConfig.buildConfig.keyaliasName;
+                    PlayerSettings.Android.keyaliasPass = _globalConfig.buildConfig.keyaliasPass;
+                    
                     EditorUserBuildSettings.buildAppBundle = false;
                     EditorUserBuildSettings.development = false;
                     EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
@@ -55,7 +64,6 @@ namespace Engine.Scripts.Editor.Resource.Build
             return 0;
         }
         
-        [MenuItem("Build/To/Apk")]
         public static int BuildApk(string apkName = "")
         {
             List<string> levels = new List<string>();
@@ -76,6 +84,11 @@ namespace Engine.Scripts.Editor.Resource.Build
             Debug.Log($"Build apk Result : {res.summary.result}");
             
             return res.summary.result == BuildResult.Succeeded ? 0 : 1;
+        }
+
+        private static void LoadGlobalConfig()
+        {
+            _globalConfig = GlobalConfigUtil.LoadANewConfEditor();
         }
         
         // 加载命令行参数
