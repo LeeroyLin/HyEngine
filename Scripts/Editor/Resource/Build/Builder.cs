@@ -66,9 +66,9 @@ namespace Engine.Scripts.Editor.Resource.Build
             PlayerSettings.Android.keyaliasName = conf.buildConfig.keyaliasName;
             PlayerSettings.Android.keyaliasPass = conf.buildConfig.keyaliasPass;
 
-            EditorUserBuildSettings.buildAppBundle = false;
+            EditorUserBuildSettings.buildAppBundle = isAAB;
             EditorUserBuildSettings.development = false;
-            EditorUserBuildSettings.exportAsGoogleAndroidProject = isAAB;
+            EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
         }
         
         public static void BuildApk(string apkName = "")
