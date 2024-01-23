@@ -15,7 +15,10 @@ namespace Engine.Scripts.Runtime.Utils
             get
             {
                 long sum = 0;
-            
+
+                if (serverTimeOffsetMSQueue.Count == 0)
+                    return sum;
+                
                 foreach (var data in serverTimeOffsetMSQueue)
                 {
                     sum += data;
