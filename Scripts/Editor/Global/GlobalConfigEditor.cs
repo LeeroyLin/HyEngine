@@ -1,7 +1,5 @@
-using System.IO;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Log;
-using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
@@ -71,16 +69,19 @@ namespace Engine.Scripts.Editor.Global
             
             if (GUILayout.Button("Save"))
             {
-                var content = JsonConvert.SerializeObject(target);
+                var confSO = target as GlobalConfigSO;
+                var globalConf = new GlobalConfig()
+                {
+                    env = confSO.env,
+                    resLoadMode = confSO.resLoadMode,
+                    netMaxMsgLen = confSO.netMaxMsgLen,
+                    isNetEncrypt = confSO.isNetEncrypt,
+                    version = confSO.version,
+                    logConfig = confSO.logConfig,
+                    netConfig = confSO.GetCurrNetConfig(),
+                };
 
-                var path = $"{Application.streamingAssetsPath}/{GLOBAL_CONFIG_STREAMING_ASSETS_PATH}";
-                var dir = Path.GetDirectoryName(path);
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
-                
-                File.WriteAllText(path, content);
-                
-                Debug.Log($"Save global config finished.");
+                GlobalConfigUtil.SaveConf(globalConf);
                 
                 AssetDatabase.Refresh();
             }

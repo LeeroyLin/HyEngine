@@ -11,6 +11,7 @@ using HybridCLR.Editor.Commands;
 using HybridCLR.Editor.Installer;
 using Newtonsoft.Json;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Pipeline;
 using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;

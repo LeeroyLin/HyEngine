@@ -63,7 +63,7 @@ namespace Engine.Scripts.Runtime.Log
         {
             if (!_config.isShowLog)
                 return;
-            
+               
             Debug.Log(content);
         }
         

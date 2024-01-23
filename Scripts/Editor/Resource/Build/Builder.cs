@@ -37,10 +37,13 @@ namespace Engine.Scripts.Editor.Resource.Build
                 {
                     PlayerSettings.bundleVersion = _buildCmdConfig.version;
                     PlayerSettings.Android.useCustomKeystore = true;
-                    PlayerSettings.Android.keystoreName = _globalConfig.buildConfig.keystoreName;
-                    PlayerSettings.Android.keystorePass = _globalConfig.buildConfig.keystorePass;
-                    PlayerSettings.Android.keyaliasName = _globalConfig.buildConfig.keyaliasName;
-                    PlayerSettings.Android.keyaliasPass = _globalConfig.buildConfig.keyaliasPass;
+
+                    var conf = AssetDatabase.LoadAssetAtPath<GlobalConfigSO>("Assets/Settings/GlobalConfig.asset");
+                    
+                    PlayerSettings.Android.keystoreName = conf.buildConfig.keystoreName;
+                    PlayerSettings.Android.keystorePass = conf.buildConfig.keystorePass;
+                    PlayerSettings.Android.keyaliasName = conf.buildConfig.keyaliasName;
+                    PlayerSettings.Android.keyaliasPass = conf.buildConfig.keyaliasPass;
                     
                     EditorUserBuildSettings.buildAppBundle = false;
                     EditorUserBuildSettings.development = false;

@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Utils;
 using Newtonsoft.Json;
+using UnityEditor;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Global
@@ -57,6 +58,8 @@ namespace Engine.Scripts.Runtime.Global
                 return false;
             }
 #endif
+            
+            Debug.Log($"Save global config finished.");
             
             return true;
         }

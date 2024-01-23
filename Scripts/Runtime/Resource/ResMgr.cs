@@ -299,7 +299,7 @@ namespace Engine.Scripts.Runtime.Resource
         // 下载ab文件
         UnityWebRequestAsyncOperation DownloadABFile(string abName)
         {
-            var netConf = GlobalConfigUtil.Conf.GetCurrNetConfig();
+            var netConf = GlobalConfigUtil.Conf.netConfig;
             
             var uri = $"{netConf.res.host}:{netConf.res.port}{RES_SERVER_PATH}/{PlatformInfo.Platform}/{_manifest.version}/{abName}";
             
