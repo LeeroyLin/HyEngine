@@ -33,34 +33,42 @@ namespace Engine.Scripts.Editor.Resource.Build
 
             if (_buildCmdConfig.isApk)
             {
-                if (_buildCmdConfig.platform == BuildTarget.Android)
-                {
-                    PlayerSettings.bundleVersion = _buildCmdConfig.version;
-                    PlayerSettings.Android.useCustomKeystore = true;
+                if (_buildCmdConfig.platform != BuildTarget.Android)
+                    throw new Exception("Wrong platform");
 
-                    var conf = AssetDatabase.LoadAssetAtPath<GlobalConfigSO>("Assets/Settings/GlobalConfig.asset");
-                    
-                    PlayerSettings.Android.keystoreName = conf.buildConfig.keystoreName;
-                    PlayerSettings.Android.keystorePass = conf.buildConfig.keystorePass;
-                    PlayerSettings.Android.keyaliasName = conf.buildConfig.keyaliasName;
-                    PlayerSettings.Android.keyaliasPass = conf.buildConfig.keyaliasPass;
-                    
-                    EditorUserBuildSettings.buildAppBundle = false;
-                    EditorUserBuildSettings.development = false;
-                    EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+                SetAndroidSettings(false);
 
-                    // 打包apk
-                    BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
-                }
-
-                throw new Exception("Wrong platform");
+                // 打包apk
+                BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
             }
             
             if (_buildCmdConfig.isAAB)
             {
+                if (_buildCmdConfig.platform != BuildTarget.Android)
+                    throw new Exception("Wrong platform");
+
+                SetAndroidSettings(true);
+
                 // 打包aab
-                // todo
+                BuildAAB();
             }
+        }
+
+        static void SetAndroidSettings(bool isAAB)
+        {
+            PlayerSettings.bundleVersion = _buildCmdConfig.version;
+            PlayerSettings.Android.useCustomKeystore = true;
+
+            var conf = AssetDatabase.LoadAssetAtPath<GlobalConfigSO>("Assets/Settings/GlobalConfig.asset");
+                    
+            PlayerSettings.Android.keystoreName = conf.buildConfig.keystoreName;
+            PlayerSettings.Android.keystorePass = conf.buildConfig.keystorePass;
+            PlayerSettings.Android.keyaliasName = conf.buildConfig.keyaliasName;
+            PlayerSettings.Android.keyaliasPass = conf.buildConfig.keyaliasPass;
+
+            EditorUserBuildSettings.buildAppBundle = false;
+            EditorUserBuildSettings.development = false;
+            EditorUserBuildSettings.exportAsGoogleAndroidProject = isAAB;
         }
         
         public static void BuildApk(string apkName = "")
@@ -77,11 +85,32 @@ namespace Engine.Scripts.Editor.Resource.Build
             if (string.IsNullOrEmpty(apkName))
                 apkName = TimeUtilBase.GetLocalTimeMS() + "";
             
-            var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{apkName}", 
+            var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{apkName}/{apkName}.apk", 
                 BuildTarget.Android, BuildOptions.None);
 
             if (res.summary.result != BuildResult.Succeeded)
                 throw new Exception("Build apk failed.");
+        }
+        
+        public static void BuildAAB(string aabName = "")
+        {
+            List<string> levels = new List<string>();
+            
+            foreach (var scene in EditorBuildSettings.scenes)
+            {
+                if (!scene.enabled)
+                    continue;
+                levels.Add(scene.path);
+            }
+
+            if (string.IsNullOrEmpty(aabName))
+                aabName = TimeUtilBase.GetLocalTimeMS() + "";
+            
+            var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{aabName}/{aabName}.aab", 
+                BuildTarget.Android, BuildOptions.None);
+
+            if (res.summary.result != BuildResult.Succeeded)
+                throw new Exception("Build aab failed.");
         }
 
         private static void LoadGlobalConfig()
