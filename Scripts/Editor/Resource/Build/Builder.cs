@@ -31,6 +31,8 @@ namespace Engine.Scripts.Editor.Resource.Build
             if (!bundleRes)
                 throw new Exception("Build bundle error.");
 
+            string fullVer = $"{_buildCmdConfig.version}.{_buildCmdConfig.time}";
+
             if (_buildCmdConfig.isApk)
             {
                 if (_buildCmdConfig.platform != BuildTarget.Android)
@@ -39,7 +41,7 @@ namespace Engine.Scripts.Editor.Resource.Build
                 SetAndroidSettings(false);
 
                 // 打包apk
-                BuildApk($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
+                BuildApk($"{fullVer}/{_buildCmdConfig.name}_{_buildCmdConfig.env}_{fullVer}");
             }
             
             if (_buildCmdConfig.isAAB)
@@ -50,7 +52,7 @@ namespace Engine.Scripts.Editor.Resource.Build
                 SetAndroidSettings(true);
 
                 // 打包aab
-                BuildAAB($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
+                BuildAAB($"{fullVer}/{_buildCmdConfig.name}_{_buildCmdConfig.env}_{fullVer}");
             }
         }
 
@@ -71,7 +73,7 @@ namespace Engine.Scripts.Editor.Resource.Build
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
         }
         
-        public static void BuildApk(string apkName = "")
+        public static void BuildApk(string relPath = "")
         {
             List<string> levels = new List<string>();
             
@@ -82,10 +84,10 @@ namespace Engine.Scripts.Editor.Resource.Build
                 levels.Add(scene.path);
             }
 
-            if (string.IsNullOrEmpty(apkName))
-                apkName = TimeUtilBase.GetLocalTimeMS() + "";
+            if (string.IsNullOrEmpty(relPath))
+                relPath = TimeUtilBase.GetLocalTimeMS() + "";
             
-            var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{apkName}/{apkName}.apk", 
+            var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{relPath}", 
                 BuildTarget.Android, BuildOptions.None);
 
             if (res.summary.result != BuildResult.Succeeded)
@@ -138,6 +140,8 @@ namespace Engine.Scripts.Editor.Resource.Build
                     _buildCmdConfig.platform = (BuildTarget)Enum.Parse(typeof(BuildTarget), param);
                 else if(str.StartsWith("Version"))
                     _buildCmdConfig.version = param;
+                else if(str.StartsWith("Name"))
+                    _buildCmdConfig.name = param;
                 else if(str.StartsWith("IsCompileAllCode"))
                     _buildCmdConfig.isCompileAllCode = param == "true";
                 else if(str.StartsWith("IsBuildApk"))

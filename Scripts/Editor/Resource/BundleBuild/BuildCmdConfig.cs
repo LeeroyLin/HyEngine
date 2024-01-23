@@ -5,6 +5,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 {
     public class BuildCmdConfig
     {
+        public string name;
         public string version;
         public EEnv env;
         public BuildTarget platform;
