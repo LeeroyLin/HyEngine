@@ -47,6 +47,8 @@ namespace Engine.Scripts.Runtime.Global
             var savePath = $"{Application.streamingAssetsPath}/{GLOBAL_CONFIG_STREAMING_ASSETS_PATH}";
             var content = JsonConvert.SerializeObject(conf);
 
+            PathUtil.MakeSureDir(Path.GetDirectoryName(savePath));
+            
             try
             {
                 File.WriteAllText(savePath, content);
