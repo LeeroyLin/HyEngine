@@ -50,7 +50,7 @@ namespace Engine.Scripts.Editor.Resource.Build
                 SetAndroidSettings(true);
 
                 // 打包aab
-                BuildAAB();
+                BuildAAB($"{_buildCmdConfig.version}.{_buildCmdConfig.time}");
             }
         }
 
