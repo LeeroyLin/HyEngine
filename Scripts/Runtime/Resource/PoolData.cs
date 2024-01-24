@@ -84,6 +84,8 @@ namespace Engine.Scripts.Runtime.Resource
             // 是否满了
             if (IsFull)
             {
+                obj.transform.SetParent(null);
+                
                 // 直接销毁
                 _destroyHandler?.Invoke(obj);
                 return;
@@ -171,8 +173,11 @@ namespace Engine.Scripts.Runtime.Resource
             // 反向遍历节点
             for (int i = Node.childCount; i >= 0; i--)
             {
+                var trans = Node.GetChild(i);
+                trans.SetParent(null);
+                
                 // 销毁节点
-                _destroyHandler?.Invoke(Node.GetChild(i).gameObject);
+                _destroyHandler?.Invoke(trans.gameObject);
             }
 
             // 重置数据

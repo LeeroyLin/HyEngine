@@ -56,6 +56,8 @@ namespace Engine.Scripts.Runtime.Resource
             // 如果没有资源数据
             if (data == null)
             {
+                obj.transform.SetParent(null);
+                
                 // 直接销毁
                 _destroyHandler?.Invoke(obj);
                 return;
