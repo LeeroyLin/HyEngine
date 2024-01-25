@@ -20,6 +20,7 @@ namespace Engine.Scripts.Runtime.Resource
     {
         public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
         public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/{PlatformInfo.BuildTargetStr}";
+        public static readonly string PACKAGE_BUNDLE_PATH = $"{Application.streamingAssetsPath}/AB/{PlatformInfo.BuildTargetStr}";
         public static readonly string CONFIG_NAME = "manifest.json";
         private static readonly string RES_SERVER_PATH = "/Res";
         
@@ -56,14 +57,23 @@ namespace Engine.Scripts.Runtime.Resource
 
         async Task LoadManifest()
         {
-            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB)
-                return;
-            
-            _log.Log("LoadManifest");
+            string content = null;
 
-            string content = "";
-            
-            content = await ReadTextRuntime.ReadPersistentDataPathText($"{PlatformInfo.BuildTargetStr}/{CONFIG_NAME}");
+            if (GlobalConfigUtil.Conf.resLoadMode == EResLoadMode.AB)
+            {
+                _log.Log("LoadManifest");
+
+                content = await ReadTextRuntime.ReadPersistentDataPathText($"{PlatformInfo.BuildTargetStr}/{CONFIG_NAME}");
+            }
+            else if (GlobalConfigUtil.Conf.resLoadMode == EResLoadMode.PackageAB)
+            {
+                _log.Log("LoadManifest");
+
+                content = await ReadTextRuntime.ReadSteamingAssetsText($"AB/{PlatformInfo.BuildTargetStr}/{CONFIG_NAME}");
+            }
+
+            if (string.IsNullOrEmpty(content))
+                return;
             
             _manifest = JsonConvert.DeserializeObject<ABManifest>(content);
 
@@ -104,11 +114,11 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="relPath">相对资源目录的资源路径</param>
         public void ReduceABRef(string relPath)
         {
-            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB)
+            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
             
             // ab名
-            var abName = RelPath2ABName(relPath, out var isInGame);
+            var abName = RelPath2ABName(relPath, out _, out _);
 
             if (_abDic.TryGetValue(abName, out var ab))
                 ab.ReduceRef();
@@ -121,7 +131,7 @@ namespace Engine.Scripts.Runtime.Resource
         /// <returns></returns>
         public AssetBundle LoadAB(string relPath)
         {
-            if (_resLoadMode != EResLoadMode.AB)
+            if (_resLoadMode != EResLoadMode.AB && _resLoadMode != EResLoadMode.PackageAB)
                 return null;
             
             if (relPath == null)
@@ -137,7 +147,7 @@ namespace Engine.Scripts.Runtime.Resource
             }
 
             // ab名
-            var abName = RelPath2ABName(relPath, out var isInGame);
+            var abName = RelPath2ABName(relPath, out var isInGame, out var isPackage);
 
             if (isInGame)
             {
@@ -146,15 +156,16 @@ namespace Engine.Scripts.Runtime.Resource
             }
             
             // 通过AB名加载AB
-            return LoadABWithABName(abName);
+            return LoadABWithABName(abName, isPackage);
         }
 
         /// <summary>
         /// 通过AB名加载AB
         /// </summary>
         /// <param name="abName"></param>
+        /// <param name="isPackage"></param>
         /// <returns></returns>
-        public AssetBundle LoadABWithABName(string abName)
+        public AssetBundle LoadABWithABName(string abName, bool isPackage)
         {
             if (_abDic.TryGetValue(abName, out var abInfo))
             {
@@ -178,9 +189,9 @@ namespace Engine.Scripts.Runtime.Resource
             }
             
             // 加载依赖
-            LoadABDeps(abName);
+            LoadABDeps(abName, isPackage);
 
-            var abPath = $"{RUNTIME_BUNDLE_PATH}/{abName}";
+            var abPath = $"{(isPackage ? PACKAGE_BUNDLE_PATH : RUNTIME_BUNDLE_PATH)}/{abName}";
             
             // 加载
             AssetBundle ab = AssetBundle.LoadFromFile(abPath);
@@ -202,7 +213,7 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="callback">回调方法</param>
         public void LoadABAsync(string relPath, Action<AssetBundle> callback)
         {
-            if (_resLoadMode != EResLoadMode.AB)
+            if (_resLoadMode != EResLoadMode.AB && _resLoadMode != EResLoadMode.PackageAB)
             {
                 #if UNITY_EDITOR
                 callback(null);
@@ -225,10 +236,10 @@ namespace Engine.Scripts.Runtime.Resource
             }
             
             // ab名
-            var abName = RelPath2ABName(relPath, out var isInGame);
+            var abName = RelPath2ABName(relPath, out var isInGame, out var isPackage);
 
             // 通过AB名，异步加载AB
-            LoadABAsyncWithABName(abName, isInGame, callback);
+            LoadABAsyncWithABName(abName, isInGame, isPackage, callback);
         }
 
         /// <summary>
@@ -236,10 +247,11 @@ namespace Engine.Scripts.Runtime.Resource
         /// </summary>
         /// <param name="abName"></param>
         /// <param name="isInGame"></param>
+        /// <param name="isPackage"></param>
         /// <param name="callback"></param>
-        public void LoadABAsyncWithABName(string abName, bool isInGame, Action<AssetBundle> callback)
+        public void LoadABAsyncWithABName(string abName, bool isInGame, bool isPackage, Action<AssetBundle> callback)
         {
-            var abPath = $"{RUNTIME_BUNDLE_PATH}/{abName}";
+            var abPath = $"{(isPackage ? PACKAGE_BUNDLE_PATH : RUNTIME_BUNDLE_PATH)}/{abName}";
 
             if (_abDic.TryGetValue(abName, out var abInfo))
             {
@@ -279,7 +291,7 @@ namespace Engine.Scripts.Runtime.Resource
             }
 
             // 加载依赖
-            LoadABDepsAsync(abName, () =>
+            LoadABDepsAsync(abName, isPackage, () =>
             {
                 abInfo.IsDepLoaded = true;
                 
@@ -415,13 +427,14 @@ namespace Engine.Scripts.Runtime.Resource
         /// 同步加载ab依赖
         /// </summary>
         /// <param name="abName"></param>
-        private void LoadABDeps(string abName)
+        /// <param name="isPackage"></param>
+        private void LoadABDeps(string abName, bool isPackage)
         {
             List<string> deps = GetABDeps(abName);
 
             foreach (var dep in deps)
             {
-                LoadABWithABName(dep);
+                LoadABWithABName(dep, isPackage);
             }
         }
         
@@ -429,8 +442,9 @@ namespace Engine.Scripts.Runtime.Resource
         /// 异步加载ab依赖
         /// </summary>
         /// <param name="abName"></param>
+        /// <param name="isPackage"></param>
         /// <param name="onLoaded"></param>
-        private void LoadABDepsAsync(string abName, Action onLoaded)
+        private void LoadABDepsAsync(string abName, bool isPackage, Action onLoaded)
         {
             List<string> deps = GetABDeps(abName);
 
@@ -444,7 +458,7 @@ namespace Engine.Scripts.Runtime.Resource
             {
                 bool isInGame = _manifest.inGameFiles.ContainsKey(dep);
                 
-                LoadABAsyncWithABName(dep, isInGame, ab =>
+                LoadABAsyncWithABName(dep, isInGame, isPackage, ab =>
                 {
                     cnt++;
 
@@ -464,12 +478,13 @@ namespace Engine.Scripts.Runtime.Resource
             return new List<string>();
         }
 
-        private string RelPath2ABName(string relPath, out bool isInGame)
+        private string RelPath2ABName(string relPath, out bool isInGame, out bool isPackage)
         {
             int maxLength = 0;
             BundleConfigData data = null;
 
             isInGame = false;
+            isPackage = false;
             
             foreach (var config in _manifest.config.dataList)
             {
@@ -490,6 +505,7 @@ namespace Engine.Scripts.Runtime.Resource
             }
 
             isInGame = data.updateType == EABUpdate.InGame;
+            isPackage = data.updateType == EABUpdate.Package;
 
             switch (data.packDirType)
             {

@@ -36,7 +36,7 @@ namespace Engine.Scripts.Runtime.Resource
                 LoadInResourceMode(pkgName);
             }
             // 包模式
-            else if (_resLoadMode == EResLoadMode.AB)
+            else if (_resLoadMode == EResLoadMode.AB || _resLoadMode == EResLoadMode.PackageAB)
             {
                 // AB模式加载
                 LoadInABMode(pkgName);

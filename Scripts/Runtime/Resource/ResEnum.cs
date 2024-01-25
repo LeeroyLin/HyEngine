@@ -6,6 +6,8 @@
         Editor,
         // ab包模式
         AB,
+        // 包内ab包模式
+        PackageAB,
         // Resource
         Resource,
     }
