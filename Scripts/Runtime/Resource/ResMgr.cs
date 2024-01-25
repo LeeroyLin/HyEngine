@@ -19,7 +19,7 @@ namespace Engine.Scripts.Runtime.Resource
     public partial class ResMgr : SingletonClass<ResMgr>, IManager
     {
         public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
-        public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/{PlatformInfo.Platform}";
+        public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/{PlatformInfo.BuildTargetStr}";
         public static readonly string CONFIG_NAME = "manifest.json";
         private static readonly string RES_SERVER_PATH = "/Res";
         
@@ -63,7 +63,7 @@ namespace Engine.Scripts.Runtime.Resource
 
             string content = "";
             
-            content = await ReadTextRuntime.ReadPersistentDataPathText($"{PlatformInfo.Platform}/{CONFIG_NAME}");
+            content = await ReadTextRuntime.ReadPersistentDataPathText($"{PlatformInfo.BuildTargetStr}/{CONFIG_NAME}");
             
             _manifest = JsonConvert.DeserializeObject<ABManifest>(content);
 
@@ -301,7 +301,7 @@ namespace Engine.Scripts.Runtime.Resource
         {
             var netConf = GlobalConfigUtil.Conf.netConfig;
             
-            var uri = $"{netConf.res.host}:{netConf.res.port}{RES_SERVER_PATH}/{PlatformInfo.Platform}/{_manifest.version}/{abName}";
+            var uri = $"{netConf.res.host}:{netConf.res.port}{RES_SERVER_PATH}/{PlatformInfo.BuildTargetStr}/{_manifest.version}/{abName}";
             
             var webRequest = UnityWebRequest.Get(uri);
 

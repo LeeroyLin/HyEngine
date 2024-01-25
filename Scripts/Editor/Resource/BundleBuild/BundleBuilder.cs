@@ -84,6 +84,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             BuildBundle(BuildTarget.Android, false);
         }
 
+        [MenuItem("Build/Bundle/Build/Win64")]
+        public static void BuildBundleWin64()
+        {
+            LoadGlobalConfig();
+
+            BuildBundle(BuildTarget.StandaloneWindows64, false);
+        }
+
         public static bool BuildBundle(BuildTarget buildTarget, bool isCmd, long time = 0)
         {
             _sbLog.Clear();

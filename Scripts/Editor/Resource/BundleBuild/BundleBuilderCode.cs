@@ -31,7 +31,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             string errorMsg = null;
             List<string> aotRefs = null;            
             
-            if (_buildCmdConfig.isCompileAllCode)
+            if (_buildCmdConfig != null && _buildCmdConfig.isCompileAllCode)
             {
                 CompileDllCommand.CompileDll(target);
                 Il2CppDefGeneratorCommand.GenerateIl2CppDef();
@@ -68,8 +68,8 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 }
             }
             
-            var defDir = $"{Application.dataPath}/../{SettingsUtil.HybridCLRSettings.hotUpdateDllCompileOutputRootDir}/{PlatformInfo.Platform}";
-            var aotDir = $"{Application.dataPath}/../{SettingsUtil.HybridCLRSettings.strippedAOTDllOutputRootDir}/{PlatformInfo.Platform}";
+            var defDir = $"{Application.dataPath}/../{SettingsUtil.HybridCLRSettings.hotUpdateDllCompileOutputRootDir}/{PlatformInfo.BuildTargetStr}";
+            var aotDir = $"{Application.dataPath}/../{SettingsUtil.HybridCLRSettings.strippedAOTDllOutputRootDir}/{PlatformInfo.BuildTargetStr}";
             
             // 移动热更dlls
             foreach (var def in SettingsUtil.HybridCLRSettings.hotUpdateAssemblyDefinitions)
