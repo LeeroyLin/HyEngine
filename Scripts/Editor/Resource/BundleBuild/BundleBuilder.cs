@@ -138,13 +138,30 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 return false;
 
             // 开始打包
-            if (!StartBuild(timestamp, buildTarget, BuildTargetGroup.Android))
+            if (!StartBuild(timestamp, buildTarget, GetTargetGroup(buildTarget)))
                 return false;
 
             // 保存打包日志
             SaveLogFile(timestamp);
 
             return true;
+        }
+
+        static BuildTargetGroup GetTargetGroup(BuildTarget target)
+        {
+            switch (target)
+            {
+                case BuildTarget.Android:
+                    return BuildTargetGroup.Android;
+                case BuildTarget.iOS:
+                    return BuildTargetGroup.iOS;
+                case BuildTarget.StandaloneWindows:
+                case BuildTarget.StandaloneWindows64:
+                case BuildTarget.StandaloneOSX:
+                    return BuildTargetGroup.Standalone;
+            }
+            
+            return BuildTargetGroup.Standalone;
         }
 
         // 尝试通过命令行修改全局配置
@@ -183,7 +200,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             var buildContent = new BundleBuildContent(_buildInfos.ToArray());
 
             var finalVersion = $"{_globalConfig.version}.{timestamp}";
-            var outputPath = $"{OUTPUT_PATH}/{buildTarget.ToString()}/{finalVersion}";
+            var outputPath = $"{OUTPUT_PATH}/{buildTarget}/{finalVersion}";
             
             PathUtil.MakeSureDir(outputPath);
             
