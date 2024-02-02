@@ -47,6 +47,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         // 记录ab的更新策略
         private static Dictionary<string, EABUpdate> _abUpdateDic = new Dictionary<string, EABUpdate>();
 
+        // 图片资源 对应 图集 字典
+        private static Dictionary<string, string> _imgAtlasDic = new Dictionary<string, string>();
+
         private static GlobalConfig _globalConfig;
 
         private static StringBuilder _sbLog = new StringBuilder();
@@ -125,10 +128,10 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 LogError($"Has invalid assets.\n{value}");
                 return false;
             }
-            
+
             // 检测资源依赖
             CheckAssetsDeps();
-            
+
             // 循环依赖检测
             if (CheckLoopDep())
                 return false;
@@ -361,8 +364,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                         if (dep == assetName || dep.StartsWith("Packages/"))
                             continue;
 
+                        var realDep = dep;
+
+                        // 是否是图集图片
+                        if (_imgAtlasDic.TryGetValue(dep, out var atlasPath))
+                            realDep = atlasPath;
+                        
                         // 依赖资源的ab
-                        if (!_assetABDic.TryGetValue(dep, out var abName))
+                        if (!_assetABDic.TryGetValue(realDep, out var abName))
                             continue;
 
                         if (abName == info.assetBundleName)
@@ -485,6 +494,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             _invalidAssetNames.Clear();
             _compressionDic.Clear();
             _abUpdateDic.Clear();
+            _imgAtlasDic.Clear();
             
             foreach (var data in _bundleConfig.dataList)
             {
@@ -502,6 +512,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                         foreach (var path in pathList)
                         {
                             CheckAssetNameAvailableAndRecord(path);
+                            CheckAtlasImg(path);
                             relPathList.Add(PathUtil.AbsolutePath2AssetsPath(path));
                         }
 
@@ -524,6 +535,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                         foreach (var path in pathList)
                         {
                             CheckAssetNameAvailableAndRecord(path);
+                            CheckAtlasImg(path);
                             
                             var abName = GetABName($"{data.path}_{Path.GetFileNameWithoutExtension(path)}", data.md5);
                             List<string> assetNames = new List<string>() { PathUtil.AbsolutePath2AssetsPath(path) };
@@ -550,6 +562,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                             foreach (var path in pathList)
                             {
                                 CheckAssetNameAvailableAndRecord(path);
+                                CheckAtlasImg(path);
                                 relPathList.Add(PathUtil.AbsolutePath2AssetsPath(path));
                             }
 
@@ -585,6 +598,27 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             var name = Path.GetFileNameWithoutExtension(assetName);
             if (!IsAssetNameAvailable(name))
                 _invalidAssetNames.Add(assetName);
+        }
+
+        // 检测图集图片
+        private static void CheckAtlasImg(string assetName)
+        {
+            var relPath = PathUtil.AbsolutePath2AssetsPath(assetName);
+            
+            var extension = Path.GetExtension(relPath);
+
+            if (extension != ".spriteatlasv2")
+                return;
+
+            var deps = AssetDatabase.GetDependencies(relPath);
+
+            foreach (var dep in deps)
+            {
+                if (dep == assetName)
+                    continue;
+                
+                _imgAtlasDic.Add(dep, relPath);
+            }
         }
 
         // 是否资源名有效
