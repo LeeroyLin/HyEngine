@@ -111,8 +111,13 @@ namespace Engine.Scripts.Runtime.View
                 
                 ins.name = $"{ins.Pkg}_{ins.Name}";
                 ins.MakeFullScreen();
-                GRoot.inst.AddChild(ins);
             }
+            else
+            {
+                GRoot.inst.RemoveChild(ins, false);
+            }
+            
+            GRoot.inst.AddChild(ins);
 
             _activeUIList.Add(ins);
             

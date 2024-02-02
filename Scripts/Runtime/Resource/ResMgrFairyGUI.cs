@@ -36,7 +36,7 @@ namespace Engine.Scripts.Runtime.Resource
                 LoadInResourceMode(pkgName);
             }
             // 包模式
-            else if (_resLoadMode == EResLoadMode.AB)
+            else if (_resLoadMode == EResLoadMode.AB || _resLoadMode == EResLoadMode.PackageAB)
             {
                 // AB模式加载
                 LoadInABMode(pkgName);
@@ -78,7 +78,7 @@ namespace Engine.Scripts.Runtime.Resource
         void LoadInResourceMode(string pkgName)
         {
             var path = "UI";
-            var descPath = $"{path}/Desc/{pkgName}_fui.bytes";
+            var descPath = $"UI/{pkgName}/{pkgName}_fui.bytes";
                     
             // 从路径加载描述文件
             TextAsset ta = GetAssetFromResource<TextAsset>(descPath);
@@ -96,7 +96,7 @@ namespace Engine.Scripts.Runtime.Resource
                     if (!IsCouldLoad(name))
                         return null;
                     
-                    var assetPath = $"{path}/Res/{pkgName}/{name}{extension}";
+                    var assetPath = $"UI/{pkgName}/{name}{extension}";
 
                     var asset = GetAssetFromResource(assetPath, type);
 

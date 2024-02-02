@@ -272,7 +272,7 @@ namespace Engine.Scripts.Runtime.Resource
 
             spriteName = Path.GetFileNameWithoutExtension(spriteName);
 
-            if (_resLoadMode == EResLoadMode.AB)
+            if (_resLoadMode == EResLoadMode.AB || _resLoadMode == EResLoadMode.PackageAB)
             {
                 var abRelPath = $"Atlas/{atlasName}";
 
