@@ -87,7 +87,7 @@ namespace Engine.Scripts.Editor.Resource.Build
             if (string.IsNullOrEmpty(relPath))
                 relPath = TimeUtilBase.GetLocalTimeMS() + "";
             
-            var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{relPath}", 
+            var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{relPath}.apk", 
                 BuildTarget.Android, BuildOptions.None);
 
             if (res.summary.result != BuildResult.Succeeded)
