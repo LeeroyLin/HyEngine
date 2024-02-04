@@ -1,4 +1,6 @@
-﻿namespace Engine.Scripts.Runtime.Log
+﻿using System;
+
+namespace Engine.Scripts.Runtime.Log
 {
     public class LogGroup
     {
@@ -27,11 +29,13 @@
                 return;
 
             string content;
+
+            string time = DateTime.Now.ToString("HH:mm:ss");
             
             if (args.Length > 0)
-                content = $"【{Title}】 {string.Format(msg, args)}";
+                content = $"{time} 【{Title}】 {string.Format(msg, args)}";
             else
-                content = $"【{Title}】 {msg}";
+                content = $"{time} 【{Title}】 {msg}";
             
             LogMgr.Ins.Log(content);
         }
@@ -40,15 +44,17 @@
         {
             if (!IsEnabled)
                 return;
+
+            string content = "";
             
+            string time = DateTime.Now.ToString("HH:mm:ss");
+
             if (args.Length > 0)
-            {
-                var content = $"【{Title}】 {string.Format(msg, args)}";
-                LogMgr.Ins.LogError(content);
-                return;
-            }
-            
-            LogMgr.Ins.LogError(msg);
+                content = $"{time} 【{Title}】 {string.Format(msg, args)}";
+            else
+                content = $"{time} 【{Title}】 {msg}";
+
+            LogMgr.Ins.LogError(content);
         }
 
         public void Warning(string msg, params object[] args)
@@ -56,14 +62,16 @@
             if (!IsEnabled)
                 return;
             
-            if (args.Length > 0)
-            {
-                var content = $"【{Title}】 {string.Format(msg, args)}";
-                LogMgr.Ins.LogWarning(content);
-                return;
-            }
+            string content = "";
             
-            LogMgr.Ins.LogWarning(msg);
+            string time = DateTime.Now.ToString("HH:mm:ss");
+
+            if (args.Length > 0)
+                content = $"{time} 【{Title}】 {string.Format(msg, args)}";
+            else
+                content = $"{time} 【{Title}】 {msg}";
+            
+            LogMgr.Ins.LogWarning(content);
         }
     }
 }
