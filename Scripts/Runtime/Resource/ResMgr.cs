@@ -101,12 +101,10 @@ namespace Engine.Scripts.Runtime.Resource
                 // 加载ab
                 var ab = LoadAB(abRelPath);
                 
-                var assetName = $"Atlas/{atlasName}.spriteatlasv2";
+                var assetName = $"{BUNDLE_ASSETS_PATH}Atlas/{atlasName}.spriteatlasv2";
 
                 // 加载资源
                 atlas = ab.LoadAsset<SpriteAtlas>(assetName);
-                
-                Debug.Log($"CCC RequestAtlas {atlasName} {assetName} : {atlas}");
             }
             
             callback(atlas);
