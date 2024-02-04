@@ -100,9 +100,11 @@ namespace Engine.Scripts.Runtime.Resource
                 
                 // 加载ab
                 var ab = LoadAB(abRelPath);
+                
+                var assetName = $"Atlas/{atlasName}.spriteatlasv2";
 
                 // 加载资源
-                atlas = ab.LoadAsset<SpriteAtlas>(atlasName);
+                atlas = ab.LoadAsset<SpriteAtlas>(assetName);
             }
             
             callback(atlas);
