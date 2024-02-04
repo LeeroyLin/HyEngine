@@ -105,6 +105,8 @@ namespace Engine.Scripts.Runtime.Resource
 
                 // 加载资源
                 atlas = ab.LoadAsset<SpriteAtlas>(assetName);
+                
+                Debug.Log($"CCC RequestAtlas {atlasName} {assetName} : {atlas}");
             }
             
             callback(atlas);
