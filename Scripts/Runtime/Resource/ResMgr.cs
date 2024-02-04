@@ -303,7 +303,7 @@ namespace Engine.Scripts.Runtime.Resource
                     var req = AssetBundle.LoadFromFileAsync(abPath);
                     abInfo.Req = req;
 
-                    _log.Log($"Start async load 'InGame' ab '{abName}'");
+                    _log.Log($"Start async load ab '{abName}'");
                 }
             });
         }
@@ -356,6 +356,8 @@ namespace Engine.Scripts.Runtime.Resource
                     abInfo.Value.ABState = EABState.Loaded;
                     abInfo.Value.AB = abInfo.Value.Req.assetBundle;
                     abInfo.Value.Req = null;
+
+                    _log.Log($"ab '{abInfo.Key}' async loaded.");
                     
                     // 完成后的回调
                     abInfo.Value.OnLoaded?.Invoke(abInfo.Value.AB);
