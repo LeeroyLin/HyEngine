@@ -87,8 +87,6 @@ namespace Engine.Scripts.Runtime.Resource
 
             int num = Mathf.Min(left, _asyncLoadAssetWaitingList.Count);
 
-            Debug.Log($"CCC {_asyncLoadAssetCnt} {_asyncLoadAssetWaitingList.Count}");
-            
             for (int i = 0; i < num; i++)
             {
                 var data = _asyncLoadAssetWaitingList[i];
