@@ -16,6 +16,7 @@
     {
         SyncLoading,
         AsyncLoading,
+        AsyncWaiting,
         Loaded,
         Downloading,
         Downloaded,

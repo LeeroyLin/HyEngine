@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Log;
@@ -16,6 +15,21 @@ using UnityEngine.U2D;
 
 namespace Engine.Scripts.Runtime.Resource
 {
+    // 异步加载ab 等待信息
+    struct AsyncLoadABWaiting
+    {
+        public ABInfo Info { get; private set; }
+        public string AbPath { get; private set; }
+        public string AbName { get; private set; }
+
+        public AsyncLoadABWaiting(string abPath, string abName, ABInfo info)
+        {
+            AbPath = abPath;
+            AbName = abName;
+            Info = info;
+        }
+    }
+
     public partial class ResMgr : SingletonClass<ResMgr>, IManager
     {
         public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
@@ -24,16 +38,27 @@ namespace Engine.Scripts.Runtime.Resource
         public static readonly string CONFIG_NAME = "manifest.json";
         private static readonly string RES_SERVER_PATH = "/Res";
         
+        // 最大异步加载ab数
+        private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
+        
+        // 最大异步加载资源数
+        private static readonly int MAX_ASYNC_LOAD_ASSET_NUM = 5;
+        
         private static ABManifest _manifest;
         
         // 记录已加载的ab，键名为ab名
         private Dictionary<string, ABInfo> _abDic = new ();
+
+        // 异步加载ab，等待队列
+        private List<AsyncLoadABWaiting> _asyncLoadABWaitingList = new List<AsyncLoadABWaiting>();
 
         private LogGroup _log;
         
         private EResLoadMode _resLoadMode;
 
         private List<string> _removeList = new List<string>();
+
+        private int _asyncLoadABCnt = 0;
 
         public void Reset()
         {
@@ -179,6 +204,17 @@ namespace Engine.Scripts.Runtime.Resource
                         var tempAB = abInfo.Req.assetBundle;
                         abInfo.Req = null;
                         break;
+                    case EABState.AsyncWaiting:
+                        for (int i = _asyncLoadABWaitingList.Count -1; i >= 0; i--)
+                        {
+                            if (_asyncLoadABWaitingList[i].AbName == abName)
+                            {
+                                // 移除等待列表
+                                _asyncLoadABWaitingList.RemoveAt(i);
+                                break;
+                            }
+                        }
+                        break;
                 }
             }
             else
@@ -261,6 +297,7 @@ namespace Engine.Scripts.Runtime.Resource
                         return;
                     case EABState.SyncLoading:
                     case EABState.AsyncLoading:
+                    case EABState.AsyncWaiting:
                     case EABState.Downloading:
                     case EABState.Downloaded:
                         abInfo.OnLoaded += callback;
@@ -280,10 +317,10 @@ namespace Engine.Scripts.Runtime.Resource
                         abInfo.DownloadReq = DownloadABFile(abName);
                     }
                     else
-                        abInfo = new ABInfo(EABState.AsyncLoading);
+                        abInfo = new ABInfo(EABState.AsyncWaiting);
                 }
                 else
-                    abInfo = new ABInfo(EABState.AsyncLoading);
+                    abInfo = new ABInfo(EABState.AsyncWaiting);
                 
                 abInfo.OnLoaded += callback;
                 _abDic.Add(abName, abInfo);
@@ -294,15 +331,12 @@ namespace Engine.Scripts.Runtime.Resource
             {
                 abInfo.IsDepLoaded = true;
                 
-                if (abInfo.ABState == EABState.Downloaded || abInfo.ABState == EABState.AsyncLoading)
+                if (abInfo.ABState == EABState.Downloaded || abInfo.ABState == EABState.AsyncWaiting)
                 {
-                    abInfo.ABState = EABState.AsyncLoading;
+                    abInfo.ABState = EABState.AsyncWaiting;
                     
-                    // 异步加载ab
-                    var req = AssetBundle.LoadFromFileAsync(abPath);
-                    abInfo.Req = req;
-
-                    _log.Log($"Start async load ab '{abName}'");
+                    // 添加到加载队列
+                    _asyncLoadABWaitingList.Add(new AsyncLoadABWaiting(abPath, abName, abInfo));
                 }
             });
         }
@@ -339,18 +373,28 @@ namespace Engine.Scripts.Runtime.Resource
         {
             OnABTimer();
             OnAssetTimer();
+
+            CheckAsyncLoadAB();
         }
 
         private void OnABTimer()
         {
             _removeList.Clear();
+            _asyncLoadABCnt = 0;
             
             foreach (var abInfo in _abDic)
             {
                 if (abInfo.Value.ABState == EABState.AsyncLoading)
                 {
-                    if (abInfo.Value.Req == null || !abInfo.Value.Req.isDone)
+                    if (abInfo.Value.Req == null)
                         continue;
+
+                    if (!abInfo.Value.Req.isDone)
+                    {
+                        _asyncLoadABCnt++;
+                        
+                        continue;
+                    }
 
                     abInfo.Value.ABState = EABState.Loaded;
                     abInfo.Value.AB = abInfo.Value.Req.assetBundle;
@@ -409,13 +453,10 @@ namespace Engine.Scripts.Runtime.Resource
                     {
                         var abPath = $"{RUNTIME_BUNDLE_PATH}/{abInfo.Key}";
                         
-                        abInfo.Value.ABState = EABState.AsyncLoading;
+                        abInfo.Value.ABState = EABState.AsyncWaiting;
                         
-                        // 异步加载ab
-                        var req = AssetBundle.LoadFromFileAsync(abPath);
-                        abInfo.Value.Req = req;
-
-                        _log.Log($"Start async load 'InGame' ab '{abInfo.Key}'");
+                        // 添加到异步队列
+                        _asyncLoadABWaitingList.Add(new AsyncLoadABWaiting(abPath, abInfo.Key, abInfo.Value));
                     }
                 }
             }
@@ -424,6 +465,33 @@ namespace Engine.Scripts.Runtime.Resource
                 _abDic.Remove(info);
         }
 
+        private void CheckAsyncLoadAB()
+        {
+            if (_asyncLoadABWaitingList.Count == 0)
+                return;
+
+            int left = MAX_ASYNC_LOAD_AB_NUM - _asyncLoadABCnt;
+            
+            if (left <= 0)
+                return;
+
+            int num = Mathf.Min(left, _asyncLoadABWaitingList.Count);
+
+            for (int i = 0; i < num; i++)
+            {
+                var data = _asyncLoadABWaitingList[i];
+                
+                // 异步加载ab
+                var req = AssetBundle.LoadFromFileAsync(data.AbPath);
+                data.Info.ABState = EABState.AsyncLoading;
+                data.Info.Req = req;
+                
+                _log.Log($"Start async load ab '{data.AbPath}'");
+            }
+            
+            _asyncLoadABWaitingList.RemoveRange(0, num);
+        }
+        
         /// <summary>
         /// 同步加载ab依赖
         /// </summary>
