@@ -84,27 +84,24 @@ namespace Engine.Scripts.Runtime.Resource
         private void RequestAtlas(string atlasName, Action<SpriteAtlas> callback)
         {
             SpriteAtlas atlas = null;
+            
+            var assetName = $"Atlas/{atlasName}.spriteatlasv2";
+            
             if (_resLoadMode == EResLoadMode.Editor)
             {
                 #if UNITY_EDITOR
-                atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>($"{BUNDLE_ASSETS_PATH}Atlas/{atlasName}.spriteatlasv2");
+                atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>($"{BUNDLE_ASSETS_PATH}{assetName}");
                 #endif
             }
             else if (_resLoadMode == EResLoadMode.Resource)
             {
-                atlas = Resources.Load<SpriteAtlas>($"Atlas/{atlasName}.spriteatlasv2");
+                atlas = Resources.Load<SpriteAtlas>(assetName);
             }
             else
             {
-                var abRelPath = $"Atlas/{atlasName}";
+                GetAssetAsync(assetName, callback);
                 
-                // 加载ab
-                var ab = LoadAB(abRelPath);
-                
-                var assetName = $"{BUNDLE_ASSETS_PATH}Atlas/{atlasName}.spriteatlasv2";
-
-                // 加载资源
-                atlas = ab.LoadAsset<SpriteAtlas>(assetName);
+                return;
             }
             
             callback(atlas);
