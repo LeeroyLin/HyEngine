@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Engine.Scripts.Runtime.Event;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.System;
@@ -153,6 +154,42 @@ namespace Engine.Scripts.Runtime.Scene
         protected void BroadcastAsync(IEventData data)
         {
             EventGroup.BroadcastAsync(data);
+        }
+
+        /// <summary>
+        /// 预加载资源
+        /// </summary>
+        /// <param name="assets"></param>
+        /// <param name="finished"></param>
+        /// <param name="onProgress"></param>
+        protected void PreloadAssets(List<string> assets, Action finished, Action<int, int> onProgress)
+        {
+            if (finished == null)
+                return;
+            
+            int num = assets.Count;
+
+            if (num <= 0)
+            {
+                finished();
+                return;
+            }
+            
+            int cnt = 0;
+
+            foreach (var relPath in assets)
+            {
+                PoolMgr.Ins.GetAsync(relPath, o =>
+                {
+                    PoolMgr.Ins.Set(o);
+                    cnt++;
+                    
+                    onProgress?.Invoke(cnt, num);
+
+                    if (cnt == num)
+                        finished();
+                });
+            }
         }
     }
 }

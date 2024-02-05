@@ -98,14 +98,23 @@ namespace Engine.Scripts.Runtime.Resource
         /// 尝试异步获取
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="finished"></param>
         /// <returns></returns>
-        public async Task<GameObject> GetAsync(string key)
+        public async Task<GameObject> GetAsync(string key, Action<GameObject> finished = null)
         {
             // 是否有数据
             if (_dicPool.TryGetValue(key, out PoolData poolData))
-                return await poolData.TryGetAsync();
+            {
+                var o = await poolData.TryGetAsync();
+                finished?.Invoke(o);
+                return o;
+            }
             
-            return await _createAsyncHandler(key);
+            var obj = await _createAsyncHandler(key);
+            
+            finished?.Invoke(obj);
+            
+            return obj;
         }
 
         /// <summary>
