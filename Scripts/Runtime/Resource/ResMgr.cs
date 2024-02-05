@@ -41,9 +41,6 @@ namespace Engine.Scripts.Runtime.Resource
         // 最大异步加载ab数
         private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
         
-        // 最大异步加载资源数
-        private static readonly int MAX_ASYNC_LOAD_ASSET_NUM = 5;
-        
         private static ABManifest _manifest;
         
         // 记录已加载的ab，键名为ab名
@@ -375,6 +372,7 @@ namespace Engine.Scripts.Runtime.Resource
             OnAssetTimer();
 
             CheckAsyncLoadAB();
+            CheckAsyncLoadAsset();
         }
 
         private void OnABTimer()

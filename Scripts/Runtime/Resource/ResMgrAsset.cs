@@ -8,17 +8,44 @@ using Object = UnityEngine.Object;
 
 namespace Engine.Scripts.Runtime.Resource
 {
+    struct AsyncLoadAssetWaiting
+    {
+        public AssetInfo Info { get; private set; }
+        public string RelPath { get; private set; }
+        public Func<AssetBundleRequest> GetAsyncReq { get; private set; }
+
+        public AsyncLoadAssetWaiting(string relPath, AssetInfo info, Func<AssetBundleRequest> getAsyncReq)
+        {
+            RelPath = relPath;
+            Info = info;
+            GetAsyncReq = getAsyncReq;
+        }
+    }
+    
     public partial class ResMgr
     {
         private Dictionary<string, AssetInfo> _assetDic = new Dictionary<string, AssetInfo>();
 
+        // 最大异步加载资源数
+        private static readonly int MAX_ASYNC_LOAD_ASSET_NUM = 5;
+        
+        // 异步加载资源，等待队列
+        private List<AsyncLoadAssetWaiting> _asyncLoadAssetWaitingList = new List<AsyncLoadAssetWaiting>();
+
+        private int _asyncLoadAssetCnt = 0;
+        
         private void OnAssetTimer()
         {
+            _asyncLoadAssetCnt = 0;
+            
             foreach (var info in _assetDic)
             {
                 if (info.Value.AssetState == EAssetState.AsyncLoading)
                 {
-                    if (info.Value.Req != null && info.Value.Req.isDone)
+                    if (info.Value.Req == null)
+                        continue;
+                    
+                    if (info.Value.Req.isDone)
                     {
                         if (info.Value.IsAtlas)
                         {
@@ -40,8 +67,39 @@ namespace Engine.Scripts.Runtime.Resource
                         info.Value.OnLoaded?.Invoke(info.Value.Asset);
                         info.Value.OnLoaded = null;
                     }
+                    else
+                    {
+                        _asyncLoadAssetCnt++;
+                    }
                 }
             }
+        }
+
+        private void CheckAsyncLoadAsset()
+        {
+            if (_asyncLoadAssetWaitingList.Count == 0)
+                return;
+
+            int left = MAX_ASYNC_LOAD_ASSET_NUM - _asyncLoadAssetCnt;
+            
+            if (left <= 0)
+                return;
+
+            int num = Mathf.Min(left, _asyncLoadAssetWaitingList.Count);
+
+            Debug.Log($"CCC {_asyncLoadAssetCnt} {_asyncLoadAssetWaitingList.Count}");
+            
+            for (int i = 0; i < num; i++)
+            {
+                var data = _asyncLoadAssetWaitingList[i];
+                
+                data.Info.AssetState = EAssetState.AsyncLoading;
+                
+                // 调用异步加载Asset
+                data.Info.Req = data.GetAsyncReq?.Invoke();
+            }
+            
+            _asyncLoadAssetWaitingList.RemoveRange(0, num);
         }
         
         public T GetAsset<T>(string relPath) where T: Object
@@ -61,6 +119,17 @@ namespace Engine.Scripts.Runtime.Resource
                         // 终止异步操作
                         var tempAB = info.Req.asset;
                         info.Req = null;
+                        break;
+                    case EAssetState.AsyncWaiting:
+                        for (int i = _asyncLoadAssetWaitingList.Count -1; i >= 0; i--)
+                        {
+                            if (_asyncLoadAssetWaitingList[i].RelPath == relPath)
+                            {
+                                // 移除等待列表
+                                _asyncLoadAssetWaitingList.RemoveAt(i);
+                                break;
+                            }
+                        }
                         break;
                 }
             }
@@ -128,6 +197,7 @@ namespace Engine.Scripts.Runtime.Resource
                         return;
                     case EAssetState.SyncLoading:
                     case EAssetState.AsyncLoading:
+                    case EAssetState.AsyncWaiting:
                         info.OnLoaded += o =>
                         {
                             var obj = AssetPost(o as T, relPath);
@@ -138,7 +208,7 @@ namespace Engine.Scripts.Runtime.Resource
             }
             else
             {
-                info = new AssetInfo(EAssetState.AsyncLoading, isAtlas);
+                info = new AssetInfo(EAssetState.AsyncWaiting, isAtlas);
                 info.OnLoaded += o =>
                 {
                     var obj = AssetPost(o as T, relPath);
@@ -194,12 +264,15 @@ namespace Engine.Scripts.Runtime.Resource
                     // 加载ab
                     LoadABAsync(relPath, ab =>
                     {
-                        // 获得资源名
-                        var assetName = GetAssetNameWithRelativePath(relPath);
-            
-                        // 异步加载Asset
-                        var req = ab.LoadAssetAsync<T>(assetName);
-                        info.Req = req;
+                        // 添加到加载队列
+                        _asyncLoadAssetWaitingList.Add(new AsyncLoadAssetWaiting(relPath, info, () =>
+                        {
+                            // 获得资源名
+                            var assetName = GetAssetNameWithRelativePath(relPath);
+                        
+                            // 异步加载Asset
+                            return ab.LoadAssetAsync<T>(assetName);
+                        }));
                     });
                 }
             }
