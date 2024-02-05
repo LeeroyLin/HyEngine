@@ -203,7 +203,7 @@ namespace Engine.Scripts.Runtime.Resource
                             var obj = AssetPost(o as T, relPath);
                             callback?.Invoke(obj);
                         };
-                        break;
+                        return;
                 }
             }
             else
