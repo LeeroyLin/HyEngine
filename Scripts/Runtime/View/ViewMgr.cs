@@ -6,6 +6,7 @@ using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
 using Engine.Scripts.Runtime.Utils;
 using FairyGUI;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
@@ -72,6 +73,51 @@ namespace Engine.Scripts.Runtime.View
         public void CallBlur(string key, bool isBlur)
         {
             _blurHandler?.Invoke(key, isBlur);
+
+            bool hasBGBlur = false;
+            
+            for (int i = _activeUIList.Count - 1; i >= 0; i--)
+            {
+                var view = _activeUIList[i];
+
+                if (!hasBGBlur)
+                {
+                    if (view.IsBGBlur)
+                        hasBGBlur = true;
+                        
+                    SetFilter(view, false);
+                }
+                else
+                {
+                    SetFilter(view, true);
+                }
+            }
+        }
+
+        void SetFilter(ViewBase view, bool isBlur)
+        {
+            var filter = view.filter as BlurFilter;
+
+            if (isBlur)
+            {
+                if (filter == null)
+                {
+                    filter = new BlurFilter();
+                    filter.blurSize = 0.05f;
+                    view.filter = filter;
+                }
+                else
+                {
+                    filter.blurSize = 0.05f;
+                }
+            }
+            else
+            {
+                if (filter != null)
+                {
+                    filter.blurSize = 0f;
+                }
+            }
         }
 
         /// <summary>
