@@ -76,9 +76,15 @@ namespace Engine.Scripts.Runtime.View
 
             bool hasBGBlur = false;
             
-            for (int i = _activeUIList.Count - 1; i >= 0; i--)
+            var list = new List<ViewBase>(_activeUIList);
+            list.Sort((a, b) =>
             {
-                var view = _activeUIList[i];
+                return a.sortingOrder.CompareTo(b.sortingOrder);
+            });
+            
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var view = list[i];
 
                 if (!hasBGBlur)
                 {
