@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
 using Engine.Scripts.Runtime.Utils;
 using FairyGUI;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
@@ -23,6 +23,8 @@ namespace Engine.Scripts.Runtime.View
         private IViewExtension _viewExtension;
         
         private LogGroup _log;
+
+        private Action<string, bool> _blurHandler;
         
         public void Reset()
         {
@@ -50,8 +52,10 @@ namespace Engine.Scripts.Runtime.View
             return (strs[0], strs[1]);
         }
 
-        public void Init(IViewExtension viewExtension)
+        public void Init(IViewExtension viewExtension, Action<string, bool> blurHandler)
         {
+            _blurHandler = blurHandler;
+            
             _log = new LogGroup("ViewMgr");
             
             // 注册界面扩展
@@ -63,6 +67,11 @@ namespace Engine.Scripts.Runtime.View
             
             // 注册计时器
             TimerMgr.Ins.UseLateUpdate(OnTimer);
+        }
+
+        public void CallBlur(string key, bool isBlur)
+        {
+            _blurHandler?.Invoke(key, isBlur);
         }
 
         /// <summary>

@@ -21,6 +21,11 @@ namespace Engine.Scripts.Runtime.View
         /// 非激活时的毫秒时间戳
         /// </summary>
         public long InactiveAt { get; private set; }
+        
+        /// <summary>
+        /// 背景是否模糊
+        /// </summary>
+        public bool IsBGBlur { get; protected set; }
 
         public ViewBase(string pkg, string name)
         {
@@ -48,6 +53,9 @@ namespace Engine.Scripts.Runtime.View
         public void DoOpen(ViewArgsBase args = null)
         {
             vm.Init(this, args);
+
+            if (IsBGBlur)
+                ViewMgr.Ins.CallBlur(CustomKey, true);
             
             OnOpen(args);
         }
@@ -59,6 +67,9 @@ namespace Engine.Scripts.Runtime.View
             OnCloseChildren();
             
             OnClose();
+            
+            if (IsBGBlur)
+                ViewMgr.Ins.CallBlur(CustomKey, false);
         }
 
         public void DoDispose()
