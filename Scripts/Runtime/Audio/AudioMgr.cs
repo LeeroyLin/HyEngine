@@ -205,11 +205,15 @@ namespace Engine.Scripts.Runtime.Audio
         {
             var obj = GameObject.Find("AudioNode");
             if (obj == null)
+            {
                 obj = new GameObject("AudioNode");
+                obj.AddComponent<AudioListener>();
+            }
 
             _node = obj.transform;
             
             _musicSource = PoolMgr.Ins.Get(AUDIO_NODE_PATH).GetComponent<AudioSource>();
+            _musicSource.name = "MusicSource";
         }
     }
 }
