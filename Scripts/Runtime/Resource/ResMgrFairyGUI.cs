@@ -18,6 +18,17 @@ namespace Engine.Scripts.Runtime.Resource
         }
         
         /// <summary>
+        /// 获得UI的Url
+        /// </summary>
+        /// <param name="pkgName"></param>
+        /// <param name="resName"></param>
+        /// <returns></returns>
+        public string GetUIItemURL(string pkgName, string resName)
+        {
+            return UIPackage.GetItemURL(pkgName, resName);
+        }
+        
+        /// <summary>
         /// 添加包
         /// </summary>
         /// <param name="pkgName"></param>
