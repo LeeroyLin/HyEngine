@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Engine.Scripts.Runtime.ClassPool;
 using UnityEngine;
 
-namespace Engine.Scripts.Runtime.Utils
+namespace Engine.Scripts.Runtime.Utils.QuadTree
 {
     /// <summary>
     /// 四叉树
     /// </summary>
-    public class QuadTree<T>
+    public partial class QuadTree<T>
     {
         public QuadTreeNode<T> RootNode { get; private set; }
 
@@ -19,8 +20,6 @@ namespace Engine.Scripts.Runtime.Utils
 
         private StringBuilder _sb;
         
-        public int Count { get; private set; }
-
         public QuadTree(Vector2 ltPos, Vector2 rbPos, int divideChildrenNum, int maxTreeLayer, 
             Func<T, Vector2> getPosHandler, Func<T, T, bool> compareHandler)
         {
@@ -29,7 +28,9 @@ namespace Engine.Scripts.Runtime.Utils
             _getPosHandler = getPosHandler;
             _compareHandler = compareHandler;
 
-            RootNode = new QuadTreeNode<T>(ltPos, rbPos);
+            InitClassPool();
+            
+            RootNode = ClassPoolMgr.Ins.GetIns<QuadTreeNode<T>, QuadTreeNodeInitData>(new QuadTreeNodeInitData(ltPos, rbPos));
         }
 
         /// <summary>
@@ -39,7 +40,6 @@ namespace Engine.Scripts.Runtime.Utils
         public void Add(T data)
         {
             AddData2Node(RootNode, 1, data);
-            Count++;
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Engine.Scripts.Runtime.Utils
             {
                 var side = GetSide(pos, node.centerPos);
                 if (!node.sideDic.TryGetValue(side, out var sideData))
-                    return;
+                    break;
 
                 if (sideData.child != null)
                 {
@@ -76,7 +76,13 @@ namespace Engine.Scripts.Runtime.Utils
                         sideData.datas.RemoveAt(i);
 
                         if (sideData.datas.Count == 0)
+                        {
                             node.sideDic.Remove(side);
+                            
+                            var child = sideData.child;
+                            ClassPoolMgr.Ins.SetIns<EachSide<T>, object>(sideData);
+                            ClassPoolMgr.Ins.SetIns<QuadTreeNode<T>, QuadTreeNodeInitData>(child);
+                        }
                         
                         return;
                     }
@@ -84,8 +90,6 @@ namespace Engine.Scripts.Runtime.Utils
 
                 break;
             }
-            
-            Count--;
         }
         
         /// <summary>
@@ -198,7 +202,8 @@ namespace Engine.Scripts.Runtime.Utils
             // 初始化方向信息
             if (!node.sideDic.TryGetValue(side, out var sideData))
             {
-                sideData = new EachSide<T>();
+                sideData = ClassPoolMgr.Ins.GetIns<EachSide<T>, object>(null);
+                
                 node.sideDic.Add(side, sideData);
             }
             
@@ -256,7 +261,7 @@ namespace Engine.Scripts.Runtime.Utils
             }
             
             var sideData = node.sideDic[side];
-            sideData.child = new QuadTreeNode<T>(ltPos, rbPos);
+            sideData.child = ClassPoolMgr.Ins.GetIns<QuadTreeNode<T>, QuadTreeNodeInitData>(new QuadTreeNodeInitData(ltPos, rbPos));
 
             foreach (var data in sideData.datas)
                 AddData2Node(sideData.child, layer + 1, data);
@@ -309,43 +314,5 @@ namespace Engine.Scripts.Runtime.Utils
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// 四叉树节点
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class QuadTreeNode<T>
-    {
-        public Dictionary<ESide, EachSide<T>> sideDic;
-        public Vector2 centerPos;
-        public Vector2 ltPos;
-        public Vector2 rbPos;
-
-        public QuadTreeNode(Vector2 ltPos, Vector2 rbPos)
-        {
-            sideDic = new Dictionary<ESide, EachSide<T>>();
-            this.ltPos = ltPos;
-            this.rbPos = rbPos;
-            centerPos = (ltPos + rbPos) * .5f;
-        }
-    }
-
-    /// <summary>
-    /// 每个方向的数据
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class EachSide<T>
-    {
-        public List<T> datas;
-        public QuadTreeNode<T> child;
-    }
-
-    public enum ESide
-    {
-        LT,
-        RT,
-        LB,
-        RB,
     }
 }

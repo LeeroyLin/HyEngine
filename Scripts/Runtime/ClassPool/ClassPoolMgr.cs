@@ -60,6 +60,9 @@ namespace Engine.Scripts.Runtime.ClassPool
 
         public void SetIns<T, K>(T ins) where T : class
         {
+            if (ins == null)
+                return;
+            
             string key = typeof(T).FullName;
 
             if (!_groupDic.TryGetValue(key, out var group))
