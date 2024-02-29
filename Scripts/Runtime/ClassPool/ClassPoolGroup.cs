@@ -54,5 +54,15 @@ namespace Engine.Scripts.Runtime.ClassPool
         {
             _cache.Clear();
         }
+
+        public void SetCapacity(int capacity)
+        {
+            Capacity = capacity;
+        }
+
+        public int GetCapacity()
+        {
+            return Capacity;
+        }
     }
 }

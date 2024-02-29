@@ -31,9 +31,17 @@ namespace Engine.Scripts.Runtime.ClassPool
                 
                 return;
             }
-            
-            var group = new ClassPoolGroup<T, K>(creator, initHandler, resetHandler, capacity);
-            _groupDic.Add(key, group);
+
+            if (!_groupDic.TryGetValue(key, out var group))
+            {
+                group = new ClassPoolGroup<T, K>(creator, initHandler, resetHandler, capacity);
+                _groupDic.Add(key, group);
+            }
+            else
+            {
+                if (capacity > group.GetCapacity())
+                    group.SetCapacity(capacity);
+            }
         }
 
         public T GetIns<T, K>(K userData) where T : class
