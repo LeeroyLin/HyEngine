@@ -18,6 +18,15 @@ namespace Engine.Scripts.Runtime.Resource
         }
         
         /// <summary>
+        /// 通过Url创建对象
+        /// </summary>
+        /// <param name="url"></param>
+        public GObject CreateUIObjectFromUrl(string url)
+        {
+            return UIPackage.CreateObjectFromURL(url);
+        }
+        
+        /// <summary>
         /// 获得UI的Url
         /// </summary>
         /// <param name="pkgName"></param>
