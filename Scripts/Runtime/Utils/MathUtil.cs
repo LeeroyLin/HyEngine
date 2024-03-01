@@ -45,5 +45,17 @@ namespace Engine.Scripts.Runtime.Utils
 
             return true;
         }
+
+        /// <summary>
+        /// 获得整数 右边几位
+        /// 123456 右边3位 456
+        /// </summary>
+        /// <param name="val"></param>
+        /// <param name="num"></param>
+        /// <returns></returns>
+        public static int GetIntLast(int val, int num)
+        {
+            return val - val / num * val;
+        }
     }
 }
