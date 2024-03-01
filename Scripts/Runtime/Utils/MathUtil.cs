@@ -55,7 +55,7 @@ namespace Engine.Scripts.Runtime.Utils
         /// <returns></returns>
         public static int GetIntLast(int val, int num)
         {
-            return val - val / num * val;
+            return val - val / num * num;
         }
     }
 }
