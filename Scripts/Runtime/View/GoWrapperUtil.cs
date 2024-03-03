@@ -16,7 +16,7 @@ namespace Engine.Scripts.Runtime.View
             holder.SetNativeObject(wrapper);
         }
 
-        public static void Clear(GGraph holder)
+        public static void Clear(GGraph holder, Action<GameObject> onRecycle)
         {
             if (holder.displayObject == null)
                 return;
@@ -25,6 +25,8 @@ namespace Engine.Scripts.Runtime.View
 
             if (wrapper == null || wrapper.wrapTarget == null)
                 return;
+            
+            onRecycle?.Invoke(wrapper.wrapTarget);
             
             PoolMgr.Ins.Set(wrapper.wrapTarget);
 
