@@ -55,7 +55,11 @@ namespace Engine.Scripts.Runtime.Utils
         /// <returns></returns>
         public static int GetIntLast(int val, int num)
         {
-            return val - val / num * num;
+            int v = 1;
+            for (int i = 0; i < num; i++)
+                v *= 10;
+            
+            return val - val / v * v;
         }
     }
 }
