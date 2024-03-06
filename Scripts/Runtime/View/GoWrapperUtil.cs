@@ -32,5 +32,15 @@ namespace Engine.Scripts.Runtime.View
 
             wrapper.wrapTarget = null;
         }
+
+        public static void SetTransLayer(Transform trans, LayerMask layer)
+        {
+            foreach (Transform t in trans)
+            {
+                t.gameObject.layer = layer;
+
+                SetTransLayer(t, layer);
+            }
+        }
     }
 }
