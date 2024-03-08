@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Log;
@@ -289,21 +288,13 @@ namespace Engine.Scripts.Runtime.Net
         {
             int contentLen = MsgPack.ContentLen();
             
-            Stopwatch stopwatch = new Stopwatch();
-            
             if (_buffer.Length < contentLen)
             {
                 int length = 0;
 
                 try
                 {
-                    stopwatch.Start();
-                    Log.Log($"CCC 【Begin Receive】");
-
                     length = await Socket.ReceiveAsync(_bytes, SocketFlags.None);
-                    
-                    stopwatch.Stop();
-                    Log.Log($"CCC 【End Receive】 {length} {stopwatch.ElapsedMilliseconds}ms");
                 }
                 catch (Exception e)
                 {
@@ -336,14 +327,8 @@ namespace Engine.Scripts.Runtime.Net
 
             _isHasData = false;
 
-            stopwatch.Start();
-            Log.Log($"CCC 【Begin Unpack】");
-            
             var msg = MsgPack.UnPackContent(_buffer, IsEncrypt);
             
-            stopwatch.Stop();
-            Log.Log($"CCC 【End Unpack】 MsgId:{msg.MsgId} {stopwatch.ElapsedMilliseconds}ms");
-
             // 回调
             OnRecData?.Invoke(msg);
 
