@@ -32,11 +32,15 @@ namespace Engine.Scripts.Runtime.Resource
         // 异步加载资源，等待队列
         private List<AsyncLoadAssetWaiting> _asyncLoadAssetWaitingList = new List<AsyncLoadAssetWaiting>();
 
+        private List<AssetInfo> _infos = new List<AssetInfo>();
+
         private int _asyncLoadAssetCnt = 0;
         
         private void OnAssetTimer()
         {
             _asyncLoadAssetCnt = 0;
+
+            _infos.Clear();
             
             foreach (var info in _assetDic)
             {
@@ -63,6 +67,8 @@ namespace Engine.Scripts.Runtime.Resource
                         info.Value.AssetState = EAssetState.Loaded;
                         info.Value.Req = null;
 
+                        _infos.Add(info.Value);
+                        
                         // 完成后的回调
                         info.Value.OnLoaded?.Invoke(info.Value.Asset);
                         info.Value.OnLoaded = null;
@@ -72,6 +78,12 @@ namespace Engine.Scripts.Runtime.Resource
                         _asyncLoadAssetCnt++;
                     }
                 }
+            }
+
+            foreach (var info in _infos)
+            {
+                info.OnLoaded?.Invoke(info.Asset);
+                info.OnLoaded = null;
             }
         }
 
