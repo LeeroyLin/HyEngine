@@ -33,7 +33,7 @@ namespace Engine.Scripts.Runtime.Net
         public int MaxMsgContentLen { get; protected set; }
         public ushort MsgId { get; private set; }
 
-        byte[] _bytes = new byte[1024];
+        byte[] _bytes = new byte[1024 * 10];
         
         QueueBuffer _buffer = new QueueBuffer();
         
