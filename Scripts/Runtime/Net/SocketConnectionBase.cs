@@ -303,7 +303,7 @@ namespace Engine.Scripts.Runtime.Net
                     length = await Socket.ReceiveAsync(_bytes, SocketFlags.None);
                     
                     stopwatch.Stop();
-                    Log.Log($"CCC 【End Receive】 {stopwatch.ElapsedMilliseconds}ms");
+                    Log.Log($"CCC 【End Receive】 {length} {stopwatch.ElapsedMilliseconds}ms");
                 }
                 catch (Exception e)
                 {
