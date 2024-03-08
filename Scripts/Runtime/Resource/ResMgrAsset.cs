@@ -68,10 +68,6 @@ namespace Engine.Scripts.Runtime.Resource
                         info.Value.Req = null;
 
                         _infos.Add(info.Value);
-                        
-                        // 完成后的回调
-                        info.Value.OnLoaded?.Invoke(info.Value.Asset);
-                        info.Value.OnLoaded = null;
                     }
                     else
                     {

@@ -56,6 +56,7 @@ namespace Engine.Scripts.Runtime.Resource
         private List<string> _removeList = new List<string>();
 
         private int _asyncLoadABCnt = 0;
+        private List<ABInfo> _cbInfos = new List<ABInfo>();
 
         public void Reset()
         {
@@ -378,6 +379,7 @@ namespace Engine.Scripts.Runtime.Resource
         private void OnABTimer()
         {
             _removeList.Clear();
+            _cbInfos.Clear();
             _asyncLoadABCnt = 0;
             
             foreach (var abInfo in _abDic)
@@ -400,9 +402,7 @@ namespace Engine.Scripts.Runtime.Resource
 
                     _log.Log($"ab '{abInfo.Key}' async loaded.");
                     
-                    // 完成后的回调
-                    abInfo.Value.OnLoaded?.Invoke(abInfo.Value.AB);
-                    abInfo.Value.OnLoaded = null;
+                    _cbInfos.Add(abInfo.Value);
                 }
                 else if (abInfo.Value.ABState == EABState.Downloading)
                 {
@@ -461,6 +461,12 @@ namespace Engine.Scripts.Runtime.Resource
 
             foreach (var info in _removeList)
                 _abDic.Remove(info);
+
+            foreach (var info in _cbInfos)
+            {
+                info.OnLoaded?.Invoke(info.AB);
+                info.OnLoaded = null;
+            }
         }
 
         private void CheckAsyncLoadAB()
