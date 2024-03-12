@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Engine.Scripts.Runtime.Event;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.System;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Scene
 {
@@ -35,7 +36,14 @@ namespace Engine.Scripts.Runtime.Scene
 
             void Handler()
             {
-                DoEnter(args);
+                try
+                {
+                    DoEnter(args);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[SceneBase] {e.Message} \n {e.StackTrace}");
+                }
             }
             
             bool isEnterNow = OnCheckEnter(Handler, args);
@@ -103,9 +111,7 @@ namespace Engine.Scripts.Runtime.Scene
             sysArr = OnGetSystems();
 
             foreach (var sys in sysArr)
-            {
                 sys.Enter();
-            }
         }
 
         void CloseSystems()
