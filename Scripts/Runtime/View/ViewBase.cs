@@ -26,6 +26,35 @@ namespace Engine.Scripts.Runtime.View
         /// 背景是否模糊
         /// </summary>
         public bool IsBGBlur { get; protected set; }
+        
+        /// <summary>
+        /// 标记是否是常驻UI
+        /// </summary>
+        public bool IsPermanent { get; protected set; }
+        
+        /// <summary>
+        /// 是否是顶部
+        /// </summary>
+        public bool IsTop {
+            get
+            {
+                return _isTop;
+            }
+            set
+            {
+                if (_isTop != value)
+                {
+                    _isTop = value;
+
+                    if (_isTop)
+                        OnBeTop();
+                    else
+                        OnNotTop();
+                }
+            }
+        }
+
+        private bool _isTop;
 
         public ViewBase(string pkg, string name)
         {
@@ -128,6 +157,20 @@ namespace Engine.Scripts.Runtime.View
         protected abstract void OnDisposeChildren();
         
         protected abstract void InitViewModel();
+
+        /// <summary>
+        /// 成为顶层回调
+        /// </summary>
+        protected virtual void OnBeTop()
+        {
+        }
+
+        /// <summary>
+        /// 取消顶层回调
+        /// </summary>
+        protected virtual void OnNotTop()
+        {
+        }
 
         /// <summary>
         /// 关闭自身

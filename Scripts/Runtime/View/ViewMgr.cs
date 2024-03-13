@@ -27,6 +27,11 @@ namespace Engine.Scripts.Runtime.View
 
         private Action<string, bool> _blurHandler;
         
+        /// <summary>
+        /// 界面返回顶层时回调，新增时不会回调
+        /// </summary>
+        private Action<string, string> _onViewTop;
+        
         public void Reset()
         {
         }
@@ -185,6 +190,8 @@ namespace Engine.Scripts.Runtime.View
             // 回调
             ins.DoOpen(args);
             
+            UpdateTop(true);
+            
             // LogList();
         }
 
@@ -203,7 +210,9 @@ namespace Engine.Scripts.Runtime.View
             }
 
             CloseAt(idx);
-            
+
+            UpdateTop(true);
+
             // LogList();
         }
 
@@ -221,6 +230,19 @@ namespace Engine.Scripts.Runtime.View
             }
 
             view = null;
+            return false;
+        }
+        
+        /// <summary>
+        /// 判断界面是否是顶部
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public bool CheckViewIsTop(string key)
+        {
+            if (FindViewIdx(_activeUIList, key, out var i))
+                return _activeUIList[i].IsTop;
+
             return false;
         }
 
@@ -294,6 +316,42 @@ namespace Engine.Scripts.Runtime.View
         {
             for (int i = _activeUIList.Count - 1; i >= idx; i--)
                 CloseAt(i);
+        }
+
+        /// <summary>
+        /// 更新顶部标记
+        /// </summary>
+        void UpdateTop(bool isIgnorePermanent)
+        {
+            var list = new List<ViewBase>(_activeUIList);
+            list.Sort((a, b) =>
+            {
+                return a.sortingOrder.CompareTo(b.sortingOrder);
+            });
+
+            bool isFindTop = false;
+            
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var view = list[i];
+
+                if (isFindTop)
+                {
+                    view.IsTop = false;
+                    continue;
+                }
+                
+                // 常驻界面 且 忽略常驻界面
+                if (view.IsPermanent && isIgnorePermanent)
+                {
+                    view.IsTop = false;
+                    
+                    continue;
+                }
+
+                isFindTop = true;
+                view.IsTop = true;
+            }
         }
         
         /// <summary>
