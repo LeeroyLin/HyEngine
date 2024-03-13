@@ -69,6 +69,16 @@ namespace Engine.Scripts.Runtime.Model
         }
         
         /// <summary>
+        /// 注册游戏事件
+        /// </summary>
+        /// <param name="callback"></param>
+        /// <typeparam name="T"></typeparam>
+        public void UnRegGame<K>(Action<K> callback) where K : IEventData
+        {
+            GameEventGroup.UnReg(callback);
+        }
+        
+        /// <summary>
         /// 同步广播游戏事件
         /// </summary>
         /// <param name="data"></param>
