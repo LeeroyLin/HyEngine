@@ -208,6 +208,23 @@ namespace Engine.Scripts.Runtime.View
         }
 
         /// <summary>
+        /// 查找UI
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public bool TryFindView(string key, out ViewBase view)
+        {
+            if (FindViewIdx(_activeUIList, key, out var i))
+            {
+                view = _activeUIList[i];
+                return true;
+            }
+
+            view = null;
+            return false;
+        }
+
+        /// <summary>
         /// 按下标关闭界面
         /// </summary>
         /// <param name="idx">界面在激活列表中的下标</param>
