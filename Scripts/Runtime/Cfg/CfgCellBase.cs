@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Engine.Scripts.Runtime.Cfg
 {
     public abstract class CfgCellBase<K>
@@ -27,6 +29,8 @@ namespace Engine.Scripts.Runtime.Cfg
             for (int i = 0; i < keyArr.Length; i++)
             {
                 var kArr = keyArr[i];
+
+                arr[i] = new string[kArr.Length];
                 
                 for (int t = 0; t < kArr.Length; t++)
                 {
