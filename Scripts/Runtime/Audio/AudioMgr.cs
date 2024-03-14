@@ -17,6 +17,9 @@ namespace Engine.Scripts.Runtime.Audio
         private string _currMusic;
         private Dictionary<AudioSource, string> _soundsDic = new Dictionary<AudioSource, string>();
         private List<AudioSource> _removeList = new List<AudioSource>();
+
+        public bool IsMuteMusic { get; private set; }
+        public bool IsMuteSound { get; private set; }
         
         public void Reset()
         {
@@ -32,6 +35,21 @@ namespace Engine.Scripts.Runtime.Audio
         public void Dispose()
         {
             TimerMgr.Ins.RemoveUpdate(OnUpdate);
+        }
+
+        public void SetMusicMute(bool isMute)
+        {
+            IsMuteMusic = isMute;
+
+            _musicSource.mute = isMute;
+        }
+
+        public void SetSoundMute(bool isMute)
+        {
+            IsMuteSound = isMute;
+
+            foreach (var kv in _soundsDic)
+                kv.Key.mute = isMute;
         }
 
         /// <summary>
@@ -61,7 +79,7 @@ namespace Engine.Scripts.Runtime.Audio
                 
                 _musicSource.clip = clip;
                 _musicSource.loop = isLoop;
-                _musicSource.mute = false;
+                _musicSource.mute = IsMuteMusic;
                 _musicSource.Play();
             });
         }
@@ -84,7 +102,7 @@ namespace Engine.Scripts.Runtime.Audio
             var clip = ResMgr.Ins.GetAsset<AudioClip>(relPath);
             _musicSource.clip = clip;
             _musicSource.loop = isLoop;
-            _musicSource.mute = false;
+            _musicSource.mute = IsMuteMusic;
             _musicSource.Play();
         }
 
@@ -105,7 +123,7 @@ namespace Engine.Scripts.Runtime.Audio
             {
                 source.clip = clip;
                 source.loop = isLoop;
-                source.mute = false;
+                source.mute = IsMuteSound;
                 source.Play();
             
                 _soundsDic.Add(source, relPath);
@@ -127,7 +145,7 @@ namespace Engine.Scripts.Runtime.Audio
             
             source.clip = clip;
             source.loop = isLoop;
-            source.mute = false;
+            source.mute = IsMuteSound;
             source.Play();
             
             _soundsDic.Add(source, relPath);
