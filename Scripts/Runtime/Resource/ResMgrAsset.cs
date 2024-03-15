@@ -21,6 +21,18 @@ namespace Engine.Scripts.Runtime.Resource
             GetAsyncReq = getAsyncReq;
         }
     }
+
+    struct AsyncInstantiateInfo
+    {
+        public string RelPath { get; private set; }
+        public Action<GameObject> Callback { get; private set; }
+
+        public AsyncInstantiateInfo(string relPath, Action<GameObject> callback)
+        {
+            RelPath = relPath;
+            Callback = callback;
+        }
+    }
     
     public partial class ResMgr
     {
@@ -28,14 +40,20 @@ namespace Engine.Scripts.Runtime.Resource
 
         // 最大异步加载资源数
         private static readonly int MAX_ASYNC_LOAD_ASSET_NUM = 5;
+
+        // 最大异步实例化数量
+        private static readonly int MAX_INSTANTIATE_CNT = 1000;
         
         // 异步加载资源，等待队列
         private List<AsyncLoadAssetWaiting> _asyncLoadAssetWaitingList = new List<AsyncLoadAssetWaiting>();
+        
+        // 异步实例化等待队列
+        private static List<AsyncInstantiateInfo> _asyncInstantiateWaitingList = new List<AsyncInstantiateInfo>();
 
         private List<AssetInfo> _infos = new List<AssetInfo>();
 
         private int _asyncLoadAssetCnt = 0;
-        
+
         private void OnAssetTimer()
         {
             _asyncLoadAssetCnt = 0;
@@ -80,6 +98,25 @@ namespace Engine.Scripts.Runtime.Resource
             {
                 info.OnLoaded?.Invoke(info.Asset);
                 info.OnLoaded = null;
+            }
+
+            var num = Mathf.Min(_asyncInstantiateWaitingList.Count, MAX_INSTANTIATE_CNT);
+
+            for (int i = 0; i < num; i++)
+            {
+                var info = _asyncInstantiateWaitingList[0];
+                _asyncInstantiateWaitingList.RemoveAt(0);
+            
+                if (!_assetDic.TryGetValue(info.RelPath, out var asset))
+                    continue;
+            
+                // 实例化
+                GameObject obj = Object.Instantiate(asset.Asset as GameObject);
+            
+                var assetData = obj.AddComponent<AssetData>();
+                assetData.relPath = info.RelPath;
+            
+                info.Callback(obj);
             }
         }
 
@@ -198,16 +235,22 @@ namespace Engine.Scripts.Runtime.Resource
                 switch (info.AssetState)
                 {
                     case EAssetState.Loaded:
-                        var obj = AssetPost(info.Asset as T, relPath);
-                        callback?.Invoke(obj);
+                    {
+                        if (typeof(T) == typeof(GameObject))
+                            _asyncInstantiateWaitingList.Add(new AsyncInstantiateInfo(relPath, (Action<GameObject>) callback));
+                        else
+                            callback(info.Asset as T);
                         return;
+                    }
                     case EAssetState.SyncLoading:
                     case EAssetState.AsyncLoading:
                     case EAssetState.AsyncWaiting:
                         info.OnLoaded += o =>
                         {
-                            var obj = AssetPost(o as T, relPath);
-                            callback?.Invoke(obj);
+                            if (typeof(T) == typeof(GameObject))
+                                _asyncInstantiateWaitingList.Add(new AsyncInstantiateInfo(relPath, (Action<GameObject>) callback));
+                            else
+                                callback(o as T);
                         };
                         return;
                 }
@@ -217,8 +260,10 @@ namespace Engine.Scripts.Runtime.Resource
                 info = new AssetInfo(EAssetState.AsyncWaiting, isAtlas);
                 info.OnLoaded += o =>
                 {
-                    var obj = AssetPost(o as T, relPath);
-                    callback?.Invoke(obj);
+                    if (typeof(T) == typeof(GameObject))
+                        _asyncInstantiateWaitingList.Add(new AsyncInstantiateInfo(relPath, (Action<GameObject>) callback));
+                    else
+                        callback(o as T);
                 };
                 _assetDic.Add(relPath, info);
             }
@@ -296,7 +341,7 @@ namespace Engine.Scripts.Runtime.Resource
             var path = relPath.Replace(extension, "");
             return Resources.Load(path, systemTypeInstance);
         }
-        
+
         T TryGetSpriteFromAtlas<T>(string atlasName, string spriteName) where T: Object
         {
             T asset = null;
