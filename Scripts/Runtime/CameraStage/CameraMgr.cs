@@ -16,6 +16,7 @@ namespace Engine.Scripts.Runtime.CameraStage
 
         private Camera _camera;
         private Transform _camTrans;
+        private Transform _pointTrans;
         
         public void Reset()
         {
@@ -32,6 +33,9 @@ namespace Engine.Scripts.Runtime.CameraStage
         {
             _camTrans = node;
             _camera = node.GetComponent<Camera>();
+
+            _pointTrans = (new GameObject("CamPoint")).transform;
+            _pointTrans.position = _camTrans.position;
         }
 
         public void ChangeStage(int key)
@@ -61,6 +65,11 @@ namespace Engine.Scripts.Runtime.CameraStage
         public Transform GetCameraTrans()
         {
             return _camTrans;
+        }
+
+        public Transform GetPointTrans()
+        {
+            return _pointTrans;
         }
 
         public bool GetStage<T>(out T stage) where T : class, ICameraStage
