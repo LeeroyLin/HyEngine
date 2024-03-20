@@ -143,7 +143,7 @@ namespace Engine.Scripts.Runtime.Utils
         /// <param name="pattern">格式化字符串, D:天 H:小时 M:分钟 S:秒</param>
         /// <param name="dayUnit">天，单位字符串。显示在天数后，例如："1d:5:23:1"</param>
         /// <returns></returns>
-        public static string GetFormatStr(int sec, bool isHideLeftZero = false, string pattern = "DHMS", string dayUnit = "d")
+        public static string GetFormatStr(int sec, bool isHideLeftZero = false, string pattern = "DHMS", string dayUnit = "天")
         {
             StringBuilder sb = new StringBuilder();
             
