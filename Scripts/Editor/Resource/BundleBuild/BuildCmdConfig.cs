@@ -12,6 +12,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         public bool isCompileAllCode;
         public bool isApk;
         public bool isAAB;
+        public bool isDevBuild;
         public long time;
     }
 }

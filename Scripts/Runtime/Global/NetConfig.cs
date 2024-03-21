@@ -37,5 +37,6 @@ namespace Engine.Scripts.Runtime.Global
     {
         public string host;
         public int port;
+        public string path;
     }
 }

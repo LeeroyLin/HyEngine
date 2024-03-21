@@ -38,7 +38,7 @@ namespace Engine.Scripts.Editor.Resource.Build
                 if (_buildCmdConfig.platform != BuildTarget.Android)
                     throw new Exception("Wrong platform");
 
-                SetAndroidSettings(false);
+                SetAndroidSettings(false, _buildCmdConfig.isDevBuild);
 
                 // 打包apk
                 BuildApk($"{fullVer}/{_buildCmdConfig.name}_{_buildCmdConfig.env}_{fullVer}");
@@ -49,14 +49,14 @@ namespace Engine.Scripts.Editor.Resource.Build
                 if (_buildCmdConfig.platform != BuildTarget.Android)
                     throw new Exception("Wrong platform");
 
-                SetAndroidSettings(true);
+                SetAndroidSettings(true, _buildCmdConfig.isDevBuild);
 
                 // 打包aab
                 BuildAAB($"{fullVer}/{_buildCmdConfig.name}_{_buildCmdConfig.env}_{fullVer}");
             }
         }
 
-        static void SetAndroidSettings(bool isAAB)
+        static void SetAndroidSettings(bool isAAB, bool isDevBuild)
         {
             PlayerSettings.bundleVersion = _buildCmdConfig.version;
             PlayerSettings.Android.useCustomKeystore = true;
@@ -69,7 +69,7 @@ namespace Engine.Scripts.Editor.Resource.Build
             PlayerSettings.Android.keyaliasPass = conf.buildConfig.keyaliasPass;
 
             EditorUserBuildSettings.buildAppBundle = isAAB;
-            EditorUserBuildSettings.development = false;
+            EditorUserBuildSettings.development = isDevBuild;
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
         }
         
@@ -148,6 +148,8 @@ namespace Engine.Scripts.Editor.Resource.Build
                     _buildCmdConfig.isApk = param == "true";
                 else if(str.StartsWith("IsBuildAAB"))
                     _buildCmdConfig.isAAB = param == "true";
+                else if(str.StartsWith("IsDevBuild"))
+                    _buildCmdConfig.isDevBuild = param == "true";
                 else if (str.StartsWith("Time"))
                     _buildCmdConfig.time = long.Parse(param);
             }

@@ -36,7 +36,6 @@ namespace Engine.Scripts.Runtime.Resource
         public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/{PlatformInfo.BuildTargetStr}";
         public static readonly string PACKAGE_BUNDLE_PATH = $"{Application.streamingAssetsPath}/AB/{PlatformInfo.BuildTargetStr}";
         public static readonly string CONFIG_NAME = "manifest.json";
-        private static readonly string RES_SERVER_PATH = "/res";
         
         // 最大异步加载ab数
         private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
@@ -344,7 +343,7 @@ namespace Engine.Scripts.Runtime.Resource
         {
             var netConf = GlobalConfigUtil.Conf.netConfig;
             
-            var uri = $"{netConf.res.host}:{netConf.res.port}{RES_SERVER_PATH}/{PlatformInfo.BuildTargetStr}/{_manifest.version}/{abName}";
+            var uri = $"{netConf.res.host}:{netConf.res.port}{netConf.res.path}/{PlatformInfo.BuildTargetStr}/{_manifest.version}/{abName}";
             
             var webRequest = UnityWebRequest.Get(uri);
 
