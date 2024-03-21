@@ -36,7 +36,7 @@ namespace Engine.Scripts.Runtime.Resource
         public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/{PlatformInfo.BuildTargetStr}";
         public static readonly string PACKAGE_BUNDLE_PATH = $"{Application.streamingAssetsPath}/AB/{PlatformInfo.BuildTargetStr}";
         public static readonly string CONFIG_NAME = "manifest.json";
-        private static readonly string RES_SERVER_PATH = "/res_banshu/Res";
+        private static readonly string RES_SERVER_PATH = "/res";
         
         // 最大异步加载ab数
         private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
