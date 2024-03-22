@@ -29,6 +29,20 @@ namespace Engine.Scripts.Runtime.Cfg
         }
 
         /// <summary>
+        /// 获得所有的多语言表
+        /// </summary>
+        /// <returns></returns>
+        public List<CfgI18nBase> GetCfgI18ns()
+        {
+            List<CfgI18nBase> list = new List<CfgI18nBase>();
+            
+            foreach (var kv in _i18nCfgDic)
+                list.Add(kv.Value);
+
+            return list;
+        }
+
+        /// <summary>
         /// 通过多语言键名获得多语言文本
         /// </summary>
         /// <param name="key"></param>

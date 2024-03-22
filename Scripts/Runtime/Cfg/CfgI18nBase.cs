@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Engine.Scripts.Runtime.Log;
 
@@ -32,14 +33,14 @@ namespace Engine.Scripts.Runtime.Cfg
         {
             if (!_langIdxDic.TryGetValue(langStr, out var idx))
             {
-                _log.Warning($"Can not find i18n lang ''{langStr}' field in cfg '{CfgName}'");
+                _log.Warning($"[GetByKey] Can not find i18n lang ''{langStr}' field in cfg '{CfgName}'");
                 
                 return key;
             }
 
             if (!_dataDic.TryGetValue(key, out var dataList))
             {
-                _log.Warning($"Can not find i18n key '{key}' in cfg '{CfgName}'.");
+                _log.Warning($"[GetByKey] Can not find i18n key '{key}' in cfg '{CfgName}'.");
                 
                 return key;
             }
@@ -50,6 +51,21 @@ namespace Engine.Scripts.Runtime.Cfg
         public bool HasKey(string key)
         {
             return _dataDic.ContainsKey(key);
+        }
+
+        public void Foreach(string langStr, Action<string> handler)
+        {
+            if (!_langIdxDic.TryGetValue(langStr, out var idx))
+            {
+                _log.Warning($"[Foreach] Can not find i18n lang ''{langStr}' field in cfg '{CfgName}'");
+                
+                return;
+            }
+
+            foreach (var kv in _dataDic)
+            {
+                handler(idx < kv.Value.Length ? kv.Value[idx] : kv.Key);
+            }
         }
     }
 }
