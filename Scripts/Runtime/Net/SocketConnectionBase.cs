@@ -24,6 +24,7 @@ namespace Engine.Scripts.Runtime.Net
         public Action<string> OnConnectFailed { get; set; }
         public Action<string> OnDisconnected { get; set; }
         public Action<string> OnShutdown { get; set; }
+        public Action<bool> OnSending { get; set; }
         public Action<NetMsg, object> OnSendData { get; set; }
         public Action<NetMsg> OnRecData { get; set; }
         public IConnMsgPack MsgPack { get; protected set; }
@@ -162,6 +163,7 @@ namespace Engine.Scripts.Runtime.Net
             var bytes = MsgPack.Pack(data.NetMsg, IsEncrypt);
             
             _isSending = true;
+            OnSending?.Invoke(true);
             
             try
             {
@@ -173,6 +175,7 @@ namespace Engine.Scripts.Runtime.Net
             }
             
             _isSending = false;
+            OnSending?.Invoke(false);
             
             OnSendData?.Invoke(data.NetMsg, data.UserData);
 

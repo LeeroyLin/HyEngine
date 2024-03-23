@@ -7,6 +7,8 @@ namespace Engine.Scripts.Runtime.System
     {
         public T SystemModel { get; private set; }
         public EventGroup EventGroup { get; private set; }
+        
+        public bool IsSystemExited { get; private set; }
 
         public SystemBase()
         {
@@ -19,6 +21,8 @@ namespace Engine.Scripts.Runtime.System
         
         public void Enter()
         {
+            IsSystemExited = false;
+            
             OnRegGameEvents();
             
             OnEnter();
@@ -26,6 +30,8 @@ namespace Engine.Scripts.Runtime.System
 
         public void Exit()
         {
+            IsSystemExited = true;
+            
             EventGroup.ClearCurrentAllEvents();
             
             OnExit();
