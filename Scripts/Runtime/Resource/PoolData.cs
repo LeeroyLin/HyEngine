@@ -8,6 +8,11 @@ namespace Engine.Scripts.Runtime.Resource
     public class PoolData
     {
         /// <summary>
+        /// 存放时的坐标
+        /// </summary>
+        private static readonly Vector3 CACHE_WPOS = new Vector3(-10000, -10000, 0);
+        
+        /// <summary>
         /// 键名
         /// </summary>
         public string Key;
@@ -40,6 +45,11 @@ namespace Engine.Scripts.Runtime.Resource
         {
             get { return listTrans == null || listTrans.Count >= Capacity; }
         }
+        
+        /// <summary>
+        /// 是否需要隐藏，隐藏要修改父节点，active设置为false
+        /// </summary>
+        public bool IsNeedHide { get; private set; }
 
         private Action<GameObject> _destroyHandler;
         private Func<string, GameObject> _createHandler;
@@ -64,6 +74,7 @@ namespace Engine.Scripts.Runtime.Resource
             Key = key;
             listTrans = new List<Transform>();
             Capacity = PoolMgr.DEFAULT_CAPACITY;
+            IsNeedHide = true;
         }
 
         /// <summary>
@@ -76,38 +87,55 @@ namespace Engine.Scripts.Runtime.Resource
         }
 
         /// <summary>
+        /// 设置回收时是否需要改变节点和隐藏
+        /// </summary>
+        public void SetNeedHide(bool isNeedHide)
+        {
+            IsNeedHide = isNeedHide;
+        }
+
+        /// <summary>
         /// 添加新的
         /// </summary>
         /// <param name="obj"></param>
         public void Add(GameObject obj)
         {
+            var trans = obj.transform;
+            
             // 是否满了
             if (IsFull)
             {
-                obj.transform.SetParent(null);
+                trans.SetParent(null);
                 
                 // 直接销毁
                 _destroyHandler?.Invoke(obj);
                 return;
             }
 
-            // 是否没有节点
-            if (Node == null)
+            if (IsNeedHide)
             {
-                // 创建节点
-                Node = new GameObject(Key).transform;
-                Node.name = Key;
-                Node.SetParent(PoolRoot, false);
+                // 是否没有节点
+                if (Node == null)
+                {
+                    // 创建节点
+                    Node = new GameObject(Key).transform;
+                    Node.name = Key;
+                    Node.SetParent(PoolRoot, false);
+                }
+
+                // 存储在节点下
+                trans.SetParent(Node, false);
+
+                // 隐藏
+                obj.SetActive(false);
+            }
+            else
+            {
+                trans.position = CACHE_WPOS;
             }
 
-            // 存储在节点下
-            obj.transform.SetParent(Node, false);
-
-            // 隐藏
-            obj.SetActive(false);
-
             // 记录
-            listTrans.Add(obj.transform);
+            listTrans.Add(trans);
         }
 
         /// <summary>
@@ -125,12 +153,13 @@ namespace Engine.Scripts.Runtime.Resource
             // 去除数据
             listTrans.RemoveAt(listTrans.Count - 1);
 
-            node.SetParent(null);
-
             var obj = node.gameObject;
-            
-            // 显示
-            obj.SetActive(true);
+
+            if (IsNeedHide)
+            {
+                // 显示
+                obj.SetActive(true);
+            }
 
             return obj;
         }

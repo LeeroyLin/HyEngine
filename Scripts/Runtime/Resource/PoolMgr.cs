@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Engine.Scripts.Runtime.Resource
 {
@@ -132,6 +131,22 @@ namespace Engine.Scripts.Runtime.Resource
             }
             
             poolData.SetCapacity(capacity);
+        }
+
+        /// <summary>
+        /// 设置回收时是否需要改变节点和隐藏
+        /// <param name="key">键名</param>
+        /// </summary>
+        public void SetNeedHide(string key, bool isNeedHide)
+        {
+            // 是否没有数据
+            if (!_dicPool.TryGetValue(key, out PoolData poolData))
+            {
+                poolData = new PoolData(key, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
+                _dicPool.Add(key, poolData);
+            }
+            
+            poolData.SetNeedHide(isNeedHide);
         }
 
         /// <summary>

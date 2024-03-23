@@ -187,6 +187,7 @@ namespace Engine.Scripts.Runtime.Scene
             {
                 PoolMgr.Ins.GetAsync(relPath, o =>
                 {
+                    PoolMgr.Ins.SetNeedHide(relPath, false);
                     PoolMgr.Ins.Set(o);
                     cnt++;
                     
