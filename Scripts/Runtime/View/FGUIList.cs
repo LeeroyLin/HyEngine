@@ -154,9 +154,9 @@ namespace Engine.Scripts.Runtime.View
             int dataIdx = List.ChildIndexToItemIndex(childIdx);
 
             if (ctx.inputEvent.isDoubleClick)
-                _doubleClickCellHandler(dataIdx, obj);
+                _doubleClickCellHandler?.Invoke(dataIdx, obj);
             else            
-                _clickCellHandler(dataIdx, obj);
+                _clickCellHandler?.Invoke(dataIdx, obj);
         }
     }
 }
