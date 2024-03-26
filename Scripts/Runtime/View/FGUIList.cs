@@ -9,6 +9,7 @@ namespace Engine.Scripts.Runtime.View
         public GList List { get; private set; }
         private Action<int, T> _showCellHandler;
         private Action<int, T> _clickCellHandler;
+        private Action<int, T> _doubleClickCellHandler;
         private Func<int, string> _setCellHandler;
 
         public FGUIList(GObject obj)
@@ -16,7 +17,7 @@ namespace Engine.Scripts.Runtime.View
             List = obj as GList;
         }
         
-        public void Init(bool isVirtual, Action<int, T> showCellHandler, Action<int, T> clickCellHandler = null, Func<int, string> setCellHandler = null)
+        public void Init(bool isVirtual, Action<int, T> showCellHandler, Action<int, T> clickCellHandler = null, Func<int, string> setCellHandler = null, Action<int, T> doubleClickCellHandler = null)
         {
             if (isVirtual)
                 List.SetVirtual();
@@ -31,9 +32,10 @@ namespace Engine.Scripts.Runtime.View
                 List.itemProvider = OnSetListCell;
             }
 
-            if (clickCellHandler != null)
+            if (clickCellHandler != null || doubleClickCellHandler != null)
             {
                 _clickCellHandler = clickCellHandler;
+                _doubleClickCellHandler = doubleClickCellHandler;
                 List.onClickItem.Add(OnClickCell);
             }
         }
@@ -151,7 +153,10 @@ namespace Engine.Scripts.Runtime.View
             int childIdx = List.GetChildIndex(obj);
             int dataIdx = List.ChildIndexToItemIndex(childIdx);
 
-            _clickCellHandler(dataIdx, obj);
+            if (ctx.inputEvent.isDoubleClick)
+                _doubleClickCellHandler(dataIdx, obj);
+            else            
+                _clickCellHandler(dataIdx, obj);
         }
     }
 }
