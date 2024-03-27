@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Utils;
+using Newtonsoft.Json;
 using UnityEngine.Networking;
 
 namespace Engine.Scripts.Runtime.Net
@@ -60,14 +61,21 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="formData">表单数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
+        /// <param name="isJson">是否是json格式</param>
         public async void HttpPost(string url, Action<byte[]> callback, Action failedCallback,
             Dictionary<string, string> formData = null, 
             Dictionary<string, string> headerData = null, 
-            Dictionary<string, string> searchStrData = null)
+            Dictionary<string, string> searchStrData = null,
+            bool isJson = true)
         {
             url = GetUrlWithSearchStrData(url, searchStrData);
-            
-            var webRequest = UnityWebRequest.Post(url, formData);
+
+            UnityWebRequest webRequest = null;
+
+            if (isJson)
+                webRequest = UnityWebRequest.Post(url, JsonConvert.SerializeObject(formData), "text/json");
+            else
+                webRequest = UnityWebRequest.Post(url, formData);
             
             if (headerData != null)
                 foreach (var data in headerData)
@@ -122,15 +130,17 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="formData">表单数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
+        /// <param name="isJson">是否是json格式</param>
         public void HttpPost(string url, Action<string> callback, Action failedCallback,
             Dictionary<string, string> formData = null, 
             Dictionary<string, string> headerData = null, 
-            Dictionary<string, string> searchStrData = null)
+            Dictionary<string, string> searchStrData = null,
+            bool isJson = true)
         {
             HttpPost(url, bytes =>
             {
                 callback.Invoke(Encoding.UTF8.GetString(bytes));
-            }, failedCallback, formData, headerData, searchStrData);
+            }, failedCallback, formData, headerData, searchStrData, isJson);
         }
 
         /// <summary>
