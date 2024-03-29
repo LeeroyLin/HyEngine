@@ -6,9 +6,12 @@ namespace Engine.Scripts.Runtime.Entrance
 {
     public abstract class EntranceBase : IEntrance
     {
-        public void DoStart(MonoBehaviour behaviour)
+        protected object[] Args;
+        
+        public void DoStart(MonoBehaviour behaviour, params object[] args)
         {
             MonoHelper.Ins.Behaviour = behaviour;
+            Args = args;
             
             OnInit();
             OnStart();
