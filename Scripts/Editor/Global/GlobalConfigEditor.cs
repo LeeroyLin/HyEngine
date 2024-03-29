@@ -76,6 +76,7 @@ namespace Engine.Scripts.Editor.Global
                     resLoadMode = confSO.resLoadMode,
                     netMaxMsgLen = confSO.netMaxMsgLen,
                     isNetEncrypt = confSO.isNetEncrypt,
+                    isSelectServer = confSO.isSelectServer,
                     version = confSO.version,
                     logConfig = confSO.logConfig,
                     netConfig = confSO.GetCurrNetConfig(),
