@@ -9,11 +9,20 @@ namespace Engine.Scripts.Runtime.View
     {
         public static void Show(GGraph holder, string relPath, Action<Transform> onShow)
         {
+            Clear(holder, null);
+            
             var obj = PoolMgr.Ins.Get(relPath);
             onShow?.Invoke(obj.transform);
+            
+            var wrapper = holder.displayObject as GoWrapper;
 
-            GoWrapper wrapper = new GoWrapper(obj);
-            holder.SetNativeObject(wrapper);
+            if (wrapper == null)
+            {
+                wrapper = new GoWrapper(obj);
+                holder.SetNativeObject(wrapper);
+            }
+            else
+                wrapper.wrapTarget = obj;
         }
 
         public static void Clear(GGraph holder, Action<GameObject> onRecycle)
@@ -25,12 +34,14 @@ namespace Engine.Scripts.Runtime.View
 
             if (wrapper == null || wrapper.wrapTarget == null)
                 return;
+
+            var obj = wrapper.wrapTarget;
             
-            onRecycle?.Invoke(wrapper.wrapTarget);
+            onRecycle?.Invoke(obj);
+            
+            wrapper.wrapTarget = null;
             
             PoolMgr.Ins.Set(wrapper.wrapTarget);
-
-            wrapper.wrapTarget = null;
         }
 
         public static void SetTransLayer(Transform trans, LayerMask layer)
