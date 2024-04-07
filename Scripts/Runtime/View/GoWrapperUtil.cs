@@ -41,7 +41,7 @@ namespace Engine.Scripts.Runtime.View
             
             wrapper.wrapTarget = null;
             
-            PoolMgr.Ins.Set(wrapper.wrapTarget);
+            PoolMgr.Ins.Set(obj);
         }
 
         public static void SetTransLayer(Transform trans, LayerMask layer)
