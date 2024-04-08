@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Engine.Scripts.Runtime.Timer
 {
@@ -20,6 +21,8 @@ namespace Engine.Scripts.Runtime.Timer
         private Dictionary<int, Action> _lateUpdateDic = new Dictionary<int, Action>();
         private Dictionary<int, Action> _fixedUpdateDic = new Dictionary<int, Action>();
 
+        private List<Action> _actions = new List<Action>();
+        
         public void Reset()
         {
             _timerCnt = 1;
@@ -42,36 +45,40 @@ namespace Engine.Scripts.Runtime.Timer
 
         public void OnUpdate()
         {
-            List<Action> actions = new List<Action>();
+            _actions.Clear();
             
             foreach (var data in _updateDic)
-                actions.Add(data.Value);
+                _actions.Add(data.Value);
 
-            foreach (var action in actions)
+            foreach (var action in _actions)
                 action();
         }
 
         public void OnLateUpdate()
         {
-            List<Action> actions = new List<Action>();
-            
-            foreach (var data in _lateUpdateDic)
-                actions.Add(data.Value);
+            _actions.Clear();
 
-            foreach (var action in actions)
+            foreach (var data in _lateUpdateDic)
+                _actions.Add(data.Value);
+
+            foreach (var action in _actions)
+            {
+                Profiler.BeginSample(action.Target.ToString());
                 action();
+                Profiler.EndSample();
+            }
         }
 
         public void OnFixedUpdate()
         {
             OnTick();
             
-            List<Action> actions = new List<Action>();
-            
-            foreach (var data in _fixedUpdateDic)
-                actions.Add(data.Value);
+            _actions.Clear();
 
-            foreach (var action in actions)
+            foreach (var data in _fixedUpdateDic)
+                _actions.Add(data.Value);
+
+            foreach (var action in _actions)
                 action();
         }
 
