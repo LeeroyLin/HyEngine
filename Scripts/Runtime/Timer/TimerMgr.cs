@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Utils;
-using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace Engine.Scripts.Runtime.Timer
 {
@@ -62,11 +60,7 @@ namespace Engine.Scripts.Runtime.Timer
                 _actions.Add(data.Value);
 
             foreach (var action in _actions)
-            {
-                Profiler.BeginSample(action.Target.ToString());
                 action();
-                Profiler.EndSample();
-            }
         }
 
         public void OnFixedUpdate()
