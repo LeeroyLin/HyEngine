@@ -61,5 +61,15 @@ namespace Engine.Scripts.Runtime.Utils
             
             return val - val / v * v;
         }
+
+        public static long Min(long val1, long val2)
+        {
+            return val1 < val2 ? val1 : val2;
+        }
+
+        public static long Max(long val1, long val2)
+        {
+            return val1 > val2 ? val1 : val2;
+        }
     }
 }
