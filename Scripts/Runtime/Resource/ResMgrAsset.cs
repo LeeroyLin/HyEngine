@@ -109,7 +109,13 @@ namespace Engine.Scripts.Runtime.Resource
             
                 if (!_assetDic.TryGetValue(info.RelPath, out var asset))
                     continue;
-            
+
+                if (asset.Asset == null)
+                {
+                    _log.Error($"Asset is null. Rel path: {info.RelPath}");
+                    continue;
+                }
+                
                 // 实例化
                 GameObject obj = Object.Instantiate(asset.Asset as GameObject);
             
