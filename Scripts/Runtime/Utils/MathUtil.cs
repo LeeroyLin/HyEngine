@@ -71,5 +71,16 @@ namespace Engine.Scripts.Runtime.Utils
         {
             return val1 > val2 ? val1 : val2;
         }
+
+        public static int Long2NearInt(long val)
+        {
+            if (val > int.MaxValue)
+                return int.MaxValue;
+
+            if (val < int.MinValue)
+                return int.MinValue;
+
+            return (int) val;
+        }
     }
 }

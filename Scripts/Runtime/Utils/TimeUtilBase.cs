@@ -97,8 +97,7 @@ namespace Engine.Scripts.Runtime.Utils
         public static int Expire(long time)
         {
             var now = GetTimestamp();
-            var minVal = MathUtil.Min(now - time, int.MaxValue);
-            return Mathf.Max(0, (int)minVal);
+            return Mathf.Max(0, MathUtil.Long2NearInt(now - time));
         }
 
         /// <summary>
@@ -110,8 +109,7 @@ namespace Engine.Scripts.Runtime.Utils
         public static int ExpireMS(long timeMS, bool isLocalTime = false)
         {
             var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
-            var minVal = MathUtil.Min(nowMS - timeMS, int.MaxValue);
-            return Mathf.Max(0, (int)minVal);
+            return Mathf.Max(0, MathUtil.Long2NearInt(nowMS - timeMS));
         }
 
         /// <summary>
@@ -122,8 +120,7 @@ namespace Engine.Scripts.Runtime.Utils
         public static int Left(long time)
         {
             var now = GetTimestamp();
-            var minVal = MathUtil.Min(time - now, int.MaxValue);
-            return Mathf.Max(0, (int)minVal);
+            return Mathf.Max(0, MathUtil.Long2NearInt(time - now));
         }
 
         /// <summary>
@@ -135,9 +132,7 @@ namespace Engine.Scripts.Runtime.Utils
         public static int LeftMS(long timeMS, bool isLocalTime = false)
         {
             var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
-
-            var minVal = MathUtil.Min(timeMS - nowMS, int.MaxValue);
-            return Mathf.Max(0, (int)minVal);
+            return Mathf.Max(0, MathUtil.Long2NearInt(timeMS - nowMS));
         }
 
         /// <summary>
