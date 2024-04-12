@@ -154,6 +154,9 @@ namespace Engine.Scripts.Runtime.View
                 
                 // 显示节点
                 ins.visible = true;
+                
+                // 取消blur
+                SetFilter(ins, false);
             }
             // 是否已经激活
             else if (FindViewIdx(_activeUIList, key, out var i))
