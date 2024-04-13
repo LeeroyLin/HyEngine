@@ -21,14 +21,20 @@ namespace Engine.Scripts.Runtime.Model
         }
         
         public void Reset()
-        {
+        {            
             NetEventGroup.ClearCurrentAllEvents();
             GameEventGroup.ClearCurrentAllEvents();
+         
+            OnReset();
+   
+            OnRegNetEvents();
+            OnRegGameEvents();
         }
 
         protected abstract void InitData();
         protected abstract void OnRegNetEvents();
         protected abstract void OnRegGameEvents();
+        protected abstract void OnReset();
         
         /// <summary>
         /// 注册网络事件
