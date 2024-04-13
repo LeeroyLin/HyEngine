@@ -3,5 +3,6 @@
     public interface IManager
     {
         void Reset();
+        void Dispose();
     }
 }

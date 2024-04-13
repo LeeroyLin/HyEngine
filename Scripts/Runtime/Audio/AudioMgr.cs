@@ -2,12 +2,11 @@ using System.Collections.Generic;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
-using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Audio
 {
-    public class AudioMgr : SingletonClass<AudioMgr>, IManager
+    public class AudioMgr : ManagerBase<AudioMgr>
     {
         private static readonly string AUDIO_NODE_PATH = "Node/Audio.prefab";
         
@@ -21,20 +20,30 @@ namespace Engine.Scripts.Runtime.Audio
         public bool IsMuteMusic { get; private set; }
         public bool IsMuteSound { get; private set; }
         
-        public void Reset()
-        {
-        }
-
         public void Init()
         {
+            InitMgr();
+            
             InitNode();
             
             TimerMgr.Ins.UseUpdate(OnUpdate);
         }
+        
+        public override void OnReset()
+        {
+            IsMuteMusic = false;
+            IsMuteSound = false;
+            
+            ClearAll();
+        }
 
-        public void Dispose()
+        public override void OnDisposed()
         {
             TimerMgr.Ins.RemoveUpdate(OnUpdate);
+
+            ClearAll();
+            
+            RemoveNode();
         }
 
         public void SetMusicMute(bool isMute)
@@ -232,6 +241,15 @@ namespace Engine.Scripts.Runtime.Audio
             
             _musicSource = PoolMgr.Ins.Get(AUDIO_NODE_PATH).GetComponent<AudioSource>();
             _musicSource.name = "MusicSource";
+        }
+
+        void RemoveNode()
+        {
+            if (_node != null)
+            {
+                Object.Destroy(_node.gameObject);
+                _node = null;
+            }
         }
     }
 }
