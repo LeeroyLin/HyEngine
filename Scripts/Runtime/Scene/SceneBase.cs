@@ -116,12 +116,11 @@ namespace Engine.Scripts.Runtime.Scene
 
         void CloseSystems()
         {
-            sysArr = OnGetSystems();
+            if (sysArr == null)
+                return;
             
             foreach (var sys in sysArr)
-            {
                 sys.Exit();
-            }
         }
 
         /// <summary>
