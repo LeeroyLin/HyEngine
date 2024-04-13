@@ -195,15 +195,11 @@ namespace Engine.Scripts.Runtime.Resource
         public void Clear()
         {
             if (listTrans.Count == 0)
-            {
                 return;
-            }
 
-            // 反向遍历节点
-            for (int i = Node.childCount; i >= 0; i--)
+            for (int i = listTrans.Count - 1; i >= 0; i--)
             {
-                var trans = Node.GetChild(i);
-                trans.SetParent(null);
+                var trans = listTrans[i];
                 
                 // 销毁节点
                 _destroyHandler?.Invoke(trans.gameObject);
