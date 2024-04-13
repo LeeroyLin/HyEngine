@@ -29,7 +29,7 @@ namespace Engine.Scripts.Runtime.Audio
             TimerMgr.Ins.UseUpdate(OnUpdate);
         }
         
-        public override void OnReset()
+        protected override void OnReset()
         {
             IsMuteMusic = false;
             IsMuteSound = false;
@@ -37,7 +37,7 @@ namespace Engine.Scripts.Runtime.Audio
             ClearAll();
         }
 
-        public override void OnDisposed()
+        protected override void OnDisposed()
         {
             TimerMgr.Ins.RemoveUpdate(OnUpdate);
 

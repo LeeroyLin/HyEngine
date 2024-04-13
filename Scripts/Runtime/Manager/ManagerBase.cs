@@ -27,8 +27,8 @@ namespace Engine.Scripts.Runtime.Manager
             IsDisposed = true;
         }
         
-        public abstract void OnReset();
+        protected abstract void OnReset();
 
-        public abstract void OnDisposed();
+        protected abstract void OnDisposed();
     }
 }
