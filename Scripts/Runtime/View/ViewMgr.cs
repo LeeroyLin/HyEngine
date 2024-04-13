@@ -220,6 +220,31 @@ namespace Engine.Scripts.Runtime.View
         }
 
         /// <summary>
+        /// 关闭所有界面
+        /// </summary>
+        public void CloseAll()
+        {
+            for (int i = 0; i < _activeUIList.Count; i++)
+            {
+                var info = _activeUIList[i];
+                
+                // 标记非激活
+                info.Inactive();
+            
+                // 隐藏
+                info.visible = false;
+            
+                // 回调
+                info.DoClose();
+
+                // 放入非激活列表
+                _inactiveUIList.Add(info);
+            }
+            
+            _activeUIList.Clear();
+        }
+
+        /// <summary>
         /// 查找UI
         /// </summary>
         /// <param name="key"></param>
