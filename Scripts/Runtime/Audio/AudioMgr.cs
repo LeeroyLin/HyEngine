@@ -35,6 +35,9 @@ namespace Engine.Scripts.Runtime.Audio
             IsMuteSound = false;
             
             ClearAll();
+            
+            TimerMgr.Ins.RemoveUpdate(OnUpdate);
+            TimerMgr.Ins.UseUpdate(OnUpdate);
         }
 
         protected override void OnDisposed()

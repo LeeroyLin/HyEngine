@@ -1,6 +1,7 @@
 ﻿using System;
 using Engine.Scripts.Runtime.Event;
 using Engine.Scripts.Runtime.Utils;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Model
 {
@@ -21,7 +22,7 @@ namespace Engine.Scripts.Runtime.Model
         }
         
         public void Reset()
-        {            
+        {
             NetEventGroup.ClearCurrentAllEvents();
             GameEventGroup.ClearCurrentAllEvents();
          

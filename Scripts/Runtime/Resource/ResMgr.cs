@@ -79,6 +79,9 @@ namespace Engine.Scripts.Runtime.Resource
             
             _asyncLoadABWaitingList.Clear();
             _asyncLoadABCnt = 0;
+            
+            TimerMgr.Ins.RemoveLateUpdate(OnTimer);
+            TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
 
         protected override void OnDisposed()

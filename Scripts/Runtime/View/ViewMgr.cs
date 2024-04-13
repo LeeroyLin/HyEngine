@@ -50,6 +50,9 @@ namespace Engine.Scripts.Runtime.View
         protected override void OnReset()
         {
             DisposeAll();
+            
+            TimerMgr.Ins.RemoveLateUpdate(OnTimer);
+            TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
 
         protected override void OnDisposed()

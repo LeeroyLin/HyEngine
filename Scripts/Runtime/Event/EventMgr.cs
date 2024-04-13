@@ -19,7 +19,7 @@ namespace Engine.Scripts.Runtime.Event
         private List<AsyncInfo> _asyncList;
 
         private LogGroup _log;
-        
+
         public void Init()
         {
             _eventDic = new();
@@ -35,6 +35,9 @@ namespace Engine.Scripts.Runtime.Event
         protected override void OnReset()
         {
             Clear();
+            
+            TimerMgr.Ins.RemoveLateUpdate(OnTimer);
+            TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
 
         protected override void OnDisposed()
