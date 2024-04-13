@@ -4,13 +4,9 @@ using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Log
 {
-    public class LogMgr : SingletonClass<LogMgr>, IManager
+    public class LogMgr : ManagerBase<LogMgr>
     {
         private LogConfig _config;
-        
-        public void Reset()
-        {
-        }
 
         public void Init(LogConfig config)
         {
@@ -18,6 +14,14 @@ namespace Engine.Scripts.Runtime.Log
             
             // 创建文件目录
             TryCreateDir();
+        }
+        
+        protected override void OnReset()
+        {
+        }
+
+        protected override void OnDisposed()
+        {
         }
 
         /// <summary>

@@ -1,13 +1,13 @@
 ﻿using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
-using Engine.Scripts.Runtime.Resource;
-using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.CameraStage
 {
-    public class CameraMgr : SingletonClass<CameraMgr>, IManager
+    public class CameraMgr : ManagerBase<CameraMgr>
     {
+        private static readonly string CAM_POINT_NODE_NAME = "CamPoint";
+        
         private ICameraStage _currStage;
 
         private ICameraStageGenerator _generator;
@@ -18,10 +18,6 @@ namespace Engine.Scripts.Runtime.CameraStage
         private Transform _camTrans;
         private Transform _pointTrans;
         
-        public void Reset()
-        {
-        }
-
         public void Init(ICameraStageGenerator generator)
         {
             _generator = generator;
@@ -29,12 +25,43 @@ namespace Engine.Scripts.Runtime.CameraStage
             _log = new LogGroup("CameraStageMgr");
         }
 
+        protected override void OnReset()
+        {
+            // 关闭之前场景
+            CloseCurr();
+            
+            _camera = null;
+            _camTrans = null;
+
+            RemovePointNode();
+        }
+
+        protected override void OnDisposed()
+        {
+            // 关闭之前场景
+            CloseCurr();
+            
+            _camera = null;
+            _camTrans = null;
+
+            RemovePointNode();
+        }
+
+        void RemovePointNode()
+        {
+            if (_pointTrans != null)
+            {
+                Object.Destroy(_pointTrans.gameObject);
+                _pointTrans = null;
+            }
+        }
+
         public void SetCameraNode(Transform node)
         {
             _camTrans = node;
             _camera = node.GetComponent<Camera>();
 
-            _pointTrans = (new GameObject("CamPoint")).transform;
+            _pointTrans = (new GameObject(CAM_POINT_NODE_NAME)).transform;
             _pointTrans.position = _camTrans.position;
         }
 
@@ -48,7 +75,7 @@ namespace Engine.Scripts.Runtime.CameraStage
             }
             
             // 关闭之前场景
-            _currStage?.Exit();
+            CloseCurr();
             
             // 获得新场景实例
             _currStage = _generator.GetStageIns(key);
@@ -83,6 +110,12 @@ namespace Engine.Scripts.Runtime.CameraStage
             stage = null;
 
             return false;
+        }
+
+        void CloseCurr()
+        {
+            _currStage?.Exit();
+            _currStage = null;
         }
     }
 }

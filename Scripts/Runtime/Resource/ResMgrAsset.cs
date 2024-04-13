@@ -54,6 +54,20 @@ namespace Engine.Scripts.Runtime.Resource
 
         private int _asyncLoadAssetCnt = 0;
 
+        protected void OnAssetReset()
+        {
+            _asyncLoadAssetWaitingList.Clear();
+            _asyncInstantiateWaitingList.Clear();
+            _asyncLoadAssetCnt = 0;
+        }
+
+        protected void OnAssetDisposed()
+        {
+            _asyncLoadAssetWaitingList.Clear();
+            _asyncInstantiateWaitingList.Clear();
+            _asyncLoadAssetCnt = 0;
+        }
+        
         private void OnAssetTimer()
         {
             _asyncLoadAssetCnt = 0;

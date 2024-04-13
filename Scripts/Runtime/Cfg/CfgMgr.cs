@@ -2,20 +2,14 @@ using System.Collections.Generic;
 using Engine.Scripts.Runtime.Language;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
-using Engine.Scripts.Runtime.Utils;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Cfg
 {
-    public class CfgMgr : SingletonClass<CfgMgr>, IManager
+    public class CfgMgr : ManagerBase<CfgMgr>
     {
         private Dictionary<string, CfgI18nBase> _i18nCfgDic = new Dictionary<string, CfgI18nBase>();
 
         private LogGroup _log;
-        
-        public void Reset()
-        {
-        }
 
         public void Init(ICfgI18nGenerator generator)
         {
@@ -23,9 +17,15 @@ namespace Engine.Scripts.Runtime.Cfg
             
             var arr = generator.GetCfgI18nArr();
             foreach (var data in arr)
-            {
                 _i18nCfgDic.Add(data.CfgName, data);
-            }
+        }
+
+        protected override void OnReset()
+        {
+        }
+
+        protected override void OnDisposed()
+        {
         }
 
         /// <summary>

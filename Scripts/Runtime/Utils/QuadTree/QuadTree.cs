@@ -33,6 +33,11 @@ namespace Engine.Scripts.Runtime.Utils.QuadTree
             RootNode = ClassPoolMgr.Ins.GetIns<QuadTreeNode<T>, QuadTreeNodeInitData>(new QuadTreeNodeInitData(ltPos, rbPos));
         }
 
+        public void Clear()
+        {
+            // todo
+        }
+
         /// <summary>
         /// 添加数据
         /// </summary>

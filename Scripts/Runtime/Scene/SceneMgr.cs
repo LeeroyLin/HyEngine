@@ -1,26 +1,33 @@
 ﻿using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
-using Engine.Scripts.Runtime.Utils;
 
 namespace Engine.Scripts.Runtime.Scene
 {
-    public class SceneMgr : SingletonClass<SceneMgr>, IManager
+    public class SceneMgr : ManagerBase<SceneMgr>
     {
         private SceneBase _current = null;
 
         private ISceneGenerator _generator;
 
-        private LogGroup _log;        
+        private LogGroup _log;
         
-        public void Reset()
-        {
-        }
-
         public void Init(ISceneGenerator generator)
         {
             _generator = generator;
             
             _log = new LogGroup("SceneMgr");
+        }
+
+        protected override void OnReset()
+        {
+            // 关闭之前场景
+            CloseCurr();
+        }
+
+        protected override void OnDisposed()
+        {
+            // 关闭之前场景
+            CloseCurr();
         }
 
         /// <summary>
@@ -38,7 +45,7 @@ namespace Engine.Scripts.Runtime.Scene
             }
             
             // 关闭之前场景
-            _current?.Exit();
+            CloseCurr();
             
             // 获得新场景实例
             _current = _generator.GetSceneIns(key);
@@ -46,6 +53,12 @@ namespace Engine.Scripts.Runtime.Scene
             // 回调
             _current.Init();
             _current.Enter(args);
+        }
+
+        private void CloseCurr()
+        {
+            _current?.Exit();
+            _current = null;
         }
     }
 }

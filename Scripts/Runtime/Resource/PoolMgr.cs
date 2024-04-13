@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Manager;
-using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Engine.Scripts.Runtime.Resource
 {
-    public class PoolMgr : SingletonClass<PoolMgr>, IManager
+    public class PoolMgr : ManagerBase<PoolMgr>
     {
         /// <summary>
         /// 默认容量
@@ -29,10 +29,6 @@ namespace Engine.Scripts.Runtime.Resource
         private Func<string, GameObject> _createHandler;
         private Func<string, Task<GameObject>> _createAsyncHandler;
         
-        public void Reset()
-        {
-        }
-
         public void Init(Func<string, GameObject> createHandler, Func<string, Task<GameObject>> createAsyncHandler, Action<GameObject> destroyHandler)
         {
             _createHandler = createHandler;
@@ -40,6 +36,16 @@ namespace Engine.Scripts.Runtime.Resource
             _destroyHandler = destroyHandler;
             
             CreateNode();
+        }
+
+        protected override void OnReset()
+        {
+            ClearAll();
+        }
+
+        protected override void OnDisposed()
+        {
+            RemoveNode();
         }
 
         /// <summary>
@@ -186,6 +192,15 @@ namespace Engine.Scripts.Runtime.Resource
         {
             if (PoolRoot == null)
                 PoolRoot = new GameObject("PoolRoot").transform;
+        }
+
+        void RemoveNode()
+        {
+            if (PoolRoot != null)
+            {
+                Object.Destroy(PoolRoot.gameObject);
+                PoolRoot = null;
+            }
         }
     }
 }

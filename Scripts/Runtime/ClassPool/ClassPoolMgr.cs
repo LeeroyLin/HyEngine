@@ -2,23 +2,27 @@ using System;
 using System.Collections.Generic;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
-using Engine.Scripts.Runtime.Utils;
 
 namespace Engine.Scripts.Runtime.ClassPool
 {
-    public class ClassPoolMgr : SingletonClass<ClassPoolMgr>, IManager
+    public class ClassPoolMgr : ManagerBase<ClassPoolMgr>
     {
         private Dictionary<string, IClassPoolGroup> _groupDic = new Dictionary<string, IClassPoolGroup>();
 
         private LogGroup _log;
         
-        public void Reset()
-        {
-        }
-        
         public void Init()
         {
             _log = new LogGroup("ClassPoolMgr");
+        }
+
+        protected override void OnReset()
+        {
+        }
+
+        protected override void OnDisposed()
+        {
+            _groupDic.Clear();
         }
 
         public void InitGroup<T, K>(Func<T> creator, Action<T, K> initHandler, Action<T> resetHandler, int capacity) where T : class

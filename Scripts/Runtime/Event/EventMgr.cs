@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Timer;
-using Engine.Scripts.Runtime.Utils;
 using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Event
 {
     public interface IEventData
     {
-        
     }
 
-    public class EventMgr : SingletonClass<EventMgr>, IManager
+    public class EventMgr : ManagerBase<EventMgr>
     {
         private Dictionary<EEventGroup, Dictionary<string, List<int>>> _eventDic;
         private Dictionary<int, HandlerInfo> _cbDic;
@@ -22,10 +20,6 @@ namespace Engine.Scripts.Runtime.Event
 
         private LogGroup _log;
         
-        public void Reset()
-        {
-        }
-
         public void Init()
         {
             _eventDic = new();
@@ -38,13 +32,18 @@ namespace Engine.Scripts.Runtime.Event
             TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
 
-        public void Dispose()
+        protected override void OnReset()
         {
-            _eventDic.Clear();
-            _cbDic.Clear();
-            _asyncList.Clear();
+            Clear();
         }
-        
+
+        protected override void OnDisposed()
+        {
+            Clear();
+            
+            TimerMgr.Ins.RemoveLateUpdate(OnTimer);
+        }
+
         /// <summary>
         /// 注册
         /// </summary>
@@ -273,9 +272,18 @@ namespace Engine.Scripts.Runtime.Event
         {
             return evt.ToString();
         }
+        
         private string GetKey<T>() where T : IEventData
         {
             return typeof(T).ToString();
         }
+        
+        void Clear()
+        {
+            _eventDic.Clear();
+            _cbDic.Clear();
+            _asyncList.Clear();
+        }
+
     }
 }

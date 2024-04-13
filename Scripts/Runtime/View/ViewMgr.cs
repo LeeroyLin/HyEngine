@@ -4,13 +4,11 @@ using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
-using Engine.Scripts.Runtime.Utils;
 using FairyGUI;
-using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
-    public class ViewMgr : SingletonClass<ViewMgr>, IManager
+    public class ViewMgr : ManagerBase<ViewMgr>
     {
         // 界面非激活后的销毁时间
         static readonly long EXPIRE_TIME_MS = 60000;
@@ -32,10 +30,33 @@ namespace Engine.Scripts.Runtime.View
         /// </summary>
         private Action<string, string> _onViewTop;
         
-        public void Reset()
+        public void Init(IViewExtension viewExtension, Action<string, bool> blurHandler)
         {
+            _blurHandler = blurHandler;
+            
+            _log = new LogGroup("ViewMgr");
+            
+            // 注册界面扩展
+            var extensions = viewExtension.InitViewExtension();
+            foreach (var extension in extensions)
+            {
+                UIObjectFactory.SetPackageItemExtension(extension.Url, extension.Creator);
+            }
+            
+            // 注册计时器
+            TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
-        
+
+        protected override void OnReset()
+        {
+            DisposeAll();
+        }
+
+        protected override void OnDisposed()
+        {
+            DisposeAll();
+        }
+
         /// <summary>
         /// 获得自定义UI键名
         /// </summary>
@@ -56,23 +77,6 @@ namespace Engine.Scripts.Runtime.View
         {
             var strs = customKey.Split("_");
             return (strs[0], strs[1]);
-        }
-
-        public void Init(IViewExtension viewExtension, Action<string, bool> blurHandler)
-        {
-            _blurHandler = blurHandler;
-            
-            _log = new LogGroup("ViewMgr");
-            
-            // 注册界面扩展
-            var extensions = viewExtension.InitViewExtension();
-            foreach (var extension in extensions)
-            {
-                UIObjectFactory.SetPackageItemExtension(extension.Url, extension.Creator);
-            }
-            
-            // 注册计时器
-            TimerMgr.Ins.UseLateUpdate(OnTimer);
         }
 
         public void CallBlur(string key, bool isBlur)
@@ -311,6 +315,17 @@ namespace Engine.Scripts.Runtime.View
             
             // 移除数据
             _inactiveUIList.RemoveAt(idx);
+        }
+
+        public void DisposeAll()
+        {
+            foreach (var info in _inactiveUIList)
+                info.DoDispose();
+            _inactiveUIList.Clear();
+            
+            foreach (var info in _activeUIList)
+                info.DoDispose();
+            _activeUIList.Clear();
         }
         
         /// <summary>

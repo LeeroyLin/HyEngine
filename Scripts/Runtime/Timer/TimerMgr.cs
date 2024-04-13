@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Engine.Scripts.Runtime.Manager;
-using Engine.Scripts.Runtime.Utils;
 
 namespace Engine.Scripts.Runtime.Timer
 {
-    public class TimerMgr : SingletonClass<TimerMgr>, IManager
+    public class TimerMgr : ManagerBase<TimerMgr>
     {
         // 计时器计次，用于自增作为id
         private static int _timerCnt = 1;
@@ -21,24 +20,18 @@ namespace Engine.Scripts.Runtime.Timer
 
         private List<Action> _actions = new List<Action>();
         
-        public void Reset()
-        {
-            _timerCnt = 1;
-            Clear();
-        }
-
         public void Init()
         {
         }
 
-        public void Dispose()
+        protected override void OnReset()
         {
-            _timerDic.Clear();
-            _removeList.Clear();
-            _callList.Clear();
-            _updateDic.Clear();
-            _lateUpdateDic.Clear();
-            _fixedUpdateDic.Clear();
+            Clear();
+        }
+
+        protected override void OnDisposed()
+        {
+            Clear();
         }
 
         public void OnUpdate()
@@ -198,7 +191,13 @@ namespace Engine.Scripts.Runtime.Timer
         /// </summary>
         public void Clear()
         {
+            _timerCnt = 1;
             _timerDic.Clear();
+            _removeList.Clear();
+            _callList.Clear();
+            _updateDic.Clear();
+            _lateUpdateDic.Clear();
+            _fixedUpdateDic.Clear();
         }
 
         // 获得新计时器Id

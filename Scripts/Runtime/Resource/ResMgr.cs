@@ -30,7 +30,7 @@ namespace Engine.Scripts.Runtime.Resource
         }
     }
 
-    public partial class ResMgr : SingletonClass<ResMgr>, IManager
+    public partial class ResMgr : ManagerBase<ResMgr>, IManager
     {
         public static readonly string BUNDLE_ASSETS_PATH = "Assets/BundleAssets/";
         public static readonly string RUNTIME_BUNDLE_PATH = $"{Application.persistentDataPath}/{PlatformInfo.BuildTargetStr}";
@@ -57,10 +57,6 @@ namespace Engine.Scripts.Runtime.Resource
         private int _asyncLoadABCnt = 0;
         private List<ABInfo> _cbInfos = new List<ABInfo>();
 
-        public void Reset()
-        {
-        }
-
         public async Task Init(EResLoadMode resLoadMode)
         {
             Debug.Log("ResMgr InitMgr");
@@ -77,6 +73,24 @@ namespace Engine.Scripts.Runtime.Resource
             await LoadManifest();
         }
 
+        protected override void OnReset()
+        {
+            OnAssetReset();
+            
+            _asyncLoadABWaitingList.Clear();
+            _asyncLoadABCnt = 0;
+        }
+
+        protected override void OnDisposed()
+        {
+            OnAssetDisposed();
+            
+            _asyncLoadABWaitingList.Clear();
+            _asyncLoadABCnt = 0;
+            
+            TimerMgr.Ins.RemoveLateUpdate(OnTimer);
+        }
+        
         async Task LoadManifest()
         {
             string content = null;

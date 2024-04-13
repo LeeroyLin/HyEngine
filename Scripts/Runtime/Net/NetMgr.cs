@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using Engine.Scripts.Runtime.Log;
 using Engine.Scripts.Runtime.Manager;
-using Engine.Scripts.Runtime.Utils;
 using Google.Protobuf;
 
 namespace Engine.Scripts.Runtime.Net
 {
-    public partial class NetMgr : SingletonClass<NetMgr>, IManager
+    public partial class NetMgr : ManagerBase<NetMgr>
     {
         /// <summary>
         /// 是否有主连接
@@ -33,14 +32,20 @@ namespace Engine.Scripts.Runtime.Net
             _log = new LogGroup("NetMgr");
         }
         
-        public void Reset()
+        public void Init()
+        {
+        }
+
+        protected override void OnReset()
         {
             ClearConnDic();
             _mainConnKey = null;
         }
 
-        public void Init()
+        protected override void OnDisposed()
         {
+            ClearConnDic();
+            _mainConnKey = null;
         }
 
         /// <summary>
@@ -76,11 +81,6 @@ namespace Engine.Scripts.Runtime.Net
             _connDic.Add(key, conn);
 
             conn.OnShutdown += OnConnShutdown;
-        }
-
-        public void Dispose()
-        {
-            ClearConnDic();
         }
 
         /// <summary>
