@@ -57,6 +57,16 @@ namespace Engine.Scripts.Runtime.Net
         }
 
         /// <summary>
+        /// 获得主连接
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetMainConn<T>() where T : SocketConnectionBase
+        {
+            return _connDic[_mainConnKey] as T;
+        }
+
+        /// <summary>
         /// 添加连接
         /// </summary>
         /// <param name="conn"></param>

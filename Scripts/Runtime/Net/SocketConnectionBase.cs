@@ -40,6 +40,11 @@ namespace Engine.Scripts.Runtime.Net
         private bool _isHasData = false;
 
         private Queue<MsgQueueData> _sendMsgQueue = new Queue<MsgQueueData>();
+        
+        /// <summary>
+        /// 断线后 备份未发送完毕的消息
+        /// </summary>
+        private Queue<MsgQueueData> _backupMsgQueue = new Queue<MsgQueueData>();
         private bool _isSending = false;
 
         public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt, int maxMsgContentLen)
@@ -128,6 +133,26 @@ namespace Engine.Scripts.Runtime.Net
             OnShutdown?.Invoke(Key);
         }
 
+        /// <summary>
+        /// 是否有上次未发送成功备份的消息
+        /// </summary>
+        /// <returns></returns>
+        public bool HasBackupMsg()
+        {
+            return _backupMsgQueue.Count > 0;
+        }
+
+        /// <summary>
+        /// 开始发送上次未发送成功备份的消息
+        /// </summary>
+        public void SendBackupMsg()
+        {
+            while (_backupMsgQueue.Count > 0)
+                _sendMsgQueue.Enqueue(_backupMsgQueue.Dequeue());
+
+            TrySendMsg();
+        }
+
         public void SendMsg(ushort protoId, byte[] bytes, object userData = null)
         {
             if (bytes.Length > MaxMsgContentLen)
@@ -158,6 +183,18 @@ namespace Engine.Scripts.Runtime.Net
             if (_sendMsgQueue.Count == 0)
                 return;
 
+            // 判断tcp连接失效
+            if (!IsSocketAvailable())
+            {
+                // 备份后续未发送的消息
+                while (_sendMsgQueue.Count > 0)
+                    _backupMsgQueue.Enqueue(_sendMsgQueue.Dequeue());
+                
+                _sendMsgQueue.Clear();
+                
+                return;
+            }
+
             var data = _sendMsgQueue.Dequeue();
             
             var bytes = MsgPack.Pack(data.NetMsg, IsEncrypt);
@@ -172,6 +209,21 @@ namespace Engine.Scripts.Runtime.Net
             catch (Exception e)
             {
                 Log.Error($"Send message failed. {e.Message}");
+
+                // 判断tcp连接失效
+                if (!IsSocketAvailable())
+                {
+                    _backupMsgQueue.Clear();
+                    
+                    // 备份当前失败消息
+                    _backupMsgQueue.Enqueue(data);
+
+                    // 备份后续未发送的消息
+                    while (_sendMsgQueue.Count > 0)
+                        _backupMsgQueue.Enqueue(_sendMsgQueue.Dequeue());
+                
+                    _sendMsgQueue.Clear();
+                }
             }
             
             _isSending = false;
@@ -180,6 +232,11 @@ namespace Engine.Scripts.Runtime.Net
             OnSendData?.Invoke(data.NetMsg, data.UserData);
 
             TrySendMsg();
+        }
+
+        bool IsSocketAvailable()
+        {
+            return Socket != null && Socket.Connected;
         }
 
         protected void AddMsgId()
