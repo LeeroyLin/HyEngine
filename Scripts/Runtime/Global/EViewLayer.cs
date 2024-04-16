@@ -7,6 +7,7 @@
         Alert = 300,
         Mask = 400,
         GM = 500,
-        Tips = 600,
+        System = 600,
+        Tips = 700,
     }
 }
