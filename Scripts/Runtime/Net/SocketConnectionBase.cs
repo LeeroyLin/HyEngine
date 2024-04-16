@@ -47,6 +47,11 @@ namespace Engine.Scripts.Runtime.Net
         private Queue<MsgQueueData> _backupMsgQueue = new Queue<MsgQueueData>();
         private bool _isSending = false;
 
+        /// <summary>
+        /// 记录发送中未回复的msgId
+        /// </summary>
+        private HashSet<int> _sendingMsgId = new HashSet<int>();
+
         public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt, int maxMsgContentLen)
         {
             Key = GetKey(host, port);
@@ -70,6 +75,8 @@ namespace Engine.Scripts.Runtime.Net
 
         public async void Connect()
         {
+            _sendingMsgId.Clear();
+            
             Log.Log($"Start connect to {Host}:{Port}");
             
             try
@@ -200,7 +207,11 @@ namespace Engine.Scripts.Runtime.Net
             var bytes = MsgPack.Pack(data.NetMsg, IsEncrypt);
             
             _isSending = true;
-            OnSending?.Invoke(true);
+
+            _sendingMsgId.Add(data.NetMsg.MsgId);
+
+            if (_sendingMsgId.Count > 0)
+                OnSending?.Invoke(true);
             
             try
             {
@@ -227,7 +238,6 @@ namespace Engine.Scripts.Runtime.Net
             }
             
             _isSending = false;
-            OnSending?.Invoke(false);
             
             OnSendData?.Invoke(data.NetMsg, data.UserData);
 
@@ -388,6 +398,10 @@ namespace Engine.Scripts.Runtime.Net
             _isHasData = false;
 
             var msg = MsgPack.UnPackContent(_buffer, IsEncrypt);
+            
+            _sendingMsgId.Remove(msg.MsgId);
+            if (_sendingMsgId.Count == 0)
+                OnSending?.Invoke(false);
             
             // 回调
             OnRecData?.Invoke(msg);
