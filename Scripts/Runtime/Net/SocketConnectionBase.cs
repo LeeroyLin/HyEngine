@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Log;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Net
 {
@@ -238,6 +239,8 @@ namespace Engine.Scripts.Runtime.Net
             }
             
             _isSending = false;
+            
+            Debug.Log($"CCC IsSocketAvailable {IsSocketAvailable()}");
             
             OnSendData?.Invoke(data.NetMsg, data.UserData);
 
