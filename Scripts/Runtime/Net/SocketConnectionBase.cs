@@ -321,6 +321,8 @@ namespace Engine.Scripts.Runtime.Net
                 // 消息超时
                 if (Time.time - kv.Value.SendAt >= MsgTimeout)
                 {
+                    Log.Log($"{Host}:{Port} sending over time {MsgTimeout}.");
+                    
                     _backupMsgQueue.Clear();
                     
                     // 备份后续未发送的消息
