@@ -45,6 +45,8 @@ namespace Engine.Scripts.Runtime.Resource
 
         protected override void OnDisposed()
         {
+            ClearAll();
+            
             RemoveNode();
         }
 
@@ -55,6 +57,13 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="customKey">自定义键</param>
         public void Set(GameObject obj, string customKey = null)
         {
+            if (IsDisposed)
+            {
+                // 直接销毁
+                _destroyHandler?.Invoke(obj);
+                return;
+            }
+            
             // 获得资源数据
             AssetData data = obj.GetComponent<AssetData>();
 

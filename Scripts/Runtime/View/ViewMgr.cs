@@ -58,6 +58,8 @@ namespace Engine.Scripts.Runtime.View
         protected override void OnDisposed()
         {
             DisposeAll();
+            
+            TimerMgr.Ins.RemoveLateUpdate(OnTimer);
         }
 
         /// <summary>

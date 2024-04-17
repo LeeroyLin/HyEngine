@@ -14,7 +14,10 @@ namespace Engine.Scripts.Runtime.Model
         {
             NetEventGroup = new EventGroup(EEventGroup.Net);
             GameEventGroup = new EventGroup(EEventGroup.GameLogic);
-            
+        }
+
+        public void Init()
+        {
             OnRegNetEvents();
             OnRegGameEvents();
             
@@ -30,6 +33,14 @@ namespace Engine.Scripts.Runtime.Model
    
             OnRegNetEvents();
             OnRegGameEvents();
+        }
+        
+        public void Dispose()
+        {
+            NetEventGroup.ClearCurrentAllEvents();
+            GameEventGroup.ClearCurrentAllEvents();
+         
+            OnReset();
         }
 
         protected abstract void InitData();

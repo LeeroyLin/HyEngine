@@ -2,6 +2,8 @@
 {
     public interface IModel
     {
+        void Init();
         void Reset();
+        void Dispose();
     }
 }

@@ -26,6 +26,7 @@ namespace Engine.Scripts.Runtime.Cfg
 
         protected override void OnDisposed()
         {
+            _i18nCfgDic.Clear();
         }
 
         /// <summary>

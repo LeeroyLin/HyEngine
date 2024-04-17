@@ -25,6 +25,8 @@ namespace Engine.Scripts.Runtime.Manager
                 return;
             
             IsDisposed = true;
+
+            OnDisposed();
         }
         
         protected abstract void OnReset();
