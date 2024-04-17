@@ -31,6 +31,8 @@ namespace Engine.Scripts.Runtime.Net
                 foreach (var data in headerData)
                     webRequest.SetRequestHeader(data.Key, data.Value);
 
+            webRequest.timeout = 5000;
+
             try
             {
                 await webRequest.SendWebRequest();
@@ -81,6 +83,8 @@ namespace Engine.Scripts.Runtime.Net
                 foreach (var data in headerData)
                     webRequest.SetRequestHeader(data.Key, data.Value);
 
+            webRequest.timeout = 5000;
+            
             try
             {
                 await webRequest.SendWebRequest();
