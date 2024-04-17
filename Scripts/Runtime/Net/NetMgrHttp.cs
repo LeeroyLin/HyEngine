@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Utils;
 using Newtonsoft.Json;
 using UnityEngine.Networking;
@@ -31,7 +30,7 @@ namespace Engine.Scripts.Runtime.Net
                 foreach (var data in headerData)
                     webRequest.SetRequestHeader(data.Key, data.Value);
 
-            webRequest.timeout = 5000;
+            webRequest.timeout = 5;
 
             try
             {
@@ -83,7 +82,7 @@ namespace Engine.Scripts.Runtime.Net
                 foreach (var data in headerData)
                     webRequest.SetRequestHeader(data.Key, data.Value);
 
-            webRequest.timeout = 5000;
+            webRequest.timeout = 5;
             
             try
             {
