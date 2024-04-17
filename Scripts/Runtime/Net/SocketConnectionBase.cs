@@ -113,6 +113,8 @@ namespace Engine.Scripts.Runtime.Net
 
             StartReceive();
 
+            StartCheckSendingOverTime();
+
             OnConnected?.Invoke(Key);
         }
 
@@ -288,10 +290,7 @@ namespace Engine.Scripts.Runtime.Net
 
             while (Socket != null && Socket.Connected)
             {
-                await Task.Delay(1);
-                
-                // 检测发送消息是否超时
-                CheckSendingOverTime();
+                await Task.Yield();
 
                 var isContinue = true;
                 
@@ -314,28 +313,31 @@ namespace Engine.Scripts.Runtime.Net
             Log.Log($"Finish receive server msg data.");
         }
 
-        void CheckSendingOverTime()
+        async void StartCheckSendingOverTime()
         {
-            foreach (var kv in _sendingMsgId)
+            while (Socket != null && Socket.Connected)
             {
-                Log.Log($"CCC {Host}:{Port} sending time {Time.time}-{kv.Value.SendAt} >=? {Time.time - kv.Value.SendAt}.");
+                await Task.Yield();
                 
-                // 消息超时
-                if (Time.time - kv.Value.SendAt >= MsgTimeout)
+                foreach (var kv in _sendingMsgId)
                 {
-                    Log.Log($"{Host}:{Port} sending over time {MsgTimeout}.");
+                    // 消息超时
+                    if (Time.time - kv.Value.SendAt >= MsgTimeout)
+                    {
+                        Log.Log($"{Host}:{Port} sending over time {MsgTimeout}.");
                     
-                    _backupMsgQueue.Clear();
+                        _backupMsgQueue.Clear();
                     
-                    // 备份后续未发送的消息
-                    while (_sendMsgQueue.Count > 0)
-                        _backupMsgQueue.Enqueue(_sendMsgQueue.Dequeue());
+                        // 备份后续未发送的消息
+                        while (_sendMsgQueue.Count > 0)
+                            _backupMsgQueue.Enqueue(_sendMsgQueue.Dequeue());
                 
-                    _sendMsgQueue.Clear();
+                        _sendMsgQueue.Clear();
                     
-                    Shutdown();
+                        Shutdown();
                     
-                    break;
+                        break;
+                    }
                 }
             }
         }
