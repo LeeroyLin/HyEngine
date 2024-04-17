@@ -56,6 +56,11 @@ namespace Engine.Scripts.Runtime.Audio
             _musicSource.mute = isMute;
         }
 
+        public void SetMusicVolume(float volume)
+        {
+            _musicSource.volume = volume;
+        }
+
         public void SetSoundMute(bool isMute)
         {
             IsMuteSound = isMute;
