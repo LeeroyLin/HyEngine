@@ -318,6 +318,8 @@ namespace Engine.Scripts.Runtime.Net
         {
             foreach (var kv in _sendingMsgId)
             {
+                Log.Log($"CCC {Host}:{Port} sending time {Time.time}-{kv.Value.SendAt} >=? {Time.time - kv.Value.SendAt}.");
+                
                 // 消息超时
                 if (Time.time - kv.Value.SendAt >= MsgTimeout)
                 {
