@@ -21,9 +21,6 @@ namespace Engine.Scripts.Runtime.Manager
         
         public void Dispose()
         {
-            if (IsDisposed)
-                return;
-            
             IsDisposed = true;
 
             OnDisposed();
