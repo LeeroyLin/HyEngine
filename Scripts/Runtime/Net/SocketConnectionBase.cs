@@ -66,6 +66,7 @@ namespace Engine.Scripts.Runtime.Net
             MaxMsgContentLen = maxMsgContentLen;
             
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket.SendTimeout = 10000;
             MsgId = 0;
         }
 
