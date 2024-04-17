@@ -38,8 +38,7 @@ namespace Engine.Scripts.Runtime.Net
 
         protected override void OnReset()
         {
-            ClearConnDic();
-            _mainConnKey = null;
+            ShutdownAllConn();
         }
 
         protected override void OnDisposed()
@@ -141,6 +140,16 @@ namespace Engine.Scripts.Runtime.Net
                 conn.Shutdown();
             
             _connDic.Clear();
+        }
+
+        void ShutdownAllConn()
+        {
+            var list = new List<SocketConnectionBase>();
+            foreach (var info in _connDic)
+                list.Add(info.Value);
+
+            foreach (var conn in list)
+                conn.Shutdown();
         }
         
         void OnConnShutdown(string key)

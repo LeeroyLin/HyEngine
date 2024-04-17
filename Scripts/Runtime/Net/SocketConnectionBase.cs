@@ -12,6 +12,18 @@ namespace Engine.Scripts.Runtime.Net
         public NetMsg NetMsg { get; set; }
         public object UserData { get; set; }
     }
+
+    struct SendingMsgInfo
+    {
+        public int MsgId { get; private set; }
+        public float SendAt { get; private set; }
+
+        public SendingMsgInfo(int msgId)
+        {
+            MsgId = msgId;
+            SendAt = Time.time;
+        }
+    }
     
     public abstract class SocketConnectionBase : ISocketConnection
     {
@@ -20,6 +32,7 @@ namespace Engine.Scripts.Runtime.Net
         public int Port { get; private set; }
         public Socket Socket { get; private set; }
         public bool IsEncrypt { get; private set; }
+        public float MsgTimeout { get; private set; }
         
         public Action<string> OnConnected { get; set; }
         public Action<string> OnConnectFailed { get; set; }
@@ -49,11 +62,11 @@ namespace Engine.Scripts.Runtime.Net
         private bool _isSending = false;
 
         /// <summary>
-        /// 记录发送中未回复的msgId
+        /// 记录发送中未回复的msgId和时间
         /// </summary>
-        private HashSet<int> _sendingMsgId = new HashSet<int>();
+        private Dictionary<int, SendingMsgInfo> _sendingMsgId = new Dictionary<int, SendingMsgInfo>();
 
-        public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt, int maxMsgContentLen)
+        public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt, int maxMsgContentLen, float msgTimeout)
         {
             Key = GetKey(host, port);
             
@@ -67,7 +80,9 @@ namespace Engine.Scripts.Runtime.Net
             
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             Socket.SendTimeout = 10000;
+            Socket.ReceiveTimeout = 10000;
             MsgId = 0;
+            MsgTimeout = msgTimeout;
         }
 
         public static string GetKey(string host, int port)
@@ -195,6 +210,8 @@ namespace Engine.Scripts.Runtime.Net
             // 判断tcp连接失效
             if (!IsSocketAvailable())
             {
+                _backupMsgQueue.Clear();
+
                 // 备份后续未发送的消息
                 while (_sendMsgQueue.Count > 0)
                     _backupMsgQueue.Enqueue(_sendMsgQueue.Dequeue());
@@ -210,7 +227,7 @@ namespace Engine.Scripts.Runtime.Net
             
             _isSending = true;
 
-            _sendingMsgId.Add(data.NetMsg.MsgId);
+            _sendingMsgId.Add(data.NetMsg.MsgId, new SendingMsgInfo(data.NetMsg.MsgId));
 
             if (_sendingMsgId.Count > 0)
                 OnSending?.Invoke(true);
@@ -240,8 +257,6 @@ namespace Engine.Scripts.Runtime.Net
             }
             
             _isSending = false;
-            
-            Debug.Log($"CCC IsSocketAvailable {IsSocketAvailable()}");
             
             OnSendData?.Invoke(data.NetMsg, data.UserData);
 
@@ -274,6 +289,9 @@ namespace Engine.Scripts.Runtime.Net
             while (Socket != null && Socket.Connected)
             {
                 await Task.Delay(1);
+                
+                // 检测发送消息是否超时
+                CheckSendingOverTime();
 
                 var isContinue = true;
                 
@@ -294,6 +312,28 @@ namespace Engine.Scripts.Runtime.Net
             }
             
             Log.Log($"Finish receive server msg data.");
+        }
+
+        void CheckSendingOverTime()
+        {
+            foreach (var kv in _sendingMsgId)
+            {
+                // 消息超时
+                if (Time.time - kv.Value.SendAt >= MsgTimeout)
+                {
+                    _backupMsgQueue.Clear();
+                    
+                    // 备份后续未发送的消息
+                    while (_sendMsgQueue.Count > 0)
+                        _backupMsgQueue.Enqueue(_sendMsgQueue.Dequeue());
+                
+                    _sendMsgQueue.Clear();
+                    
+                    Shutdown();
+                    
+                    break;
+                }
+            }
         }
 
         void ResetStream()
