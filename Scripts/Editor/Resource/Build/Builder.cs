@@ -38,10 +38,10 @@ namespace Engine.Scripts.Editor.Resource.Build
                 if (_buildCmdConfig.platform != BuildTarget.Android)
                     throw new Exception("Wrong platform");
 
-                SetAndroidSettings(false, _buildCmdConfig.isDevBuild);
+                SetAndroidSettings(false);
 
                 // 打包apk
-                BuildApk($"{fullVer}/{_buildCmdConfig.name}_{_buildCmdConfig.env}_{fullVer}");
+                BuildApk(_buildCmdConfig.isDevBuild, $"{fullVer}/{_buildCmdConfig.name}_{_buildCmdConfig.env}_{fullVer}");
             }
             
             if (_buildCmdConfig.isAAB)
@@ -49,14 +49,14 @@ namespace Engine.Scripts.Editor.Resource.Build
                 if (_buildCmdConfig.platform != BuildTarget.Android)
                     throw new Exception("Wrong platform");
 
-                SetAndroidSettings(true, _buildCmdConfig.isDevBuild);
+                SetAndroidSettings(true);
 
                 // 打包aab
                 BuildAAB($"{fullVer}/{_buildCmdConfig.name}_{_buildCmdConfig.env}_{fullVer}");
             }
         }
 
-        static void SetAndroidSettings(bool isAAB, bool isDevBuild)
+        static void SetAndroidSettings(bool isAAB)
         {
             PlayerSettings.bundleVersion = _buildCmdConfig.version;
             PlayerSettings.Android.useCustomKeystore = true;
@@ -69,11 +69,10 @@ namespace Engine.Scripts.Editor.Resource.Build
             PlayerSettings.Android.keyaliasPass = conf.buildConfig.keyaliasPass;
 
             EditorUserBuildSettings.buildAppBundle = isAAB;
-            EditorUserBuildSettings.development = isDevBuild;
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
         }
         
-        public static void BuildApk(string relPath = "")
+        public static void BuildApk(bool isDevBuild, string relPath = "")
         {
             List<string> levels = new List<string>();
             
@@ -86,9 +85,18 @@ namespace Engine.Scripts.Editor.Resource.Build
 
             if (string.IsNullOrEmpty(relPath))
                 relPath = TimeUtilBase.GetLocalTimeMS() + "";
+
+            var buildOptions = BuildOptions.None;
+
+            if (isDevBuild)
+            {
+                buildOptions |= BuildOptions.Development;
+                buildOptions |= BuildOptions.AllowDebugging;
+                buildOptions |= BuildOptions.ConnectWithProfiler;
+            }
             
             var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{relPath}.apk", 
-                BuildTarget.Android, BuildOptions.None);
+                BuildTarget.Android, buildOptions);
 
             if (res.summary.result != BuildResult.Succeeded)
                 throw new Exception("Build apk failed.");
