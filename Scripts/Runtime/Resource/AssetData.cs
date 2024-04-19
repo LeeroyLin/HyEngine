@@ -6,11 +6,9 @@ namespace Engine.Scripts.Runtime.Resource
     {
         public string relPath;
 
-        public void Dispose()
+        private void OnDestroy()
         {
-            ResMgr.Ins.ReduceABRef(relPath);
-            
-            Object.Destroy(gameObject);
+            ResMgr.Ins.ReduceAssetRef(relPath);
         }
     }
 }

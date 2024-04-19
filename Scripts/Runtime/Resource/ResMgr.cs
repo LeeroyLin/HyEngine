@@ -40,6 +40,9 @@ namespace Engine.Scripts.Runtime.Resource
         // 最大异步加载ab数
         private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
         
+        // ab无引用后的销毁时间
+        private static readonly int NO_REF_UNLOAD_TIME = 30;
+        
         private static ABManifest _manifest;
         
         // 记录已加载的ab，键名为ab名
@@ -76,6 +79,9 @@ namespace Engine.Scripts.Runtime.Resource
         protected override void OnReset()
         {
             OnAssetReset();
+
+            foreach (var data in _asyncLoadABWaitingList)
+                data.Info.ReduceRef();
             
             _asyncLoadABWaitingList.Clear();
             _asyncLoadABCnt = 0;
@@ -147,10 +153,11 @@ namespace Engine.Scripts.Runtime.Resource
         }
 
         /// <summary>
-        /// 减少AB引用
+        /// 增加AB引用
         /// </summary>
         /// <param name="relPath">相对资源目录的资源路径</param>
-        public void ReduceABRef(string relPath)
+        /// <param name="delta"></param>
+        public void AddABRef(string relPath, int delta = 1)
         {
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
@@ -159,7 +166,24 @@ namespace Engine.Scripts.Runtime.Resource
             var abName = RelPath2ABName(relPath, out _, out _);
 
             if (_abDic.TryGetValue(abName, out var ab))
-                ab.ReduceRef();
+                ab.AddRef(delta);
+        }
+
+        /// <summary>
+        /// 减少AB引用
+        /// </summary>
+        /// <param name="relPath">相对资源目录的资源路径</param>
+        /// <param name="delta"></param>
+        public void ReduceABRef(string relPath, int delta = 1)
+        {
+            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
+                return;
+            
+            // ab名
+            var abName = RelPath2ABName(relPath, out _, out _);
+
+            if (_abDic.TryGetValue(abName, out var ab))
+                ab.ReduceRef(delta);
         }
 
         /// <summary>
@@ -210,6 +234,9 @@ namespace Engine.Scripts.Runtime.Resource
                 switch (abInfo.ABState)
                 {
                     case EABState.Loaded:
+                        // 引用计数
+                        abInfo.AddRef();
+                        
                         return abInfo.AB;
                     case EABState.SyncLoading:
                         return null;
@@ -244,9 +271,12 @@ namespace Engine.Scripts.Runtime.Resource
             
             // 加载
             AssetBundle ab = AssetBundle.LoadFromFile(abPath);
-
+                
             abInfo.AB = ab;
             abInfo.ABState = EABState.Loaded;
+            
+            // 引用计数
+            abInfo.AddRef();
 
             // 完成后的回调
             abInfo.OnLoaded?.Invoke(ab);
@@ -315,6 +345,9 @@ namespace Engine.Scripts.Runtime.Resource
                 switch (abInfo.ABState)
                 {
                     case EABState.Loaded:
+                        // 引用计数
+                        abInfo.AddRef();
+                        
                         callback(abInfo.AB);
                         return;
                     case EABState.SyncLoading:
@@ -347,6 +380,9 @@ namespace Engine.Scripts.Runtime.Resource
                 abInfo.OnLoaded += callback;
                 _abDic.Add(abName, abInfo);
             }
+            
+            // 引用计数
+            abInfo.AddRef();
 
             // 加载依赖
             LoadABDepsAsync(abName, isPackage, () =>
@@ -393,6 +429,8 @@ namespace Engine.Scripts.Runtime.Resource
 
         private void OnTimer()
         {
+            CheckLRU();
+            
             OnABTimer();
             OnAssetTimer();
 
@@ -518,6 +556,37 @@ namespace Engine.Scripts.Runtime.Resource
             }
             
             _asyncLoadABWaitingList.RemoveRange(0, num);
+        }
+
+        /// <summary>
+        /// LRU处理ab销毁
+        /// </summary>
+        private void CheckLRU()
+        {
+            _removeList.Clear();
+            
+            foreach (var kv in _abDic)
+            {
+                if (kv.Value.RefCnt == 0 && Time.time - kv.Value.NoRefAt >= NO_REF_UNLOAD_TIME)
+                {
+                    // 记录销毁
+                    _removeList.Add(kv.Key);
+                }
+            }
+
+            foreach (var key in _removeList)
+            {
+                var info = _abDic[key];
+                
+                // 删除数据
+                _abDic.Remove(key);
+                
+                if (!info.IsLoaded)
+                    continue;
+                
+                // 卸载ab
+                info.AB.Unload(true);
+            }
         }
         
         /// <summary>

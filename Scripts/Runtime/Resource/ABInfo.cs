@@ -8,6 +8,11 @@ namespace Engine.Scripts.Runtime.Resource
     { 
         // 引用计数
         public int RefCnt { get; private set; }
+        
+        /// <summary>
+        /// 无引用的时间，Time.time值。有引用后再次无引用会刷新该时间。
+        /// </summary>
+        public float NoRefAt { get; private set; }
 
         // 无引用后回调，只有在之前有引用，第一次无引用时才调用
         public Action OnNoRef { get; set; }
@@ -54,6 +59,7 @@ namespace Engine.Scripts.Runtime.Resource
             if (!isLastNoRef && IsNoRef)
             {
                 OnNoRef?.Invoke();
+                NoRefAt = Time.time;
             }
         }
 

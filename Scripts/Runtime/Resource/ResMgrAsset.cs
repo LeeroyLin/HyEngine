@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Engine.Scripts.Runtime.Global;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -54,8 +55,56 @@ namespace Engine.Scripts.Runtime.Resource
 
         private int _asyncLoadAssetCnt = 0;
 
+        /// <summary>
+        /// 增加Asset引用
+        /// </summary>
+        /// <param name="relPath">相对资源目录的资源路径</param>
+        /// <param name="delta"></param>
+        public void AddAssetRef(string relPath, int delta = 1)
+        {
+            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
+                return;
+            
+            if (_assetDic.TryGetValue(relPath, out var info))
+                info.AddRef();
+            
+            AddABRef(relPath);
+        }
+
+        /// <summary>
+        /// 减少Asset引用
+        /// </summary>
+        /// <param name="relPath">相对资源目录的资源路径</param>
+        /// <param name="delta"></param>
+        public void ReduceAssetRef(string relPath, int delta = 1)
+        {
+            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
+                return;
+
+            if (_assetDic.TryGetValue(relPath, out var info))
+                info.ReduceRef();
+            
+            ReduceABRef(relPath);
+        }
+        
         protected void OnAssetReset()
         {
+            foreach (var data in _asyncLoadAssetWaitingList)
+            {
+                if (data.Info.RefCnt > 0)
+                    ReduceABRef(data.RelPath, data.Info.RefCnt);
+                
+                _assetDic.Remove(data.RelPath);
+            }
+
+            foreach (var data in _asyncInstantiateWaitingList)
+            {
+                if (_assetDic.TryGetValue(data.RelPath, out var info))
+                    info.ReduceRef();
+                
+                ReduceABRef(data.RelPath);
+            }
+            
             _asyncLoadAssetWaitingList.Clear();
             _asyncInstantiateWaitingList.Clear();
             _asyncLoadAssetCnt = 0;
@@ -63,9 +112,7 @@ namespace Engine.Scripts.Runtime.Resource
 
         protected void OnAssetDisposed()
         {
-            _asyncLoadAssetWaitingList.Clear();
-            _asyncInstantiateWaitingList.Clear();
-            _asyncLoadAssetCnt = 0;
+            OnAssetReset();
         }
         
         private void OnAssetTimer()
@@ -172,9 +219,15 @@ namespace Engine.Scripts.Runtime.Resource
             // 是否已经有
             if (_assetDic.TryGetValue(relPath, out var info))
             {
+                // 增加资源引用
+                info.AddRef();
+
                 switch (info.AssetState)
                 {
                     case EAssetState.Loaded:
+                        // 增加ab引用
+                        AddABRef(relPath);
+
                         return AssetPost(info.Asset as T, relPath);
                     case EAssetState.SyncLoading:
                         return null;
@@ -200,6 +253,9 @@ namespace Engine.Scripts.Runtime.Resource
             {
                 info = new AssetInfo(EAssetState.SyncLoading, isAtlas);
                 _assetDic.Add(relPath, info);
+                
+                // 增加资源引用
+                info.AddRef();
             }
 
             T newAsset = null;
@@ -252,6 +308,12 @@ namespace Engine.Scripts.Runtime.Resource
             // 是否已经有
             if (_assetDic.TryGetValue(relPath, out var info))
             {
+                // 增加资源引用
+                info.AddRef();
+                
+                // ab引用计数
+                AddABRef(relPath);
+
                 switch (info.AssetState)
                 {
                     case EAssetState.Loaded:
@@ -286,6 +348,9 @@ namespace Engine.Scripts.Runtime.Resource
                         callback(o as T);
                 };
                 _assetDic.Add(relPath, info);
+                
+                // 增加资源引用
+                info.AddRef();
             }
             
             if (isAtlas)
@@ -457,15 +522,6 @@ namespace Engine.Scripts.Runtime.Resource
             }
             
             return asset;
-        }
-
-        /// <summary>
-        /// 减少资源引用
-        /// </summary>
-        /// <param name="relPath"></param>
-        private void ReduceAssetRef(string relPath)
-        {
-            ReduceABRef(relPath);
         }
 
         // 通过相对路径获得资源名
