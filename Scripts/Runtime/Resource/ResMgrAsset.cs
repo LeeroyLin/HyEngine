@@ -311,7 +311,7 @@ namespace Engine.Scripts.Runtime.Resource
                 // 增加资源引用
                 info.AddRef();
                 
-                // ab引用计数
+                // 增加ab引用
                 AddABRef(relPath);
 
                 switch (info.AssetState)
@@ -425,6 +425,20 @@ namespace Engine.Scripts.Runtime.Resource
             var extension = Path.GetExtension(relPath);
             var path = relPath.Replace(extension, "");
             return Resources.Load(path, systemTypeInstance);
+        }
+
+        void AddAtlasABRef(string atlasName)
+        {
+            var abRelPath = $"Atlas/{atlasName}";
+
+            AddABRef(abRelPath);
+        }
+
+        void ReduceAtlasABRef(string atlasName)
+        {
+            var abRelPath = $"Atlas/{atlasName}";
+
+            ReduceABRef(abRelPath);
         }
 
         T TryGetSpriteFromAtlas<T>(string atlasName, string spriteName) where T: Object
