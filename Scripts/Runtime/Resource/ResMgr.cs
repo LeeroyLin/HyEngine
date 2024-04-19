@@ -300,6 +300,14 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="callback"></param>
         public void LoadABAsyncWithABName(string abName, bool isInGame, bool isPackage, Action<AssetBundle> callback)
         {
+            if (_resLoadMode != EResLoadMode.AB && _resLoadMode != EResLoadMode.PackageAB)
+            {
+#if UNITY_EDITOR
+                callback(null);
+#endif
+                return;
+            }
+
             var abPath = $"{(isPackage ? PACKAGE_BUNDLE_PATH : RUNTIME_BUNDLE_PATH)}/{abName}";
 
             if (_abDic.TryGetValue(abName, out var abInfo))
