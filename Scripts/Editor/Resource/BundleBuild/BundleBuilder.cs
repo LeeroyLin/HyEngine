@@ -620,8 +620,6 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         // 检测图集图片
         private static void CheckAtlasImg(string assetName)
         {
-            return;
-            
             var relPath = PathUtil.AbsolutePath2AssetsPath(assetName);
             
             var extension = Path.GetExtension(relPath);
