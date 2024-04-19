@@ -5,6 +5,18 @@ using UnityEngine;
 
 namespace Engine.Scripts.Runtime.Resource
 {
+    struct CacheInfo
+    {
+        public Transform trans;
+        public float cacheAt;
+
+        public CacheInfo(Transform trans)
+        {
+            this.trans = trans;
+            cacheAt = Time.time;
+        }
+    }
+    
     public class PoolData
     {
         /// <summary>
@@ -16,11 +28,6 @@ namespace Engine.Scripts.Runtime.Resource
         /// 键名
         /// </summary>
         public string Key;
-
-        /// <summary>
-        /// 存储变换组件的列表
-        /// </summary>
-        public List<Transform> listTrans;
 
         /// <summary>
         /// 存储节点
@@ -37,13 +44,23 @@ namespace Engine.Scripts.Runtime.Resource
         /// 超过该值后则直接销毁
         /// </summary>
         public int Capacity { get; private set; }
+        
+        /// <summary>
+        /// 缓存最大时间，缓存超过这个时间则销毁
+        /// </summary>
+        public float CacheMaxTime { get; private set; }
+        
+        /// <summary>
+        /// 最少缓存数，低于这个缓存值不会自动随时间销毁
+        /// </summary>
+        public int MinCacheNum { get; private set; }
 
         /// <summary>
         /// 是否满了
         /// </summary>
         public bool IsFull
         {
-            get { return listTrans == null || listTrans.Count >= Capacity; }
+            get { return _listCache == null || _listCache.Count >= Capacity; }
         }
         
         /// <summary>
@@ -56,14 +73,21 @@ namespace Engine.Scripts.Runtime.Resource
         private Func<string, Task<GameObject>> _createAsyncHandler;
 
         /// <summary>
+        /// 存储缓存信息的列表
+        /// </summary>
+        List<CacheInfo> _listCache;
+
+        /// <summary>
         /// 构造方法
         /// </summary>
         /// <param name="key">键名</param>
+        /// <param name="cacheMaxTime">缓存最大时间，缓存超过这个时间则销毁</param>
+        /// <param name="minCacheNum">最少缓存数，低于这个缓存值不会自动随时间销毁</param>
         /// <param name="poolRoot">对象池根节点</param>
         /// <param name="destroyHandler">对象移除方法</param>
         /// <param name="createHandler">对象创建方法</param>
         /// <param name="createAsyncHandler">对象创建方法</param>
-        public PoolData(string key, Transform poolRoot, Action<GameObject> destroyHandler, 
+        public PoolData(string key, float cacheMaxTime, int minCacheNum, Transform poolRoot, Action<GameObject> destroyHandler, 
             Func<string, GameObject> createHandler, Func<string, Task<GameObject>> createAsyncHandler)
         {
             _destroyHandler = destroyHandler;
@@ -72,7 +96,9 @@ namespace Engine.Scripts.Runtime.Resource
             PoolRoot = poolRoot;
             
             Key = key;
-            listTrans = new List<Transform>();
+            CacheMaxTime = cacheMaxTime;
+            MinCacheNum = minCacheNum;
+            _listCache = new List<CacheInfo>();
             Capacity = PoolMgr.DEFAULT_CAPACITY;
             IsNeedHide = true;
         }
@@ -84,6 +110,22 @@ namespace Engine.Scripts.Runtime.Resource
         public void SetCapacity(int capacity)
         {
             Capacity = capacity;
+        }
+
+        /// <summary>
+        /// 设置缓存最大时间，缓存超过这个时间则销毁
+        /// </summary>
+        public void SetCacheMaxTime(float cacheMaxTime)
+        {
+            CacheMaxTime = cacheMaxTime;
+        }
+
+        /// <summary>
+        /// 设置最少缓存数，低于这个缓存值不会自动随时间销毁
+        /// </summary>
+        public void SetMinCacheNum(int minCacheNum)
+        {
+            MinCacheNum = minCacheNum;
         }
 
         /// <summary>
@@ -135,7 +177,7 @@ namespace Engine.Scripts.Runtime.Resource
             }
 
             // 记录
-            listTrans.Add(trans);
+            _listCache.Add(new CacheInfo(trans));
         }
 
         /// <summary>
@@ -144,16 +186,16 @@ namespace Engine.Scripts.Runtime.Resource
         /// <returns></returns>
         public GameObject TryGet()
         {
-            if (listTrans.Count == 0)
+            if (_listCache.Count == 0)
                 return _createHandler?.Invoke(Key);
 
             // 取出最后一个
-            Transform node = listTrans[listTrans.Count - 1];
+            var info = _listCache[_listCache.Count - 1];
 
             // 去除数据
-            listTrans.RemoveAt(listTrans.Count - 1);
+            _listCache.RemoveAt(_listCache.Count - 1);
 
-            var obj = node.gameObject;
+            var obj = info.trans.gameObject;
 
             if (IsNeedHide)
             {
@@ -170,18 +212,18 @@ namespace Engine.Scripts.Runtime.Resource
         /// <returns></returns>
         public async Task<GameObject> TryGetAsync()
         {
-            if (listTrans.Count == 0)
+            if (_listCache.Count == 0)
                 return await _createAsyncHandler(Key);
 
             // 取出最后一个
-            Transform node = listTrans[listTrans.Count - 1];
+            var info = _listCache[_listCache.Count - 1];
 
             // 去除数据
-            listTrans.RemoveAt(listTrans.Count - 1);
+            _listCache.RemoveAt(_listCache.Count - 1);
 
-            node.SetParent(null);
+            info.trans.SetParent(null);
 
-            var obj = node.gameObject;
+            var obj = info.trans.gameObject;
             
             // 显示
             obj.SetActive(true);
@@ -194,20 +236,49 @@ namespace Engine.Scripts.Runtime.Resource
         /// </summary>
         public void Clear()
         {
-            if (listTrans.Count == 0)
+            if (_listCache.Count == 0)
                 return;
 
-            for (int i = listTrans.Count - 1; i >= 0; i--)
+            for (int i = _listCache.Count - 1; i >= 0; i--)
             {
-                var trans = listTrans[i];
+                var info = _listCache[i];
                 
                 // 销毁节点
-                _destroyHandler?.Invoke(trans.gameObject);
+                _destroyHandler?.Invoke(info.trans.gameObject);
             }
 
             // 重置数据
-            listTrans.Clear();
+            _listCache.Clear();
             SetCapacity(PoolMgr.DEFAULT_CAPACITY);
+        }
+
+        public void Tick(float dt)
+        {
+            if (_listCache.Count <= MinCacheNum)
+                return;
+
+            int canDestroyNum = _listCache.Count - MinCacheNum;
+            int cnt = 0;
+
+            for (int i = _listCache.Count - 1; i >= 0; i--)
+            {
+                var info = _listCache[i];
+
+                // 超时
+                if (Time.time - info.cacheAt >= CacheMaxTime)
+                {
+                    // 销毁节点
+                    _destroyHandler?.Invoke(info.trans.gameObject);
+                    
+                    // 移除数据
+                    _listCache.RemoveAt(i);
+                    
+                    cnt++;
+
+                    if (cnt >= canDestroyNum)
+                        break;
+                }
+            }
         }
     }
 }

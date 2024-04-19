@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Manager;
+using Engine.Scripts.Runtime.Timer;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -13,6 +14,16 @@ namespace Engine.Scripts.Runtime.Resource
         /// 默认容量
         /// </summary>
         public static readonly int DEFAULT_CAPACITY = 10;
+        
+        /// <summary>
+        /// 默认 缓存最大时间，超过该时间则会自动销毁缓存对象
+        /// </summary>
+        public static readonly float DEFAULT_CACHE_MAX_TIME = 20;
+        
+        /// <summary>
+        /// 默认 最小缓存数，缓存个数小于该值不会自动销毁
+        /// </summary>
+        public static readonly int DEFAULT_MIN_CACHE_NUM = 0;
 
         /// <summary>
         /// 对象池根节点
@@ -36,11 +47,16 @@ namespace Engine.Scripts.Runtime.Resource
             _destroyHandler = destroyHandler;
             
             CreateNode();
+            
+            TimerMgr.Ins.UseLateUpdate(OnLateUpdate);
         }
 
         protected override void OnReset()
         {
             ClearAll();
+            
+            TimerMgr.Ins.RemoveLateUpdate(OnLateUpdate);
+            TimerMgr.Ins.UseLateUpdate(OnLateUpdate);
         }
 
         protected override void OnDisposed()
@@ -48,6 +64,8 @@ namespace Engine.Scripts.Runtime.Resource
             ClearAll();
             
             RemoveNode();
+            
+            TimerMgr.Ins.RemoveLateUpdate(OnLateUpdate);
         }
 
         /// <summary>
@@ -86,7 +104,7 @@ namespace Engine.Scripts.Runtime.Resource
             if (!_dicPool.TryGetValue(key, out PoolData poolData))
             {
                 // 创建数据
-                poolData = new PoolData(key, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
+                poolData = new PoolData(key, DEFAULT_CACHE_MAX_TIME, DEFAULT_MIN_CACHE_NUM, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
                 _dicPool.Add(key, poolData);
             }
 
@@ -141,7 +159,7 @@ namespace Engine.Scripts.Runtime.Resource
             // 是否没有数据
             if (!_dicPool.TryGetValue(key, out PoolData poolData))
             {
-                poolData = new PoolData(key, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
+                poolData = new PoolData(key, DEFAULT_CACHE_MAX_TIME, DEFAULT_MIN_CACHE_NUM, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
                 _dicPool.Add(key, poolData);
             }
             
@@ -157,13 +175,43 @@ namespace Engine.Scripts.Runtime.Resource
             // 是否没有数据
             if (!_dicPool.TryGetValue(key, out PoolData poolData))
             {
-                poolData = new PoolData(key, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
+                poolData = new PoolData(key, DEFAULT_CACHE_MAX_TIME, DEFAULT_MIN_CACHE_NUM, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
                 _dicPool.Add(key, poolData);
             }
             
             poolData.SetNeedHide(isNeedHide);
         }
 
+        /// <summary>
+        /// 设置缓存最大时间，缓存超过这个时间则销毁
+        /// </summary>
+        public void SetCacheMaxTime(string key, float cacheMaxTime)
+        {
+            // 是否没有数据
+            if (!_dicPool.TryGetValue(key, out PoolData poolData))
+            {
+                poolData = new PoolData(key, DEFAULT_CACHE_MAX_TIME, DEFAULT_MIN_CACHE_NUM, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
+                _dicPool.Add(key, poolData);
+            }
+
+            poolData.SetCacheMaxTime(cacheMaxTime);
+        }
+
+        /// <summary>
+        /// 设置最少缓存数，低于这个缓存值不会自动随时间销毁
+        /// </summary>
+        public void SetMinCacheNum(string key, int minCacheNum)
+        {
+            // 是否没有数据
+            if (!_dicPool.TryGetValue(key, out PoolData poolData))
+            {
+                poolData = new PoolData(key, DEFAULT_CACHE_MAX_TIME, DEFAULT_MIN_CACHE_NUM, PoolRoot, _destroyHandler, _createHandler, _createAsyncHandler);
+                _dicPool.Add(key, poolData);
+            }
+
+            poolData.SetMinCacheNum(minCacheNum);
+        }
+        
         /// <summary>
         /// 清除指定键名的对象池
         /// </summary>
@@ -210,6 +258,12 @@ namespace Engine.Scripts.Runtime.Resource
                 Object.Destroy(PoolRoot.gameObject);
                 PoolRoot = null;
             }
+        }
+
+        void OnLateUpdate()
+        {
+            foreach (var kv in _dicPool)
+                kv.Value.Tick(Time.deltaTime);
         }
     }
 }
