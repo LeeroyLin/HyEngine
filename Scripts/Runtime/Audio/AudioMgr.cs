@@ -3,9 +3,26 @@ using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace Engine.Scripts.Runtime.Audio
 {
+    struct TimeInfo
+    {
+        public AudioSource AudioSource { get; private set; }
+        public string RelPath { get; private set; }
+        public float StartAt { get; private set; }
+        public float FinishAt { get; private set; }
+
+        public TimeInfo(AudioSource source, string relPath)
+        {
+            AudioSource = source;
+            RelPath = relPath;
+            StartAt = Time.time;
+            FinishAt = StartAt + AudioSource.clip.length;
+        }
+    }
+    
     public class AudioMgr : ManagerBase<AudioMgr>
     {
         private static readonly string AUDIO_NODE_PATH = "Node/Audio.prefab";
@@ -14,8 +31,7 @@ namespace Engine.Scripts.Runtime.Audio
 
         private AudioSource _musicSource;
         private string _currMusic;
-        private Dictionary<AudioSource, string> _soundsDic = new Dictionary<AudioSource, string>();
-        private List<AudioSource> _removeList = new List<AudioSource>();
+        private List<TimeInfo> _soundsList = new List<TimeInfo>();
 
         public bool IsMuteMusic { get; private set; }
         public bool IsMuteSound { get; private set; }
@@ -65,8 +81,8 @@ namespace Engine.Scripts.Runtime.Audio
         {
             IsMuteSound = isMute;
 
-            foreach (var kv in _soundsDic)
-                kv.Key.mute = isMute;
+            foreach (var info in _soundsList)
+                info.AudioSource.mute = isMute;
         }
 
         /// <summary>
@@ -143,7 +159,7 @@ namespace Engine.Scripts.Runtime.Audio
                 source.mute = IsMuteSound;
                 source.Play();
             
-                _soundsDic.Add(source, relPath);
+                _soundsList.Add(new TimeInfo(source, relPath));
             });
         }
 
@@ -165,7 +181,7 @@ namespace Engine.Scripts.Runtime.Audio
             source.mute = IsMuteSound;
             source.Play();
             
-            _soundsDic.Add(source, relPath);
+            _soundsList.Add(new TimeInfo(source, relPath));
         }
         
         /// <summary>
@@ -200,39 +216,32 @@ namespace Engine.Scripts.Runtime.Audio
         /// </summary>
         void ClearSounds()
         {
-            foreach (var info in _soundsDic)
+            foreach (var info in _soundsList)
             {
-                info.Key.clip = null;
-                PoolMgr.Ins.Set(info.Key.gameObject);
+                info.AudioSource.clip = null;
+                PoolMgr.Ins.Set(info.AudioSource.gameObject);
                 
-                ResMgr.Ins.ReduceABRef(info.Value);
+                ResMgr.Ins.ReduceABRef(info.RelPath);
             }
             
-            _removeList.Clear();
-            _soundsDic.Clear();
+            _soundsList.Clear();
         }
 
         void OnUpdate()
         {
-            _removeList.Clear();
-            
-            foreach (var info in _soundsDic)
+            for (int i = _soundsList.Count - 1; i >= 0; i--)
             {
-                if (!info.Key.loop && info.Key.time >= info.Key.maxDistance)
+                var info = _soundsList[i];
+                
+                if (!info.AudioSource.loop && Time.time >= info.FinishAt)
                 {
-                    _removeList.Add(info.Key);
+                    info.AudioSource.clip = null;
+                    PoolMgr.Ins.Set(info.AudioSource.gameObject);
                     
-                    info.Key.clip = null;
-                    PoolMgr.Ins.Set(info.Key.gameObject);
+                    ResMgr.Ins.ReduceABRef(info.RelPath);
                     
-                    ResMgr.Ins.ReduceABRef(info.Value);
+                    _soundsList.RemoveAt(i);
                 }
-            }
-
-            for (int i = _removeList.Count - 1; i >= 0; i--)
-            {
-                var source = _removeList[i];
-                _soundsDic.Remove(source);
             }
         }
 
