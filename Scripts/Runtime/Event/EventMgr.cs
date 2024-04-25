@@ -136,7 +136,7 @@ namespace Engine.Scripts.Runtime.Event
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[EventMgr] callback error: {e.Message} \n {e.StackTrace}");
+                    Debug.LogError($"[EventMgr] callback error: {cb.Target} {e.Message} \n {e.StackTrace}");
                 }
         }
 
