@@ -26,6 +26,8 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
         // 包内 ab资源 根目录
         private static readonly string PACKAGE_AB_DIR = $"{Application.streamingAssetsPath}/AB";
+        // 包 版本路径
+        private static readonly string APK_VERSION_PATH = $"{Application.streamingAssetsPath}/apk_version";
         
         private static BundleConfig _bundleConfig;
         
@@ -225,6 +227,10 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             // 移动包内资源
             if (!MovePackageFiles(buildTarget, results, outputPath))
                 return false;
+            
+            // 记录包版本文件
+            if (!SaveApkVersionFile(APK_VERSION_PATH, finalVersion))
+                return false;
 
             return true;
         }
@@ -269,6 +275,25 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 }
             }
 
+            return true;
+        }
+        
+        // 保存apk版本文件
+        static bool SaveApkVersionFile(string outputPath, string finalVersion)
+        {
+            Log("Save apk version file.");
+
+            try
+            {
+                File.WriteAllText(outputPath, finalVersion);
+            }
+            catch (Exception e)
+            {
+                LogError($"Same apk version file failed. err : {e.Message}");
+
+                return false;
+            }
+            
             return true;
         }
 
