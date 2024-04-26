@@ -30,6 +30,7 @@ namespace Engine.Scripts.Runtime.Global
     {
         public NetConfigHost login = new NetConfigHost();
         public NetConfigHost res = new NetConfigHost();
+        public NetConfigHost record = new NetConfigHost();
     }
 
     [Serializable]
