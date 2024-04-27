@@ -90,7 +90,9 @@ namespace Engine.Scripts.Runtime.Audio
         /// </summary>
         /// <param name="relPath"></param>
         /// <param name="isLoop"></param>
-        public void PlayMusicAsync(string relPath, bool isLoop = true)
+        /// <param name="volume"></param>
+        /// <param name="pitch"></param>
+        public void PlayMusicAsync(string relPath, bool isLoop = true, float volume = 1, float pitch = 1)
         {
             if (relPath == _currMusic)
                 return;
@@ -113,6 +115,8 @@ namespace Engine.Scripts.Runtime.Audio
                 _musicSource.clip = clip;
                 _musicSource.loop = isLoop;
                 _musicSource.mute = IsMuteMusic;
+                _musicSource.volume = volume;
+                _musicSource.pitch = pitch;
                 _musicSource.Play();
             });
         }
@@ -122,7 +126,9 @@ namespace Engine.Scripts.Runtime.Audio
         /// </summary>
         /// <param name="relPath"></param>
         /// <param name="isLoop"></param>
-        public void PlayMusic(string relPath, bool isLoop = true)
+        /// <param name="volume"></param>
+        /// <param name="pitch"></param>
+        public void PlayMusic(string relPath, bool isLoop = true, float volume = 1, float pitch = 1)
         {
             if (relPath == _currMusic)
                 return;
@@ -136,6 +142,8 @@ namespace Engine.Scripts.Runtime.Audio
             _musicSource.clip = clip;
             _musicSource.loop = isLoop;
             _musicSource.mute = IsMuteMusic;
+            _musicSource.volume = volume;
+            _musicSource.pitch = pitch;
             _musicSource.Play();
         }
 
@@ -144,7 +152,9 @@ namespace Engine.Scripts.Runtime.Audio
         /// </summary>
         /// <param name="relPath"></param>
         /// <param name="isLoop"></param>
-        public async void PlaySoundAsync(string relPath, bool isLoop = false)
+        /// <param name="volume"></param>
+        /// <param name="pitch"></param>
+        public async void PlaySoundAsync(string relPath, bool isLoop = false, float volume = 1, float pitch = 1)
         {
             // 加载节点
             var obj = await PoolMgr.Ins.GetAsync(AUDIO_NODE_PATH);
@@ -157,6 +167,8 @@ namespace Engine.Scripts.Runtime.Audio
                 source.clip = clip;
                 source.loop = isLoop;
                 source.mute = IsMuteSound;
+                _musicSource.volume = volume;
+                _musicSource.pitch = pitch;
                 source.Play();
             
                 _soundsList.Add(new TimeInfo(source, relPath));
@@ -168,7 +180,9 @@ namespace Engine.Scripts.Runtime.Audio
         /// </summary>
         /// <param name="relPath"></param>
         /// <param name="isLoop"></param>
-        public void PlaySound(string relPath, bool isLoop = false)
+        /// <param name="volume"></param>
+        /// <param name="pitch"></param>
+        public void PlaySound(string relPath, bool isLoop = false, float volume = 1, float pitch = 1)
         {
             var obj = PoolMgr.Ins.Get(AUDIO_NODE_PATH);
             var source = obj.GetComponent<AudioSource>();
@@ -179,6 +193,8 @@ namespace Engine.Scripts.Runtime.Audio
             source.clip = clip;
             source.loop = isLoop;
             source.mute = IsMuteSound;
+            _musicSource.volume = volume;
+            _musicSource.pitch = pitch;
             source.Play();
             
             _soundsList.Add(new TimeInfo(source, relPath));
