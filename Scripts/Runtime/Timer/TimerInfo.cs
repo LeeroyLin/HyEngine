@@ -91,8 +91,7 @@ namespace Engine.Scripts.Runtime.Timer
             if (_isMarked)
                 return;
 
-            if (CntLimited > 0)
-                _cnt++;
+            _cnt++;
 
             _isMarked = true;
             
