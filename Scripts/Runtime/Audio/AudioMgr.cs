@@ -167,8 +167,8 @@ namespace Engine.Scripts.Runtime.Audio
                 source.clip = clip;
                 source.loop = isLoop;
                 source.mute = IsMuteSound;
-                _musicSource.volume = volume;
-                _musicSource.pitch = pitch;
+                source.volume = volume;
+                source.pitch = pitch;
                 source.Play();
             
                 _soundsList.Add(new TimeInfo(source, relPath));
@@ -193,8 +193,8 @@ namespace Engine.Scripts.Runtime.Audio
             source.clip = clip;
             source.loop = isLoop;
             source.mute = IsMuteSound;
-            _musicSource.volume = volume;
-            _musicSource.pitch = pitch;
+            source.volume = volume;
+            source.pitch = pitch;
             source.Play();
             
             _soundsList.Add(new TimeInfo(source, relPath));
