@@ -43,6 +43,11 @@ namespace Engine.Scripts.Runtime.Net
         {
         }
 
+        public T GetMainConn<T>() where T : SocketConnectionBase
+        {
+            return _connDic[_mainConnKey] as T;
+        }
+
         /// <summary>
         /// 添加主连接
         /// </summary>
