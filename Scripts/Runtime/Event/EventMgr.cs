@@ -13,12 +13,15 @@ namespace Engine.Scripts.Runtime.Event
 
     public class EventMgr : ManagerBase<EventMgr>
     {
+        private static readonly bool _isLogNoRegEvents = false;
+        
         private Dictionary<EEventGroup, Dictionary<string, List<int>>> _eventDic;
         private Dictionary<int, HandlerInfo> _cbDic;
         // 在下一帧再调用
         private List<AsyncInfo> _asyncList;
 
         private LogGroup _log;
+        
 
         public void Init()
         {
@@ -116,7 +119,8 @@ namespace Engine.Scripts.Runtime.Event
             var groupDic = GetGroupDic(group);
             if (!groupDic.TryGetValue(key, out var list))
             {
-                _log.Warning("[Broadcast] Can not find event. {0}", key);
+                if (_isLogNoRegEvents)
+                    _log.Warning("[Broadcast] Can not find event. {0}", key);
                 
                 return;
             }
