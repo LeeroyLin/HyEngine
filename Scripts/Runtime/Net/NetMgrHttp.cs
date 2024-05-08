@@ -59,24 +59,66 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="url">url</param>
         /// <param name="callback">回调</param>
         /// <param name="failedCallback">失败回调</param>
-        /// <param name="formData">表单数据</param>
+        /// <param name="jsonStr">json数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
-        /// <param name="isJson">是否是json格式</param>
-        public async void HttpPost(string url, Action<byte[]> callback, Action failedCallback,
-            Dictionary<string, string> formData = null, 
+        public async void HttpPostJson(string url, Action<byte[]> callback, Action failedCallback,
+            string jsonStr,
             Dictionary<string, string> headerData = null, 
-            Dictionary<string, string> searchStrData = null,
-            bool isJson = true)
+            Dictionary<string, string> searchStrData = null)
         {
             url = GetUrlWithSearchStrData(url, searchStrData);
 
             UnityWebRequest webRequest = null;
 
-            if (isJson)
-                webRequest = UnityWebRequest.Post(url, JsonConvert.SerializeObject(formData), "text/json");
-            else
-                webRequest = UnityWebRequest.Post(url, formData);
+            webRequest = UnityWebRequest.Post(url, jsonStr, "application/json");
+            
+            if (headerData != null)
+                foreach (var data in headerData)
+                    webRequest.SetRequestHeader(data.Key, data.Value);
+
+            webRequest.timeout = 5;
+            
+            try
+            {
+                await webRequest.SendWebRequest();
+            }
+            catch (Exception e)
+            {
+                _log.Error($"[byte[]] Http 'post' request to url:'{url}' error. err:'{e.Message}'");
+                failedCallback.Invoke();
+                return;
+            }
+            
+            if (!string.IsNullOrEmpty(webRequest.error))
+            {
+                _log.Error($"[byte[]] Http 'post' request to url:'{url}' failed. err:'{webRequest.error}'");
+                failedCallback.Invoke();
+                return;
+            }
+
+            callback.Invoke(webRequest.downloadHandler.data);
+        }
+
+        /// <summary>
+        /// Http Post 请求。
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="callback">回调</param>
+        /// <param name="failedCallback">失败回调</param>
+        /// <param name="formData">表单数据</param>
+        /// <param name="headerData">请求头数据</param>
+        /// <param name="searchStrData">查询字符串数据</param>
+        public async void HttpPostForm(string url, Action<byte[]> callback, Action failedCallback,
+            Dictionary<string, string> formData = null, 
+            Dictionary<string, string> headerData = null, 
+            Dictionary<string, string> searchStrData = null)
+        {
+            url = GetUrlWithSearchStrData(url, searchStrData);
+
+            UnityWebRequest webRequest = null;
+
+            webRequest = UnityWebRequest.Post(url, formData);
             
             if (headerData != null)
                 foreach (var data in headerData)
@@ -133,17 +175,34 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="formData">表单数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
-        /// <param name="isJson">是否是json格式</param>
-        public void HttpPost(string url, Action<string> callback, Action failedCallback,
+        public void HttpPostForm(string url, Action<string> callback, Action failedCallback,
             Dictionary<string, string> formData = null, 
             Dictionary<string, string> headerData = null, 
-            Dictionary<string, string> searchStrData = null,
-            bool isJson = true)
+            Dictionary<string, string> searchStrData = null)
         {
-            HttpPost(url, bytes =>
+            HttpPostForm(url, bytes =>
             {
                 callback.Invoke(Encoding.UTF8.GetString(bytes));
-            }, failedCallback, formData, headerData, searchStrData, isJson);
+            }, failedCallback, formData, headerData, searchStrData);
+        }
+
+        /// <summary>
+        /// Http Post 请求。
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="callback">回调</param>
+        /// <param name="failedCallback">失败回调</param>
+        /// <param name="jsonStr">json数据</param>
+        /// <param name="headerData">请求头数据</param>
+        /// <param name="searchStrData">查询字符串数据</param>
+        public void HttpPostJson(string url, Action<string> callback, Action failedCallback, string jsonStr, 
+            Dictionary<string, string> headerData = null, 
+            Dictionary<string, string> searchStrData = null)
+        {
+            HttpPostJson(url, bytes =>
+            {
+                callback.Invoke(Encoding.UTF8.GetString(bytes));
+            }, failedCallback, jsonStr, headerData, searchStrData);
         }
 
         /// <summary>
