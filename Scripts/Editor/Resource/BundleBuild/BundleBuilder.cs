@@ -223,13 +223,13 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             // 保存目录文件
             if (!SaveManifestFile(outputPath, results, finalVersion))
                 return false;
-
-            // 移动包内资源
-            if (!MovePackageFiles(buildTarget, results, outputPath))
-                return false;
             
             // 记录包版本文件
             if (!SaveApkVersionFile(APK_VERSION_PATH, finalVersion))
+                return false;
+
+            // 移动包内资源
+            if (!MovePackageFiles(buildTarget, results, outputPath))
                 return false;
 
             return true;
