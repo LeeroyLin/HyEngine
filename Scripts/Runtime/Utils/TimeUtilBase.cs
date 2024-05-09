@@ -222,7 +222,7 @@ namespace Engine.Scripts.Runtime.Utils
         // 获得本地时间戳
         public static long GetLocalTimeMS()
         {
-            DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 1970年1月1日零时
+            DateTime startTime = new DateTime(1970, 1, 1); // 1970年1月1日零时
             long timestamp = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
 
             return timestamp;
