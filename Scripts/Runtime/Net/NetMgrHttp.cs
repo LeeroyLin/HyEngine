@@ -62,10 +62,12 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="jsonStr">json数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
+        /// <param name="retryCnt">重试次数</param>
         public async void HttpPostJson(string url, Action<byte[]> callback, Action failedCallback,
             string jsonStr,
             Dictionary<string, string> headerData = null, 
-            Dictionary<string, string> searchStrData = null)
+            Dictionary<string, string> searchStrData = null,
+            int retryCnt = 0)
         {
             url = GetUrlWithSearchStrData(url, searchStrData);
 
@@ -78,26 +80,35 @@ namespace Engine.Scripts.Runtime.Net
                     webRequest.SetRequestHeader(data.Key, data.Value);
 
             webRequest.timeout = 5;
+
+            bool isSuccess = false;
+
+            for (int i = 0; i < retryCnt + 1; i++)
+            {
+                try
+                {
+                    await webRequest.SendWebRequest();
+                }
+                catch (Exception e)
+                {
+                    _log.Error($"[byte[]] Http 'post' request to url:'{url}' error. err:'{e.Message}'");
+                    continue;
+                }
             
-            try
-            {
-                await webRequest.SendWebRequest();
-            }
-            catch (Exception e)
-            {
-                _log.Error($"[byte[]] Http 'post' request to url:'{url}' error. err:'{e.Message}'");
-                failedCallback.Invoke();
-                return;
-            }
-            
-            if (!string.IsNullOrEmpty(webRequest.error))
-            {
-                _log.Error($"[byte[]] Http 'post' request to url:'{url}' failed. err:'{webRequest.error}'");
-                failedCallback.Invoke();
-                return;
+                if (!string.IsNullOrEmpty(webRequest.error))
+                {
+                    _log.Error($"[byte[]] Http 'post' request to url:'{url}' failed. err:'{webRequest.error}'");
+                    continue;
+                }
+
+                isSuccess = true;
+                break;
             }
 
-            callback.Invoke(webRequest.downloadHandler.data);
+            if (isSuccess)
+                callback.Invoke(webRequest.downloadHandler.data);
+            else
+                failedCallback.Invoke();
         }
 
         /// <summary>
@@ -109,10 +120,12 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="formData">表单数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
+        /// <param name="retryCnt">重试次数</param>
         public async void HttpPostForm(string url, Action<byte[]> callback, Action failedCallback,
             Dictionary<string, string> formData = null, 
             Dictionary<string, string> headerData = null, 
-            Dictionary<string, string> searchStrData = null)
+            Dictionary<string, string> searchStrData = null,
+            int retryCnt = 0)
         {
             url = GetUrlWithSearchStrData(url, searchStrData);
 
@@ -126,25 +139,35 @@ namespace Engine.Scripts.Runtime.Net
 
             webRequest.timeout = 5;
             
-            try
+
+            bool isSuccess = false;
+
+            for (int i = 0; i < retryCnt + 1; i++)
             {
-                await webRequest.SendWebRequest();
-            }
-            catch (Exception e)
-            {
-                _log.Error($"[byte[]] Http 'post' request to url:'{url}' error. err:'{e.Message}'");
-                failedCallback.Invoke();
-                return;
-            }
+                try
+                {
+                    await webRequest.SendWebRequest();
+                }
+                catch (Exception e)
+                {
+                    _log.Error($"[byte[]] Http 'post' request to url:'{url}' error. err:'{e.Message}'");
+                    continue;
+                }
             
-            if (!string.IsNullOrEmpty(webRequest.error))
-            {
-                _log.Error($"[byte[]] Http 'post' request to url:'{url}' failed. err:'{webRequest.error}'");
-                failedCallback.Invoke();
-                return;
+                if (!string.IsNullOrEmpty(webRequest.error))
+                {
+                    _log.Error($"[byte[]] Http 'post' request to url:'{url}' failed. err:'{webRequest.error}'");
+                    continue;
+                }
+
+                isSuccess = true;
+                break;
             }
 
-            callback.Invoke(webRequest.downloadHandler.data);
+            if (isSuccess)
+                callback.Invoke(webRequest.downloadHandler.data);
+            else
+                failedCallback.Invoke();
         }
 
         /// <summary>
@@ -175,15 +198,17 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="formData">表单数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
+        /// <param name="retryCnt">重试次数</param>
         public void HttpPostForm(string url, Action<string> callback, Action failedCallback,
             Dictionary<string, string> formData = null, 
             Dictionary<string, string> headerData = null, 
-            Dictionary<string, string> searchStrData = null)
+            Dictionary<string, string> searchStrData = null,
+            int retryCnt = 0)
         {
             HttpPostForm(url, bytes =>
             {
                 callback.Invoke(Encoding.UTF8.GetString(bytes));
-            }, failedCallback, formData, headerData, searchStrData);
+            }, failedCallback, formData, headerData, searchStrData, retryCnt);
         }
 
         /// <summary>
@@ -195,14 +220,16 @@ namespace Engine.Scripts.Runtime.Net
         /// <param name="jsonStr">json数据</param>
         /// <param name="headerData">请求头数据</param>
         /// <param name="searchStrData">查询字符串数据</param>
+        /// <param name="retryCnt">重试次数</param>
         public void HttpPostJson(string url, Action<string> callback, Action failedCallback, string jsonStr, 
             Dictionary<string, string> headerData = null, 
-            Dictionary<string, string> searchStrData = null)
+            Dictionary<string, string> searchStrData = null,
+            int retryCnt = 0)
         {
             HttpPostJson(url, bytes =>
             {
                 callback.Invoke(Encoding.UTF8.GetString(bytes));
-            }, failedCallback, jsonStr, headerData, searchStrData);
+            }, failedCallback, jsonStr, headerData, searchStrData, retryCnt);
         }
 
         /// <summary>
