@@ -8,6 +8,31 @@ using FairyGUI;
 
 namespace Engine.Scripts.Runtime.View
 {
+    struct SortData : IComparable
+    {
+        public ViewBase View { get; private set; }
+        public int SortIdx { get; private set; }
+
+        public SortData(ViewBase view, int sortIdx)
+        {
+            View = view;
+            SortIdx = sortIdx;
+        }
+
+        public int CompareTo(object obj)
+        {
+            int result = 1;
+            if (obj is SortData sortData)
+            {
+                result = View.sortingOrder.CompareTo(sortData.View.sortingOrder);
+                
+                if (result == 0)
+                    result = SortIdx.CompareTo(sortData.SortIdx);
+            }
+            return result;
+        }
+    }
+    
     public class ViewMgr : ManagerBase<ViewMgr>
     {
         // 界面非激活后的销毁时间
@@ -90,26 +115,29 @@ namespace Engine.Scripts.Runtime.View
 
             bool hasBGBlur = false;
             
-            var list = new List<ViewBase>(_activeUIList);
+            var list = new List<SortData>();
+            for (int i = 0; i < _activeUIList.Count; i++)
+                list.Add(new SortData(_activeUIList[i], i));
+            
             list.Sort((a, b) =>
             {
-                return a.sortingOrder.CompareTo(b.sortingOrder);
+                return a.CompareTo(b);
             });
             
             for (int i = list.Count - 1; i >= 0; i--)
             {
-                var view = list[i];
+                var sortData = list[i];
 
                 if (!hasBGBlur)
                 {
-                    if (view.IsBGBlur)
+                    if (sortData.View.IsBGBlur)
                         hasBGBlur = true;
                         
-                    SetFilter(view, false);
+                    SetFilter(sortData.View, false);
                 }
                 else
                 {
-                    SetFilter(view, true);
+                    SetFilter(sortData.View, true);
                 }
             }
         }
