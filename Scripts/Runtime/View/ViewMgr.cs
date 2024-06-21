@@ -164,6 +164,7 @@ namespace Engine.Scripts.Runtime.View
                 if (filter != null)
                 {
                     filter.blurSize = 0f;
+                    view.filter = null;
                 }
             }
         }
