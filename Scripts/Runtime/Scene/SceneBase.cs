@@ -197,5 +197,34 @@ namespace Engine.Scripts.Runtime.Scene
                 });
             }
         }
+
+        protected void PreloadABs(List<string> abNames, Action finished, Action<int, int> onProgress)
+        {
+            if (finished == null)
+                return;
+            
+            int num = abNames.Count;
+
+            if (num <= 0)
+            {
+                finished();
+                return;
+            }
+            
+            int cnt = 0;
+
+            foreach (var abName in abNames)
+            {
+                ResMgr.Ins.LoadABAsyncWithABName(abName, false, false, ab =>
+                {
+                    cnt++;
+                    
+                    onProgress?.Invoke(cnt, num);
+                    
+                    if (cnt == num)
+                        finished();
+                });
+            }
+        }
     }
 }
