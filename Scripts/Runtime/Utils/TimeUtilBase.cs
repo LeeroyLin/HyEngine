@@ -97,7 +97,7 @@ namespace Engine.Scripts.Runtime.Utils
         public static int Expire(long time)
         {
             var now = GetTimestamp();
-            return Mathf.Max(0, (int)Mathf.Min(now - time, int.MaxValue));
+            return Mathf.Max(0, MathUtil.Long2NearInt(now - time));
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Engine.Scripts.Runtime.Utils
         public static int ExpireMS(long timeMS, bool isLocalTime = false)
         {
             var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
-            return Mathf.Max(0, (int)Mathf.Min(nowMS - timeMS, int.MaxValue));
+            return Mathf.Max(0, MathUtil.Long2NearInt(nowMS - timeMS));
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Engine.Scripts.Runtime.Utils
         public static int Left(long time)
         {
             var now = GetTimestamp();
-            return Mathf.Max(0, (int)Mathf.Min(time - now, int.MaxValue));
+            return Mathf.Max(0, MathUtil.Long2NearInt(time - now));
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace Engine.Scripts.Runtime.Utils
         public static int LeftMS(long timeMS, bool isLocalTime = false)
         {
             var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
-            return Mathf.Max(0, (int)Mathf.Min(timeMS - nowMS, int.MaxValue));
+            return Mathf.Max(0, MathUtil.Long2NearInt(timeMS - nowMS));
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace Engine.Scripts.Runtime.Utils
         // 获得本地时间戳
         public static long GetLocalTimeMS()
         {
-            DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 1970年1月1日零时
+            DateTime startTime = new DateTime(1970, 1, 1); // 1970年1月1日零时
             long timestamp = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
 
             return timestamp;
