@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Event;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.System;
@@ -18,8 +17,6 @@ namespace Engine.Scripts.Runtime.Scene
         
         public bool IsEntered { get; private set; }
         
-        protected SceneArgsBase Args { get; private set; }
-        
         public SceneBase(string key)
         {
             Key = key;
@@ -34,27 +31,25 @@ namespace Engine.Scripts.Runtime.Scene
 
         public void Enter(SceneArgsBase args = null)
         {
-            Args = args;
-
             if (IsEntered)
                 return;
 
-            bool isEnterNow = OnCheckEnter();
+            void Handler()
+            {
+                try
+                {
+                    DoEnter(args);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[SceneBase] {e.Message} \n {e.StackTrace}");
+                }
+            }
+            
+            bool isEnterNow = OnCheckEnter(Handler, args);
 
             if (isEnterNow)
-                TryDoEnter();
-        }
-
-        protected void TryDoEnter()
-        {
-            try
-            {
-                DoEnter(Args);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"[SceneBase] {e.Message} \n {e.StackTrace}");
-            }
+                Handler();
         }
 
         public void Exit()
@@ -68,25 +63,21 @@ namespace Engine.Scripts.Runtime.Scene
             IsEntered = false;
         }
 
-        public void ReEnter()
-        {
-            OnReEnter();
-        }
-
         protected abstract void OnInit();
         
         /// <summary>
         /// 检测是否立即进入场景
         /// 返回false，不会立即进入场景
         /// </summary>
+        /// <param name="doEnterHandler">用于主动进入场景的方法</param>
+        /// <param name="args"></param>
         /// <returns>true：立即进入场景 false：等待主动进入场景</returns>
-        protected abstract bool OnCheckEnter();
+        protected abstract bool OnCheckEnter(Action doEnterHandler, SceneArgsBase args = null);
         protected abstract string[] OnGetPreLoadUIPkg();
         protected abstract void OnEnter(SceneArgsBase args = null);
         protected abstract void OnExit();
         protected abstract ISystem[] OnGetSystems();
         protected abstract void OnRegGameEvents();
-        protected virtual void OnReEnter() {}
 
         /// <summary>
         /// 执行进入
