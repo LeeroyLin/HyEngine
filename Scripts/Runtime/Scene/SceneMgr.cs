@@ -37,10 +37,10 @@ namespace Engine.Scripts.Runtime.Scene
         /// <param name="args">参数，可空</param>
         public void Open(string key, SceneArgsBase args = null)
         {
-            if (_current?.Key == key)
+            if (_current != null && _current.Key == key)
             {
-                _log.Warning("[Open] Can not open same scene with key:'{0}'.", key);
-                
+                _current.ReEnter();
+
                 return;
             }
             
