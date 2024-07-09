@@ -123,15 +123,6 @@ namespace Engine.Scripts.Runtime.Scene
                 sys.Exit();
         }
 
-        protected async Task ReStartSystems()
-        {
-            CloseSystems();
-
-            await Task.Delay(100);
-            
-            StartSystems();
-        }
-
         /// <summary>
         /// 注册
         /// </summary>
