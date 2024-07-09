@@ -106,7 +106,7 @@ namespace Engine.Scripts.Runtime.Scene
                 ResMgr.Ins.AddPackage(pkg);
         }
 
-        protected void StartSystems()
+        void StartSystems()
         {
             sysArr = OnGetSystems();
 
@@ -114,13 +114,22 @@ namespace Engine.Scripts.Runtime.Scene
                 sys.Enter();
         }
 
-        protected void CloseSystems()
+        void CloseSystems()
         {
             if (sysArr == null)
                 return;
             
             foreach (var sys in sysArr)
                 sys.Exit();
+        }
+
+        protected async Task ReStartSystems()
+        {
+            CloseSystems();
+
+            await Task.Delay(100);
+            
+            StartSystems();
         }
 
         /// <summary>
