@@ -36,11 +36,11 @@ namespace Engine.Scripts.Runtime.Audio
         public bool IsMuteMusic { get; private set; }
         public bool IsMuteSound { get; private set; }
         
-        public void Init()
+        public void Init(bool createListener)
         {
             InitMgr();
             
-            InitNode();
+            InitNode(createListener);
             
             TimerMgr.Ins.UseUpdate(OnUpdate);
         }
@@ -261,13 +261,14 @@ namespace Engine.Scripts.Runtime.Audio
             }
         }
 
-        void InitNode()
+        void InitNode(bool createListener)
         {
             var obj = GameObject.Find("AudioNode");
             if (obj == null)
             {
                 obj = new GameObject("AudioNode");
-                obj.AddComponent<AudioListener>();
+                if (createListener)
+                    obj.AddComponent<AudioListener>();
             }
 
             _node = obj.transform;
