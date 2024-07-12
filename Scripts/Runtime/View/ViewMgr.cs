@@ -282,6 +282,31 @@ namespace Engine.Scripts.Runtime.View
             _activeUIList.Clear();
         }
 
+        public void CloseAllExcept(HashSet<string> exceptKeys)
+        {
+            for (int i = _activeUIList.Count - 1; i >= 0; i--)
+            {
+                var info = _activeUIList[i];
+
+                if (exceptKeys.Contains(info.CustomKey))
+                    continue;
+                
+                // 标记非激活
+                info.Inactive();
+            
+                // 隐藏
+                info.visible = false;
+            
+                // 回调
+                info.DoClose();
+
+                // 放入非激活列表
+                _inactiveUIList.Add(info);
+
+                _activeUIList.RemoveAt(i);
+            }
+        }
+
         /// <summary>
         /// 查找UI
         /// </summary>
