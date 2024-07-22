@@ -101,7 +101,7 @@ namespace Engine.Scripts.Runtime.Utils
         }
 
         /// <summary>
-        /// 距离某毫秒级时间，已经经过多少时间
+        /// 距离某毫秒级时间，已经经过多少毫秒级时间
         /// </summary>
         /// <param name="timeMS">毫秒级时间戳</param>
         /// <param name="isLocalTime">本地时间计算</param>
@@ -110,6 +110,19 @@ namespace Engine.Scripts.Runtime.Utils
         {
             var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
             return Mathf.Max(0, MathUtil.Long2NearInt(nowMS - timeMS));
+        }
+
+        /// <summary>
+        /// 距离某毫秒级时间，已经经过多少秒级时间
+        /// </summary>
+        /// <param name="timeMS">毫秒级时间戳</param>
+        /// <param name="isLocalTime">本地时间计算</param>
+        /// <returns></returns>
+        public static int ExpireByMS(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var sec = (nowMS - timeMS) / 1000;
+            return Mathf.Max(0, MathUtil.Long2NearInt(sec));
         }
 
         /// <summary>
@@ -124,7 +137,7 @@ namespace Engine.Scripts.Runtime.Utils
         }
 
         /// <summary>
-        /// 距离某毫秒级时间，还剩多久
+        /// 距离某毫秒级时间，还剩多久毫秒级时间
         /// </summary>
         /// <param name="timeMS">毫秒级时间戳</param>
         /// <param name="isLocalTime">本地时间计算</param>
@@ -133,6 +146,17 @@ namespace Engine.Scripts.Runtime.Utils
         {
             var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
             return Mathf.Max(0, MathUtil.Long2NearInt(timeMS - nowMS));
+        }
+
+        /// <summary>
+        /// 距离某毫秒级时间，还剩多久秒级时间
+        /// </summary>
+        /// <returns></returns>
+        public static int LeftByMS(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var sec = (timeMS - nowMS) / 1000;
+            return Mathf.Max(0, MathUtil.Long2NearInt(sec));
         }
 
         /// <summary>
