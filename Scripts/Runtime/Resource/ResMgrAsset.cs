@@ -258,8 +258,6 @@ namespace Engine.Scripts.Runtime.Resource
                 info = new AssetInfo(EAssetState.SyncLoading, isAtlas);
                 _assetDic.Add(relPath, info);
                 
-                RecordABAsset(relPath);
-
                 // 增加资源引用
                 info.AddRef();
             }
@@ -267,7 +265,7 @@ namespace Engine.Scripts.Runtime.Resource
             T newAsset = null;
 
             if (isAtlas)
-                newAsset = TryGetSpriteFromAtlas<T>(atlasName, spriteName);
+                newAsset = TryGetSpriteFromAtlas<T>(atlasName, spriteName, relPath);
             else
             {
                 if (_resLoadMode == EResLoadMode.Editor)
@@ -285,12 +283,14 @@ namespace Engine.Scripts.Runtime.Resource
                 {
                     // 加载ab
                     var ab = LoadAB(relPath);
-
+                    
                     // 获得资源名
                     var assetName = GetAssetNameWithRelativePath(relPath);
             
                     // 加载资源
                     newAsset = ab.LoadAsset<T>(assetName);
+                    
+                    RecordABAsset(ab.name, relPath);
                 }   
             }
 
@@ -354,7 +354,6 @@ namespace Engine.Scripts.Runtime.Resource
                         callback(o as T);
                 };
                 _assetDic.Add(relPath, info);
-                RecordABAsset(relPath);
                 
                 // 增加资源引用
                 info.AddRef();
@@ -413,6 +412,8 @@ namespace Engine.Scripts.Runtime.Resource
                             // 获得资源名
                             var assetName = GetAssetNameWithRelativePath(relPath);
                         
+                            RecordABAsset(ab.name, relPath);
+
                             // 异步加载Asset
                             return ab.LoadAssetAsync<T>(assetName);
                         }));
@@ -437,16 +438,10 @@ namespace Engine.Scripts.Runtime.Resource
         /// <summary>
         /// 记录ab的资源
         /// </summary>
+        /// <param name="abName"></param>
         /// <param name="assetRelPath"></param>
-        void RecordABAsset(string assetRelPath)
+        void RecordABAsset(string abName, string assetRelPath)
         {
-            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB &&
-                GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
-                return;
-            
-            // ab名
-            var abName = RelPath2ABName(assetRelPath, out _, out _);
-            
             if (!_abAssetDic.TryGetValue(abName, out var set))
             {
                 set = new HashSet<string>();
@@ -483,7 +478,7 @@ namespace Engine.Scripts.Runtime.Resource
             ReduceABRef(abRelPath);
         }
 
-        T TryGetSpriteFromAtlas<T>(string atlasName, string spriteName) where T: Object
+        T TryGetSpriteFromAtlas<T>(string atlasName, string spriteName, string relPath) where T: Object
         {
             T asset = null;
 
@@ -526,6 +521,8 @@ namespace Engine.Scripts.Runtime.Resource
                     _log.Error($"Can not load atlas : '{atlasName}'");
 
                 asset = atlas.GetSprite(spriteName) as T;
+                
+                RecordABAsset(ab.name, relPath);
             }
 
             return asset;
@@ -537,10 +534,10 @@ namespace Engine.Scripts.Runtime.Resource
 
             spriteName = Path.GetFileNameWithoutExtension(spriteName);
 
+            var abRelPath = $"Atlas/{atlasName}";
+
             if (_resLoadMode == EResLoadMode.AB || _resLoadMode == EResLoadMode.PackageAB)
             {
-                var abRelPath = $"Atlas/{atlasName}";
-
                 // 加载ab
                 LoadABAsync(abRelPath, ab =>
                 {
@@ -550,7 +547,7 @@ namespace Engine.Scripts.Runtime.Resource
             }
             else
             {
-                asset = TryGetSpriteFromAtlas<T>(atlasName, spriteName);
+                asset = TryGetSpriteFromAtlas<T>(atlasName, spriteName, abRelPath);
                 
                 info.Asset = asset;
                 info.AssetState = EAssetState.Loaded;
