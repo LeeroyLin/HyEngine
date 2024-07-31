@@ -41,7 +41,7 @@ namespace Engine.Scripts.Runtime.Resource
         private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
         
         // ab无引用后的销毁时间
-        private static readonly int NO_REF_UNLOAD_TIME = 30;
+        private static readonly int NO_REF_UNLOAD_TIME = 5;
         
         private static ABManifest _manifest;
         
@@ -599,6 +599,8 @@ namespace Engine.Scripts.Runtime.Resource
                 
                 if (!info.IsLoaded)
                     continue;
+                
+                Debug.Log($"CCC Unload ab: {info.AB.name}");
                 
                 // 卸载ab
                 info.AB.Unload(true);
