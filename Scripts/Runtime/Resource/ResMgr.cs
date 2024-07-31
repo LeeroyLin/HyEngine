@@ -604,6 +604,7 @@ namespace Engine.Scripts.Runtime.Resource
                 
                 // 卸载ab
                 info.AB.Unload(true);
+                RemoveABAssets(key);
             }
         }
         

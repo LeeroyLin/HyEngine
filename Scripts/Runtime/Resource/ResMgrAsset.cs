@@ -37,7 +37,11 @@ namespace Engine.Scripts.Runtime.Resource
     
     public partial class ResMgr
     {
+        // 资源路径 对应资源
         private Dictionary<string, AssetInfo> _assetDic = new Dictionary<string, AssetInfo>();
+
+        // ab名 对应资源路径
+        private Dictionary<string, HashSet<string>> _abAssetDic = new Dictionary<string, HashSet<string>>();
 
         // 最大异步加载资源数
         private static readonly int MAX_ASYNC_LOAD_ASSET_NUM = 5;
@@ -257,6 +261,8 @@ namespace Engine.Scripts.Runtime.Resource
                 info = new AssetInfo(EAssetState.SyncLoading, isAtlas);
                 _assetDic.Add(relPath, info);
                 
+                RecordABAsset(relPath);
+
                 // 增加资源引用
                 info.AddRef();
             }
@@ -351,6 +357,7 @@ namespace Engine.Scripts.Runtime.Resource
                         callback(o as T);
                 };
                 _assetDic.Add(relPath, info);
+                RecordABAsset(relPath);
                 
                 // 增加资源引用
                 info.AddRef();
@@ -428,6 +435,37 @@ namespace Engine.Scripts.Runtime.Resource
             var extension = Path.GetExtension(relPath);
             var path = relPath.Replace(extension, "");
             return Resources.Load(path, systemTypeInstance);
+        }
+        
+        /// <summary>
+        /// 记录ab的资源
+        /// </summary>
+        /// <param name="assetRelPath"></param>
+        void RecordABAsset(string assetRelPath)
+        {                
+            // ab名
+            var abName = RelPath2ABName(assetRelPath, out _, out _);
+            
+            if (!_abAssetDic.TryGetValue(abName, out var set))
+            {
+                set = new HashSet<string>();
+                _abAssetDic.Add(abName, set);
+            }
+
+            set.Add(assetRelPath);
+        }
+
+        /// <summary>
+        /// 移除ab对应的资源
+        /// </summary>
+        /// <param name="abName"></param>
+        void RemoveABAssets(string abName)
+        {
+            if (!_abAssetDic.TryGetValue(abName, out var set))
+                return;
+
+            foreach (var assetRelPath in set)
+                _assetDic.Remove(assetRelPath);
         }
 
         void AddAtlasABRef(string atlasName)
