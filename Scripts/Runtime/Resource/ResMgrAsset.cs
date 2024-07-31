@@ -442,7 +442,11 @@ namespace Engine.Scripts.Runtime.Resource
         /// </summary>
         /// <param name="assetRelPath"></param>
         void RecordABAsset(string assetRelPath)
-        {                
+        {
+            if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB &&
+                GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
+                return;
+            
             // ab名
             var abName = RelPath2ABName(assetRelPath, out _, out _);
             
