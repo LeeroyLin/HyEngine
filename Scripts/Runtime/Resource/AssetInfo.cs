@@ -48,8 +48,6 @@ namespace Engine.Scripts.Runtime.Resource
             RefCnt = Mathf.Max(0, RefCnt);
 
             UpdateRefState();
-            
-            Debug.Log($"CCC ReduceRef RefCnt: {RefCnt}");
 
             if (!isLastNoRef && IsNoRef)
             {

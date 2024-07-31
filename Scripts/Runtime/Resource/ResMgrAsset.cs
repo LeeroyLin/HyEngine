@@ -86,10 +86,7 @@ namespace Engine.Scripts.Runtime.Resource
                 return;
 
             if (_assetDic.TryGetValue(relPath, out var info))
-            {
-                Debug.Log($"CCC ReduceAssetRef relPath:{relPath}");
                 info.ReduceRef();
-            }
             
             ReduceABRef(relPath);
         }

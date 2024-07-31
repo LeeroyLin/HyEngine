@@ -600,8 +600,6 @@ namespace Engine.Scripts.Runtime.Resource
                 if (!info.IsLoaded)
                     continue;
                 
-                Debug.Log($"CCC Unload ab: {info.AB.name}");
-                
                 // 卸载ab
                 info.AB.Unload(true);
                 RemoveABAssets(key);
