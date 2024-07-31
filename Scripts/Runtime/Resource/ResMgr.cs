@@ -41,7 +41,7 @@ namespace Engine.Scripts.Runtime.Resource
         private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
         
         // ab无引用后的销毁时间
-        private static readonly int NO_REF_UNLOAD_TIME = 5;
+        private static readonly int NO_REF_UNLOAD_TIME = 20;
         
         private static ABManifest _manifest;
         
