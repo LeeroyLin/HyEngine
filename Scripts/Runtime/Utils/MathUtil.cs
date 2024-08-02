@@ -91,8 +91,9 @@ namespace Engine.Scripts.Runtime.Utils
         /// <param name="targetWPos"></param>
         /// <param name="points">多边形点</param>
         /// <param name="horiLineWidth">用于检测的水平线段长度（在多边形最大水平宽度以上）</param>
+        /// <param name="pointOffset">points统一加上该偏移值再判断</param>
         /// <returns></returns>
-        public static bool CheckPosInPolygon(Vector3 targetWPos, List<Vector2> points, float horiLineWidth = 20)
+        public static bool CheckPosInPolygon(Vector3 targetWPos, List<Vector2> points, float horiLineWidth = 20, Vector2 pointOffset = default)
         {
             Vector2 horiLineStart = targetWPos;
             Vector2 horiLineEnd = new Vector2(targetWPos.x + horiLineWidth, targetWPos.y);
@@ -110,6 +111,9 @@ namespace Engine.Scripts.Runtime.Utils
                     p2 = points[0];
                 else
                     p2 = points[i + 1];
+
+                p1 += pointOffset;
+                p2 += pointOffset;
                 
                 // 是否相交
                 if (IsSegmentIntersect(horiLineStart, horiLineEnd, p1, p2))
