@@ -47,7 +47,7 @@ namespace Engine.Scripts.Runtime.Resource
         private static readonly int MAX_ASYNC_LOAD_ASSET_NUM = 5;
 
         // 最大异步实例化数量
-        private static readonly int MAX_INSTANTIATE_CNT = 1000;
+        private static readonly int MAX_INSTANTIATE_CNT = 100;
         
         // 异步加载资源，等待队列
         private List<AsyncLoadAssetWaiting> _asyncLoadAssetWaitingList = new List<AsyncLoadAssetWaiting>();
