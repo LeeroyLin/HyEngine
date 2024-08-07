@@ -93,7 +93,7 @@ namespace Engine.Scripts.Runtime.Utils
         /// <param name="horiLineWidth">用于检测的水平线段长度（在多边形最大水平宽度以上）</param>
         /// <param name="pointOffset">points统一加上该偏移值再判断</param>
         /// <returns></returns>
-        public static bool CheckPosInPolygon(Vector3 targetWPos, List<Vector2> points, float horiLineWidth = 20, Vector2 pointOffset = default)
+        public static bool CheckPosInPolygon(Vector3 targetWPos, List<Vector2> points, float horiLineWidth = 100, Vector2 pointOffset = default)
         {
             Vector2 horiLineStart = targetWPos;
             Vector2 horiLineEnd = new Vector2(targetWPos.x + horiLineWidth, targetWPos.y);
