@@ -101,6 +101,20 @@ namespace Engine.Scripts.Runtime.Utils
         }
 
         /// <summary>
+        /// 距离某秒级时间，已经经过多少时间
+        /// </summary>
+        /// <param name="time">秒级时间戳</param>
+        /// <returns></returns>
+        public static long ExpireLong(long time)
+        {
+            var now = GetTimestamp();
+            var delta = now - time;
+            if (delta < 0)
+                delta = 0;
+            return delta;
+        }
+
+        /// <summary>
         /// 距离某毫秒级时间，已经经过多少毫秒级时间
         /// </summary>
         /// <param name="timeMS">毫秒级时间戳</param>
@@ -110,6 +124,21 @@ namespace Engine.Scripts.Runtime.Utils
         {
             var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
             return Mathf.Max(0, MathUtil.Long2NearInt(nowMS - timeMS));
+        }
+
+        /// <summary>
+        /// 距离某毫秒级时间，已经经过多少毫秒级时间
+        /// </summary>
+        /// <param name="timeMS">毫秒级时间戳</param>
+        /// <param name="isLocalTime">本地时间计算</param>
+        /// <returns></returns>
+        public static long ExpireMSLong(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var delta = nowMS - timeMS;
+            if (delta < 0)
+                delta = 0;
+            return delta;
         }
 
         /// <summary>
@@ -126,6 +155,21 @@ namespace Engine.Scripts.Runtime.Utils
         }
 
         /// <summary>
+        /// 距离某毫秒级时间，已经经过多少秒级时间
+        /// </summary>
+        /// <param name="timeMS">毫秒级时间戳</param>
+        /// <param name="isLocalTime">本地时间计算</param>
+        /// <returns></returns>
+        public static long ExpireByMSLong(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var delta = (nowMS - timeMS) / 1000;
+            if (delta < 0)
+                delta = 0;
+            return delta;
+        }
+
+        /// <summary>
         /// 距离某秒级时间，还剩多久
         /// </summary>
         /// <param name="time">秒级时间戳</param>
@@ -134,6 +178,20 @@ namespace Engine.Scripts.Runtime.Utils
         {
             var now = GetTimestamp();
             return Mathf.Max(0, MathUtil.Long2NearInt(time - now));
+        }
+
+        /// <summary>
+        /// 距离某秒级时间，还剩多久
+        /// </summary>
+        /// <param name="time">秒级时间戳</param>
+        /// <returns></returns>
+        public static long LeftLong(long time)
+        {
+            var now = GetTimestamp();
+            var delta = time - now;
+            if (delta < 0)
+                delta = 0;
+            return delta;
         }
 
         /// <summary>
@@ -149,6 +207,21 @@ namespace Engine.Scripts.Runtime.Utils
         }
 
         /// <summary>
+        /// 距离某毫秒级时间，还剩多久毫秒级时间
+        /// </summary>
+        /// <param name="timeMS">毫秒级时间戳</param>
+        /// <param name="isLocalTime">本地时间计算</param>
+        /// <returns></returns>
+        public static long LeftMSLong(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var delta = timeMS - nowMS;
+            if (delta < 0)
+                delta = 0;
+            return delta;
+        }
+
+        /// <summary>
         /// 距离某毫秒级时间，还剩多久秒级时间
         /// </summary>
         /// <returns></returns>
@@ -157,6 +230,19 @@ namespace Engine.Scripts.Runtime.Utils
             var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
             var sec = (timeMS - nowMS) / 1000;
             return Mathf.Max(0, MathUtil.Long2NearInt(sec));
+        }
+
+        /// <summary>
+        /// 距离某毫秒级时间，还剩多久秒级时间
+        /// </summary>
+        /// <returns></returns>
+        public static long LeftByMSLong(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var delta = (timeMS - nowMS) / 1000;
+            if (delta < 0)
+                delta = 0;
+            return delta;
         }
 
         /// <summary>
