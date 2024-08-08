@@ -85,8 +85,19 @@ namespace Engine.Scripts.Runtime.View
 
             if (IsBGBlur)
                 ViewMgr.Ins.CallBlur(CustomKey, true);
+
+            PlayEnterAnim();
             
             OnOpen(args);
+        }
+
+        void PlayEnterAnim()
+        {
+            var t = GetTransition("transitionCommonEnter");
+            if (t == null)
+                return;
+            
+            t.Play();
         }
 
         public void DoClose()
