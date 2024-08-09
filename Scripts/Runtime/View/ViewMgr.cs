@@ -5,6 +5,7 @@ using Engine.Scripts.Runtime.Manager;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Timer;
 using FairyGUI;
+using UnityEngine;
 
 namespace Engine.Scripts.Runtime.View
 {
@@ -54,6 +55,11 @@ namespace Engine.Scripts.Runtime.View
         /// 界面返回顶层时回调，新增时不会回调
         /// </summary>
         private Action<string, string> _onViewTop;
+        
+        /// <summary>
+        /// 临时用于排序
+        /// </summary>
+        private List<SortData> _sortList = new List<SortData>();
         
         public void Init(IViewExtension viewExtension, Action<string, bool> blurHandler)
         {
@@ -115,18 +121,15 @@ namespace Engine.Scripts.Runtime.View
 
             bool hasBGBlur = false;
             
-            var list = new List<SortData>();
+            _sortList.Clear();
             for (int i = 0; i < _activeUIList.Count; i++)
-                list.Add(new SortData(_activeUIList[i], i));
+                _sortList.Add(new SortData(_activeUIList[i], i));
             
-            list.Sort((a, b) =>
-            {
-                return a.CompareTo(b);
-            });
+            _sortList.Sort((a, b) => a.CompareTo(b));
             
-            for (int i = list.Count - 1; i >= 0; i--)
+            for (int i = _sortList.Count - 1; i >= 0; i--)
             {
-                var sortData = list[i];
+                var sortData = _sortList[i];
 
                 if (!hasBGBlur)
                 {
@@ -425,34 +428,32 @@ namespace Engine.Scripts.Runtime.View
         /// </summary>
         void UpdateTop(bool isIgnorePermanent)
         {
-            var list = new List<ViewBase>(_activeUIList);
-            list.Sort((a, b) =>
-            {
-                return a.sortingOrder.CompareTo(b.sortingOrder);
-            });
+            _sortList.Clear();
+            for (int i = 0; i < _activeUIList.Count; i++)
+                _sortList.Add(new SortData(_activeUIList[i], i));
+            _sortList.Sort((a, b) => a.CompareTo(b));
 
             bool isFindTop = false;
             
-            for (int i = list.Count - 1; i >= 0; i--)
+            for (int i = _sortList.Count - 1; i >= 0; i--)
             {
-                var view = list[i];
+                var view = _sortList[i];
 
                 if (isFindTop)
                 {
-                    view.IsTop = false;
+                    view.View.IsTop = false;
                     continue;
                 }
                 
                 // 常驻界面 且 忽略常驻界面
-                if (view.IsPermanent && isIgnorePermanent)
+                if (view.View.IsPermanent && isIgnorePermanent)
                 {
-                    view.IsTop = false;
-                    
+                    view.View.IsTop = false;
                     continue;
                 }
 
                 isFindTop = true;
-                view.IsTop = true;
+                view.View.IsTop = true;
             }
         }
         
