@@ -284,6 +284,38 @@ namespace Engine.Scripts.Runtime.View
             
             _activeUIList.Clear();
         }
+        /// <summary>
+        /// 关闭上层ui至目标界面
+        /// </summary>
+        public void CloseAllToTarget(string key)
+        {
+            for (int i = _activeUIList.Count-1; i >=0; i--)
+            {
+               
+                var info = _activeUIList[i];
+                if (info.CustomKey==key)
+                {
+                    break;
+                }
+                if (info.IsPermanent)
+                {
+                    continue;
+                }
+                _activeUIList.RemoveAt(i);
+                // 标记非激活
+                info.Inactive();
+            
+                // 隐藏
+                info.visible = false;
+            
+                // 回调
+                info.DoClose();
+
+                // 放入非激活列表
+                _inactiveUIList.Add(info);
+            }
+            UpdateTop((true));
+        }
 
         public void CloseAllExcept(HashSet<string> exceptKeys)
         {
