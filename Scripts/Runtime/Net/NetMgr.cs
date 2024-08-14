@@ -97,6 +97,16 @@ namespace Engine.Scripts.Runtime.Net
             return data;
         }
 
+        public void ShutdownAllConn()
+        {
+            var list = new List<SocketConnectionBase>();
+            foreach (var info in _connDic)
+                list.Add(info.Value);
+
+            foreach (var conn in list)
+                conn.Shutdown();
+        }
+        
         /// <summary>
         /// 通过主连接发送消息
         /// </summary>
@@ -140,16 +150,6 @@ namespace Engine.Scripts.Runtime.Net
                 conn.Shutdown();
             
             _connDic.Clear();
-        }
-
-        void ShutdownAllConn()
-        {
-            var list = new List<SocketConnectionBase>();
-            foreach (var info in _connDic)
-                list.Add(info.Value);
-
-            foreach (var conn in list)
-                conn.Shutdown();
         }
         
         void OnConnShutdown(string key)
