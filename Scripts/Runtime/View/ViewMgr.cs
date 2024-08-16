@@ -504,6 +504,7 @@ namespace Engine.Scripts.Runtime.View
                 {
                     // 销毁该UI
                     DisposeAt(i);
+                    i--;
                 }
                 else
                 {
