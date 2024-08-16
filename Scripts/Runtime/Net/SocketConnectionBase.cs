@@ -66,6 +66,12 @@ namespace Engine.Scripts.Runtime.Net
         /// </summary>
         private Dictionary<int, SendingMsgInfo> _sendingMsgId = new Dictionary<int, SendingMsgInfo>();
 
+        /// <summary>
+        /// 记录消息超时的回调字典
+        /// 用于外部注册
+        /// </summary>
+        private Dictionary<float, List<Action<int>>> _msgTimeOutDic = new Dictionary<float, List<Action<int>>>();
+        
         public SocketConnectionBase(string host, int port, IConnMsgPack msgPack, bool isEncrypt, int maxMsgContentLen, float msgTimeout)
         {
             Key = GetKey(host, port);
@@ -155,6 +161,8 @@ namespace Engine.Scripts.Runtime.Net
             
             _sendMsgQueue.Clear();
             _isSending = false;
+            
+            _msgTimeOutDic.Clear();
             
             OnShutdown?.Invoke(Key);
         }
@@ -321,8 +329,10 @@ namespace Engine.Scripts.Runtime.Net
                 
                 foreach (var kv in _sendingMsgId)
                 {
+                    var expire = Time.time - kv.Value.SendAt;                    
+                    
                     // 消息超时
-                    if (Time.time - kv.Value.SendAt >= MsgTimeout)
+                    if (expire >= MsgTimeout)
                     {
                         Log.Log($"{Host}:{Port} sending over time {MsgTimeout}.");
                     
@@ -338,6 +348,8 @@ namespace Engine.Scripts.Runtime.Net
                     
                         break;
                     }
+
+                    TryCallTimeOutCb(kv.Value.MsgId, expire);
                 }
             }
         }
@@ -457,6 +469,29 @@ namespace Engine.Scripts.Runtime.Net
             OnRecData?.Invoke(msg);
 
             return true;
+        }
+
+        protected void RegMsgTimeOutCb(float time, Action<int> callback)
+        {
+            if (!_msgTimeOutDic.TryGetValue(time, out var list))
+            {
+                list = new List<Action<int>>();
+                _msgTimeOutDic.Add(time, list);
+            }
+            
+            list.Add(callback);
+        }
+
+        void TryCallTimeOutCb(int msgId, float expireTime)
+        {
+            foreach (var kv in _msgTimeOutDic)
+            {
+                if (expireTime > kv.Key)
+                {
+                    foreach (var action in kv.Value)
+                        action?.Invoke(msgId);
+                }
+            }
         }
     }
 }
