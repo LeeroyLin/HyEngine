@@ -228,11 +228,11 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             if (!SaveApkVersionFile(APK_VERSION_PATH, finalVersion))
                 return false;
 
+            Test();
+
             // 移动包内资源
             if (!MovePackageFiles(buildTarget, results, outputPath))
                 return false;
-
-            Test();
 
             return true;
         }
@@ -241,8 +241,19 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         {
             var path = $"{Application.streamingAssetsPath}/bin/Data/Managed/Metadata/global-metadata.dat";
             var exists = File.Exists(path);
-            
+
             Debug.Log($"Check global-metadata.dat. exists: {exists} at {path}");
+
+            if (exists)
+            {
+                var bytes = File.ReadAllBytes(path);
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    bytes[i] = (byte) (bytes[i] ^ 0xff);
+                }
+                
+                File.WriteAllBytes(path, bytes);
+            }
         }
 
         /// <summary>
