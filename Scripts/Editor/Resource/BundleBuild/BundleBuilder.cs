@@ -232,7 +232,17 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             if (!MovePackageFiles(buildTarget, results, outputPath))
                 return false;
 
+            Test();
+
             return true;
+        }
+
+        static void Test()
+        {
+            var path = $"{Application.streamingAssetsPath}/bin/Data/Managed/Metadata/global-metadata.dat";
+            var exists = File.Exists(path);
+            
+            Debug.Log($"Check global-metadata.dat. exists: {exists} at {path}");
         }
 
         /// <summary>
