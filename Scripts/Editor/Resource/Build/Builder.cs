@@ -95,6 +95,8 @@ namespace Engine.Scripts.Editor.Resource.Build
                 buildOptions |= BuildOptions.ConnectWithProfiler;
             }
             
+            buildOptions |= BuildOptions.AcceptExternalModificationsToPlayer;
+            
             var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{relPath}.apk", 
                 BuildTarget.Android, buildOptions);
 
