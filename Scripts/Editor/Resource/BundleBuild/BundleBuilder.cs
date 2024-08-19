@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
 using Engine.Scripts.Runtime.Utils;
-using HybridCLR.Editor.Commands;
 using HybridCLR.Editor.Installer;
 using Newtonsoft.Json;
 using UnityEditor;
-using UnityEditor.Build;
 using UnityEditor.Build.Pipeline;
 using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
@@ -228,32 +225,11 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             if (!SaveApkVersionFile(APK_VERSION_PATH, finalVersion))
                 return false;
 
-            Test();
-
             // 移动包内资源
             if (!MovePackageFiles(buildTarget, results, outputPath))
                 return false;
 
             return true;
-        }
-
-        static void Test()
-        {
-            var path = $"{Application.streamingAssetsPath}/bin/Data/Managed/Metadata/global-metadata.dat";
-            var exists = File.Exists(path);
-
-            Debug.Log($"Check global-metadata.dat. exists: {exists} at {path}");
-
-            if (exists)
-            {
-                var bytes = File.ReadAllBytes(path);
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    bytes[i] = (byte) (bytes[i] ^ 0xff);
-                }
-                
-                File.WriteAllBytes(path, bytes);
-            }
         }
 
         /// <summary>

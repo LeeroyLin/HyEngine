@@ -69,7 +69,7 @@ namespace Engine.Scripts.Editor.Resource.Build
             PlayerSettings.Android.keyaliasPass = conf.buildConfig.keyaliasPass;
 
             EditorUserBuildSettings.buildAppBundle = isAAB;
-            EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+            EditorUserBuildSettings.exportAsGoogleAndroidProject = true;
         }
         
         public static void BuildApk(bool isDevBuild, string relPath = "")
