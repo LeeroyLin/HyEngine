@@ -1,20 +1,19 @@
 using System.IO;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
+using UnityEditor.Android;
 using UnityEngine;
 
 namespace Engine.Scripts.Editor.Global
 {
-    public class BuildProcessor : IPostprocessBuildWithReport
+    public class BuildProcessor : IPostGenerateGradleAndroidProject
     {
-        int IOrderedCallback.callbackOrder { get { return 0; } }
+        public int callbackOrder { get { return 0; } }
         
-        void IPostprocessBuildWithReport.OnPostprocessBuild( BuildReport report )
+        public void OnPostGenerateGradleAndroidProject(string path)
         {
             //输出打包后的Android工程路径
-            Debug.Log($"Build processor android proj path : '{report.summary.outputPath}'");
-            var metadataPath = $"{report.summary.outputPath}/unityLibrary/src/main/assets/bin/Data/Managed/Metadata/global-metadata.dat";
-            var targetPath = $"{report.summary.outputPath}/unityLibrary/src/main/assets/bin/Data/Managed/Metadata/global-metadata2.dat";
+            Debug.Log($"Build processor android proj path : '{path}'");
+            var metadataPath = $"{path}/src/main/assets/bin/Data/Managed/Metadata/global-metadata.dat";
+            var targetPath = $"{path}/src/main/assets/bin/Data/Managed/Metadata/global-metadata2.dat";
             
             if (!File.Exists(metadataPath))
             {
@@ -24,7 +23,7 @@ namespace Engine.Scripts.Editor.Global
             
             Debug.Log($"find global-metadata.dat");
             
-            File.Move(metadataPath, targetPath);
+            // File.Move(metadataPath, targetPath);
         }
     }
 }
