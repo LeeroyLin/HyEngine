@@ -69,7 +69,7 @@ namespace Engine.Scripts.Editor.Resource.Build
             PlayerSettings.Android.keyaliasPass = conf.buildConfig.keyaliasPass;
 
             EditorUserBuildSettings.buildAppBundle = isAAB;
-            EditorUserBuildSettings.exportAsGoogleAndroidProject = true;
+            EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
         }
         
         public static void BuildApk(bool isDevBuild, string relPath = "")
@@ -94,8 +94,6 @@ namespace Engine.Scripts.Editor.Resource.Build
                 buildOptions |= BuildOptions.AllowDebugging;
                 buildOptions |= BuildOptions.ConnectWithProfiler;
             }
-            
-            buildOptions |= BuildOptions.AcceptExternalModificationsToPlayer;
             
             var res = BuildPipeline.BuildPlayer(levels.ToArray(),$"BuildOut/{relPath}.apk", 
                 BuildTarget.Android, buildOptions);
