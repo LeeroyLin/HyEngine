@@ -23,14 +23,17 @@ namespace Engine.Scripts.Editor.Global
             
             Debug.Log($"Find global-metadata.dat. Encrypt.");
 
-            var bytes = File.ReadAllBytes(metadataPath);
+            var bytesReal = File.ReadAllBytes(metadataPath);
+            var bytesFake = new byte[bytesReal.Length];
 
-            for (int i = 0; i < bytes.Length; i++)
-                bytes[i] = (byte) (bytes[i] ^ 0xFF);
+            for (int i = 0; i < bytesReal.Length; i++)
+            {
+                bytesFake[i] = (byte) (bytesReal[i] ^ (byte)(Random.Range(1, 254) & 0xFF));
+                bytesReal[i] = (byte) (bytesReal[i] ^ 0xFF);
+            }
 
-            File.WriteAllBytes(targetPath, bytes);
-
-            File.Delete(metadataPath);
+            File.WriteAllBytes(targetPath, bytesReal);
+            File.WriteAllBytes(metadataPath, bytesFake);
         }
     }
 }
