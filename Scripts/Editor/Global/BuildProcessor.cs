@@ -13,7 +13,7 @@ namespace Engine.Scripts.Editor.Global
             //输出打包后的Android工程路径
             Debug.Log($"Build processor android proj path : '{path}'");
             var metadataPath = $"{path}/src/main/assets/bin/Data/Managed/Metadata/global-metadata.dat";
-            var targetPath = $"{path}/src/main/assets/bin/Data/level";
+            var targetPath = $"{path}/src/main/assets/bin/Data/Managed/Resources/System.dll-resources.dat";
             
             if (!File.Exists(metadataPath))
             {
