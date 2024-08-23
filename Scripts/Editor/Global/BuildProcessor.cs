@@ -51,11 +51,10 @@ namespace Engine.Scripts.Editor.Global
             bytesFake[1] = 0x4E;
             bytesFake[2] = 0x1B;
             bytesFake[3] = 0x50;
-            
-            for (int i = 0; i < bytesReal.Length; i+=4)
+
+            for (int i = 0; i < bytesReal.Length; i++)
             {
-                for (int j = 0; j < 4; j++)
-                    bytesReal[i + j] = (byte) (bytesReal[i + j] ^ 0xFF);
+                bytesReal[i] = (byte) (bytesReal[i] ^ 0xFF);
             }
 
             // 修改开头的FAB11BAF
