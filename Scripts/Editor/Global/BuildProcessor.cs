@@ -63,8 +63,8 @@ namespace Engine.Scripts.Editor.Global
             //     bytesReal[i] = (byte) (bytesReal[i] ^ 0xFF);
             // }
 
-            File.WriteAllBytes(targetPath, bytesReal);
-            File.WriteAllBytes(metadataPath, bytesFake);
+            // File.WriteAllBytes(targetPath, bytesReal);
+            // File.WriteAllBytes(metadataPath, bytesFake);
         }
     }
 }
