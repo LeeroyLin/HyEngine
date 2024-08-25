@@ -10,7 +10,6 @@ namespace Engine.Scripts.Editor.Global
         
         public void OnPostGenerateGradleAndroidProject(string path)
         {
-            /*
             //输出打包后的Android工程路径
             Debug.Log($"Build processor android proj path : '{path}'");
             
@@ -53,20 +52,19 @@ namespace Engine.Scripts.Editor.Global
             bytesFake[2] = 0x1B;
             bytesFake[3] = 0x50;
 
-            // // 修改开头的FAB11BAF
-            // bytesReal[0] = 0x23;
-            // bytesReal[1] = 0xC5;
-            // bytesReal[2] = 0xD9;
-            // bytesReal[3] = 0x87;
-            //
-            // for (int i = 0; i < bytesReal.Length; i++)
-            // {
-            //     bytesReal[i] = (byte) (bytesReal[i] ^ 0xFF);
-            // }
+            // 修改开头的FAB11BAF
+            bytesReal[0] = 0x23;
+            bytesReal[1] = 0xC5;
+            bytesReal[2] = 0xD9;
+            bytesReal[3] = 0x87;
+            
+            for (int i = 0; i < bytesReal.Length; i++)
+            {
+                bytesReal[i] = (byte) (bytesReal[i] ^ 0xFF);
+            }
 
-            // File.WriteAllBytes(targetPath, bytesReal);
-            // File.WriteAllBytes(metadataPath, bytesFake);
-            */
+            File.WriteAllBytes(targetPath, bytesReal);
+            File.WriteAllBytes(metadataPath, bytesFake);
         }
     }
 }
