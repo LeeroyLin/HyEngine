@@ -10,6 +10,7 @@ namespace Engine.Scripts.Editor.Global
         
         public void OnPostGenerateGradleAndroidProject(string path)
         {
+            /*
             //输出打包后的Android工程路径
             Debug.Log($"Build processor android proj path : '{path}'");
             
@@ -65,6 +66,7 @@ namespace Engine.Scripts.Editor.Global
 
             // File.WriteAllBytes(targetPath, bytesReal);
             // File.WriteAllBytes(metadataPath, bytesFake);
+            */
         }
     }
 }
