@@ -42,6 +42,13 @@ namespace Engine.Scripts.Editor.Global
                     bytesFake[i] = 0x1B;
                 else if (i % 1024 == 3)
                     bytesFake[i] = 0xAF;
+                else if (i % 1024 == 4)
+                {
+                    if (Random.Range(0, 2) == 0)
+                        bytesFake[i] = 0x18;
+                    else
+                        bytesFake[i] = 0x1D;
+                }
                 else
                     bytesFake[i] = (byte) (bytesReal[i] ^ (byte)(Random.Range(1, 254) & 0xFF));
             }
