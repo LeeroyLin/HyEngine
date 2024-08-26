@@ -29,9 +29,9 @@ namespace Engine.Scripts.Editor.Global
             var bytesReal = File.ReadAllBytes(metadataPath);
             
             // 假文件数据
-            var bytesFake = new byte[bytesReal.Length];
+            var bytesFake = new byte[bytesReal.Length / 2];
             
-            for (int i = 0; i < bytesReal.Length; i++)
+            for (int i = 0; i < bytesFake.Length; i++)
             {
                 // 假文件随机修改内容
                 if (i % 1024 == 0)
@@ -67,7 +67,14 @@ namespace Engine.Scripts.Editor.Global
             
             for (int i = 0; i < bytesReal.Length; i++)
             {
-                bytesReal[i] = (byte) (bytesReal[i] ^ 0xFF);
+                if (i % 4 == 0)
+                    bytesReal[i] = (byte) (bytesReal[i] ^ (byte)(i % 255) & 0xFF);
+                else if (i % 4 == 1)
+                    bytesReal[i] = (byte) (bytesReal[i] ^ (byte)(i % 188 + 15) & 0xFF);
+                else if (i % 4 == 2)
+                    bytesReal[i] = (byte) (bytesReal[i] ^ (byte)(i % 123 + 31) & 0xFF);
+                else if (i % 4 == 3)
+                    bytesReal[i] = (byte) (bytesReal[i] ^ (byte)(i % 98 + 41) & 0xFF);
             }
             
             File.WriteAllBytes(targetPath, bytesReal);
