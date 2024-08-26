@@ -35,13 +35,13 @@ namespace Engine.Scripts.Editor.Global
             {
                 // 假文件随机修改内容
                 if (i % 1024 == 0)
-                    bytesFake[i] = 0xFA;
-                else if (i % 1024 == 1)
-                    bytesFake[i] = 0xB1;
-                else if (i % 1024 == 2)
-                    bytesFake[i] = 0x1B;
-                else if (i % 1024 == 3)
                     bytesFake[i] = 0xAF;
+                else if (i % 1024 == 1)
+                    bytesFake[i] = 0x1B;
+                else if (i % 1024 == 2)
+                    bytesFake[i] = 0xB1;
+                else if (i % 1024 == 3)
+                    bytesFake[i] = 0xFA;
                 else if (i % 1024 == 4)
                 {
                     if (Random.Range(0, 2) == 0)
@@ -53,13 +53,13 @@ namespace Engine.Scripts.Editor.Global
                     bytesFake[i] = (byte) (bytesReal[i] ^ (byte)(Random.Range(1, 254) & 0xFF));
             }
             
-            // 修改开头的FAB11BAF
-            bytesFake[0] = 0xFA;
-            bytesFake[1] = 0x4E;
-            bytesFake[2] = 0x1B;
-            bytesFake[3] = 0x50;
+            // 修改开头的AF1BB1FA
+            bytesFake[0] = 0xAF;
+            bytesFake[1] = 0x1B;
+            bytesFake[2] = 0xB1;
+            bytesFake[3] = 0xFA;
             
-            // 修改开头的FAB11BAF
+            // 修改开头的AF1BB1FA
             bytesReal[0] = 0x23;
             bytesReal[1] = 0xC5;
             bytesReal[2] = 0xD9;
