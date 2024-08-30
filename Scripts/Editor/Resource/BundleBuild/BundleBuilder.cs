@@ -27,6 +27,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         // 包 版本路径
         private static readonly string APK_VERSION_PATH = $"{Application.streamingAssetsPath}/apk_version";
         
+        // ab打包时加密，会把ab前【加密长度(ab_offset)】字符拷贝一份在前面。当【ab文件长度】不足【加密长度】时，会从以下文本内循环取字符。避免多次打包造成文件md5不同。
+        private static readonly string AB_ENCRYPT_RANDOM_FILL = "`�c?N^��c�Qt�g�-��f��awԎx�x;B@�n�?�R��u���YC�Q�����s��+ɼ��t��)����vԌ-|�����s��/-p�(e�(�ź�y>����b��w`�㶀�ģ����@�6��v|�grA�Ǡxơ����8H�L�gES�G8�]�H�_i�bb�����o;�h��W�`�W)��4H�?�J`V���(k(Eׁ�÷,�2E�𙿰�[�χ�W���`o�^A�Q���NlZ��BZ@ҕ��N�yᾩfjv[KN:��Zo�`��{;�wK���Dw}�l��腉mJ�Mv�H��N��˱0����SD��8��K1��՞�S[/3@hUav�>����L���o����m�����E0�с�*�U�:��.��Uw�D�ne�O�i�6������xF)E)�};*�g�Ϡg����+WG�>_3�]ψ���q�y7�w��rP�v�^��uJf��d��@*�K]e٤��C�:��Ȭ�e�M��Չ�������Z::����;���]��o�n���9<�ջ������o�S*=�Ǆ�0A`�*z��kH�{��^F�RIY��ɑ�P�Si��tӱA�zC��ra��=�n������H����ݵa:�Hy�3��r2�c�;;�7��������gP�x��x�{*.�|�}Y��+����KZ�S�j��j�-����a���;(���Sw���.��~m���dD��+�A�/+Z��]�Ji�2M������4��Qh,�LY��o]2�������,��H���@)D8?{E�ʬ�@k<*<y�����]���T~�d`v����X���6��0/�3Z����^�VQ1~�l���<�wmC�`=�-����.�;i>�ܓ�jg�vZ�X�5vO<����_�wrޏT�;ʇ�zMe��h��{�f`���q���O̲C]�����t��S�N�]��)���)�x�1�H������JV-;��8����{38��qj���>]�(��4A����ge��Հ���-��>R޹�Ň���PեG/������S�a��vL���׾,��U�gp�`�ئQ��T�c�HLF�Ƴ��*���g��U���0�iiU��3d�����D4߾U4U��{G��s�v��=�l�M���/�o�����k�x�f�Խ�O�Pr��D.5�G��n�����^�Y)^�^�����>���QOd����J���e������O�ɠ�g���[ɸSF��T�ѥ�g�4ad���=�ܦՇ�A�]��p`p�E�G��ͶsV��Xc�de���)�P�`�R4>����L�<��N�x@@�YN�RRX�0���>�K�]Wܮ<8p�d�lT�7D2ȧ�}w�c/:Gr��iy.e2mb��b��Q�a�}�ŭx��4��^��l��k����J���FE���Oߗ����|Y�O�g7E(�Nǚ�t����kv7����a�Q��q���G��g��5�;�ֈ?�n����?Ó[hn5;�,Ðat֨�֮�Q莾9a��G���fI�Zw�VJ�F���n׌_aЦ�o��^�UJ��Rz3����)bRB��x����,���a�(7ql�V|�0��D��U�}W|Ev�<N�J����ళ����0����J,e��w�K�oz-�/�j���w�ޣ��C`z1Cb��iWd}hf�[�a6ҴͰ���0�װ(K�������ڛڳ���,�C�E��f*o��e�7�,��~Hl�픔��0���WM�����n+H5v}7���A���yv�;�z���`o垤xiǯ�y�QVe�_-+=�9E�f�o���(��p���8Msj���krӥdp��֕�Hď��pdG���r��c�;wP������؍��@l�4)��y���軶��7�d{�B���GGe�h2�{-P�ن޳���M��Ŕ�{����n�(��o��i5�4��B�T�z)���v�Ӷh�ͬhF�T��=Ւ�c�?��+^^J�1zK��qU�Q�H�[ou�u��-�)Ko>�����c�>߄��=@���os@ڒ�].N�r��m��n���KB+]�c�֏���:�be�4D���K����w��}�L-�D{5C�g��3J���]�1(��ԇ���¾��8ƶXS�e�/d�T�^;8�D*Dm�>:@Ѥ��^ɉ�m�y�I�V�����aAJT��?~�r�L��x�v��G����J�Z3�(��o�+W�۞p�]";
+    
         private static BundleConfig _bundleConfig;
         
         // 资源对应ab名
@@ -272,7 +275,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                         if (i < bytes.Length)
                             newBytes[i] = bytes[i];
                         else
-                            newBytes[i] = (byte)Random.Range(0, 210);
+                            newBytes[i] = (byte)(AB_ENCRYPT_RANDOM_FILL[i % AB_ENCRYPT_RANDOM_FILL.Length]);
                     }
                     else
                         newBytes[i] = bytes[i - abOffset];
