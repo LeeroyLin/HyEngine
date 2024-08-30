@@ -53,7 +53,7 @@ namespace Engine.Scripts.Runtime.Global
 
             var str = Encoding.UTF8.GetString(bytes);
 
-            var conf = JsonConvert.DeserializeObject<GlobalConfig>(str;
+            var conf = JsonConvert.DeserializeObject<GlobalConfig>(str);
             return conf;
 #endif
 
