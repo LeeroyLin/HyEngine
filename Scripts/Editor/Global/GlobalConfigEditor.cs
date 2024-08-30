@@ -8,13 +8,11 @@ namespace Engine.Scripts.Editor.Global
     [CustomEditor(typeof(GlobalConfigSO))]
     public class GlobalConfigEditor : UnityEditor.Editor
     {
-        private static readonly string GLOBAL_CONFIG_STREAMING_ASSETS_PATH = "Config/GlobalConfig.json";
-        
         SerializedProperty _logField;
         SerializedProperty _env;
 
         private EEnv _lastEnv;
-        
+
         void OnEnable()
         {
             _logField = serializedObject.FindProperty("logConfig");

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Utils;
 using Newtonsoft.Json;
@@ -16,6 +17,8 @@ namespace Engine.Scripts.Runtime.Global
         private static readonly string GLOBAL_CONFIG_STREAMING_ASSETS_PATH = "Config/GlobalConfig.json";
 
         public static GlobalConfig Conf;
+        
+        private static readonly string GLOBAL_CONFIG_KEY = "��f��awԎx�x;B@�n�?�R��u���YC�Q����H���@)D8?{E�ʬ�@k<*<y�����]���T~�d`v����X���6��0/�3Z����^�VQ1~�l���<�wmC�`=�-����.�;i>�ܓ�jg�vZ�X�5vO<����_�wrޏT�;ʇ�zMe��h��{�f`���q���O̲C]�����t��S�N�]��)���)�x�1�H������JV-;��8����{38��qj���>]�(��4A����ge��Հ���-��>R޹�Ň���PեG/������S�a��vL���׾,��U�gp�`�ئQ��T�c�HLF�Ƴ��*���g��U���0�iiU��3d�����D4߾U4U��{G��s�v��=�l�M���/�o�����k�x�f�Խ�O�Pr��D.5�G��n�����^�Y)^�^�����>���QOd����J���e������O�ɠ�g���[ɸSF��T�ѥ�g�4ad��s��+ɼ��t��)����vԌ-|�����s��/-p�(e�(�ź�y>����b��w`�㶀�ģ����@�6��v|�grA�Ǡxơ����8H�L�gES�G8�]�H�_i�bb�����o;�h��W�`";
 
         public static async Task LoadConf()
         {
@@ -25,7 +28,15 @@ namespace Engine.Scripts.Runtime.Global
         public static async Task<GlobalConfig> LoadANewConfRuntime()
         {
             var content = await ReadTextRuntime.ReadSteamingAssetsText(GLOBAL_CONFIG_STREAMING_ASSETS_PATH);
-            var conf = JsonConvert.DeserializeObject<GlobalConfig>(content);
+            
+            var bytes = Encoding.UTF8.GetBytes(content);
+
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = (byte)(bytes[i] ^ GLOBAL_CONFIG_KEY[i % GLOBAL_CONFIG_KEY.Length]);
+
+            var str = Encoding.UTF8.GetString(bytes);
+            
+            var conf = JsonConvert.DeserializeObject<GlobalConfig>(str);
             return conf;
         }
 
@@ -49,9 +60,14 @@ namespace Engine.Scripts.Runtime.Global
 
             PathUtil.MakeSureDir(Path.GetDirectoryName(savePath));
             
+            var bytes = Encoding.UTF8.GetBytes(content);
+
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = (byte)(bytes[i] ^ GLOBAL_CONFIG_KEY[i % GLOBAL_CONFIG_KEY.Length]);
+            
             try
             {
-                File.WriteAllText(savePath, content);
+                File.WriteAllBytes(savePath, bytes);
             }
             catch (Exception e)
             {
