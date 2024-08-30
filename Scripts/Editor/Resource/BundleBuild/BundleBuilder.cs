@@ -26,9 +26,6 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         // 包 版本路径
         private static readonly string APK_VERSION_PATH = $"{Application.streamingAssetsPath}/apk_version";
         
-        // ab偏移
-        private static readonly int AB_OFFSET = 500;
-        
         private static BundleConfig _bundleConfig;
         
         // 资源对应ab名
@@ -248,6 +245,11 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             byte[] bytes = null;
             byte[] newBytes = null;
 
+            int abOffset = (int) _globalConfig.abOffset;
+
+            if (abOffset <= 0)
+                return true;
+
             foreach (var info in results.BundleInfos)
             {
                 try
@@ -260,14 +262,14 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                     return false;
                 }
 
-                newBytes = new byte[bytes.Length + AB_OFFSET];
+                newBytes = new byte[bytes.Length + abOffset];
 
                 for (int i = 0; i < newBytes.Length; i++)
                 {
-                    if (i < AB_OFFSET)
+                    if (i < abOffset)
                         newBytes[i] = bytes[i];
                     else
-                        newBytes[i] = bytes[i - AB_OFFSET];
+                        newBytes[i] = bytes[i - abOffset];
                 }
 
                 try

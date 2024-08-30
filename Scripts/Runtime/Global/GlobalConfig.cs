@@ -11,6 +11,7 @@ namespace Engine.Scripts.Runtime.Global
         public bool isNetEncrypt = true;
         public bool isSelectServer = false;
         public string version = "0.1";
+        public ulong abOffset = 2000;
         public LogConfig logConfig;
         public EachNetConfig netConfig;
     }

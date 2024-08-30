@@ -77,6 +77,7 @@ namespace Engine.Scripts.Editor.Global
                     netMaxMsgLen = confSO.netMaxMsgLen,
                     isNetEncrypt = confSO.isNetEncrypt,
                     isSelectServer = confSO.isSelectServer,
+                    abOffset = confSO.abOffset,
                     version = confSO.version,
                     logConfig = confSO.logConfig,
                     netConfig = confSO.GetCurrNetConfig(),

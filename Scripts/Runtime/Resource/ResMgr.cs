@@ -37,9 +37,6 @@ namespace Engine.Scripts.Runtime.Resource
         public static readonly string PACKAGE_BUNDLE_PATH = $"{Application.streamingAssetsPath}/AB/{PlatformInfo.BuildTargetStr}";
         public static readonly string CONFIG_NAME = "manifest.json";
         
-        // ab偏移
-        private static readonly ulong AB_OFFSET = 500;
-        
         // 最大异步加载ab数
         private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
         
@@ -63,11 +60,15 @@ namespace Engine.Scripts.Runtime.Resource
         private int _asyncLoadABCnt = 0;
         private List<ABInfo> _cbInfos = new List<ABInfo>();
 
-        public async Task Init(EResLoadMode resLoadMode)
+        // ab偏移
+        private ulong _abOffset = 500;
+
+        public async Task Init(EResLoadMode resLoadMode, ulong abOffset)
         {
             Debug.Log("ResMgr InitMgr");
             
             _resLoadMode = resLoadMode;
+            _abOffset = abOffset;
             
             _log = new LogGroup("ResMgr");
 
@@ -289,7 +290,7 @@ namespace Engine.Scripts.Runtime.Resource
             var abPath = $"{(isPackage ? PACKAGE_BUNDLE_PATH : RUNTIME_BUNDLE_PATH)}/{abName}";
             
             // 加载
-            AssetBundle ab = AssetBundle.LoadFromFile(abPath, 0, AB_OFFSET);
+            AssetBundle ab = AssetBundle.LoadFromFile(abPath, 0, _abOffset);
                 
             abInfo.AB = ab;
             abInfo.ABState = EABState.Loaded;
@@ -567,7 +568,7 @@ namespace Engine.Scripts.Runtime.Resource
                 var data = _asyncLoadABWaitingList[i];
                 
                 // 异步加载ab
-                var req = AssetBundle.LoadFromFileAsync(data.AbPath, 0, AB_OFFSET);
+                var req = AssetBundle.LoadFromFileAsync(data.AbPath, 0, _abOffset);
                 data.Info.ABState = EABState.AsyncLoading;
                 data.Info.Req = req;
                 
