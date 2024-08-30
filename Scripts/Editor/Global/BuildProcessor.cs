@@ -27,6 +27,24 @@ namespace Engine.Scripts.Editor.Global
             Debug.Log($"Find global-metadata.dat. Encrypt.");
             
             var bytesReal = File.ReadAllBytes(metadataPath);
+
+            bool encryptFile = false;
+
+            // 是否文件已处理过
+            if (bytesReal[5] == 0x97 && bytesReal[6] == 0x2C)
+            {
+                if (bytesReal.Length >= 2048 + 6)
+                {
+                    if (bytesReal[1024 + 5] == 0x97 && bytesReal[1024 + 6] == 0x2C)
+                        encryptFile = true;
+                }
+            }
+
+            if (encryptFile)
+            {
+                // 处理过则不处理
+                return;
+            }
             
             // 假文件数据
             var bytesFake = new byte[bytesReal.Length / 2];
@@ -49,6 +67,10 @@ namespace Engine.Scripts.Editor.Global
                     else
                         bytesFake[i] = 0x1D;
                 }
+                else if (i % 1024 == 5)
+                    bytesFake[i] = 0x97;
+                else if (i % 1024 == 6)
+                    bytesFake[i] = 0x2C;
                 else
                     bytesFake[i] = (byte) (bytesReal[i] ^ (byte)(Random.Range(1, 254) & 0xFF));
             }
