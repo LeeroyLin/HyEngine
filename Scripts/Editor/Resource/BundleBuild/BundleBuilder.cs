@@ -26,6 +26,9 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         // 包 版本路径
         private static readonly string APK_VERSION_PATH = $"{Application.streamingAssetsPath}/apk_version";
         
+        // ab偏移
+        private static readonly int AB_OFFSET = 500;
+        
         private static BundleConfig _bundleConfig;
         
         // 资源对应ab名
@@ -207,20 +210,20 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             PathUtil.MakeSureDir(outputPath);
             
             var buildParams = new CustomBuildParameters(buildTarget, buildGroup, outputPath);
-
+            
             buildParams.PerBundleCompression = _compressionDic; 
             
             ReturnCode exitCode = ContentPipeline.BuildAssetBundles(buildParams, buildContent, out IBundleBuildResults results);
             
             Log($"Build finished with exit code : {exitCode}");
-
+            
             if (exitCode != ReturnCode.Success)
                 return false;
             
             // 保存目录文件
             if (!SaveManifestFile(outputPath, results, finalVersion))
                 return false;
-            
+
             // 记录包版本文件
             if (!SaveApkVersionFile(APK_VERSION_PATH, finalVersion))
                 return false;
@@ -229,6 +232,58 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             if (!MovePackageFiles(buildTarget, results, outputPath))
                 return false;
 
+            // 加密ab
+            if (!EncryptAB())
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// 加密ab
+        /// </summary>
+        /// <returns></returns>
+        static bool EncryptAB()
+        {
+            DirectoryInfo dirInfo = new DirectoryInfo(PACKAGE_AB_DIR);
+            var files = dirInfo.GetFiles("*.*", SearchOption.AllDirectories);
+
+            byte[] bytes = null;
+            byte[] newBytes = null;
+            
+            foreach (var fileInfo in files)
+            {
+                try
+                {
+                    bytes = File.ReadAllBytes(fileInfo.FullName);
+                }
+                catch (Exception e)
+                {
+                    LogError($"[EncryptAB] Read file at {fileInfo.FullName} failed. err: {e.Message}");
+                    return false;
+                }
+
+                newBytes = new byte[bytes.Length + AB_OFFSET];
+
+                for (int i = 0; i < newBytes.Length; i++)
+                {
+                    if (i < AB_OFFSET)
+                        newBytes[i] = bytes[i];
+                    else
+                        newBytes[i] = bytes[i - AB_OFFSET];
+                }
+
+                try
+                {
+                    File.WriteAllBytes(fileInfo.FullName, newBytes);
+                }
+                catch (Exception e)
+                {
+                    LogError($"[EncryptAB] Save file at {fileInfo.FullName} failed. err: {e.Message}");
+                    return false;
+                }
+            }
+            
             return true;
         }
 
