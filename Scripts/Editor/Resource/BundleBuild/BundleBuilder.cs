@@ -275,7 +275,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                         if (i < bytes.Length)
                             newBytes[i] = bytes[i];
                         else
-                            newBytes[i] = (byte)(AB_ENCRYPT_RANDOM_FILL[i % AB_ENCRYPT_RANDOM_FILL.Length]);
+                            newBytes[i] = (byte)(AB_ENCRYPT_RANDOM_FILL[i % AB_ENCRYPT_RANDOM_FILL.Length] & 0xff);
                     }
                     else
                         newBytes[i] = bytes[i - abOffset];
