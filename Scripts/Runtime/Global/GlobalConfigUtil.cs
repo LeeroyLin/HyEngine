@@ -63,7 +63,7 @@ namespace Engine.Scripts.Runtime.Global
             var bytes = Encoding.UTF8.GetBytes(content);
 
             for (int i = 0; i < bytes.Length; i++)
-                bytes[i] = (byte)(bytes[i] ^ GLOBAL_CONFIG_KEY[i % GLOBAL_CONFIG_KEY.Length]);
+                bytes[i] = (byte)(bytes[i] ^ (GLOBAL_CONFIG_KEY[i % GLOBAL_CONFIG_KEY.Length] & 0xff));
             
             try
             {
