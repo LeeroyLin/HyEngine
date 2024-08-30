@@ -25,22 +25,22 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         private static async void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
             string[] movedFromAssetPaths)
         {
-            // await LoadConfig();
-            //
-            // if (_config == null)
-            //     return;
-            //
-            // foreach (var p in importedAssets)
-            // {
-            //     // 非文件
-            //     if (!File.Exists(p))
-            //         continue;
-            //
-            //     // FGUI导出处理
-            //     FGUIExportPost(p);
-            // }
-            //
-            // AssetDatabase.Refresh();
+            await LoadConfig();
+            
+            if (_config == null)
+                return;
+            
+            foreach (var p in importedAssets)
+            {
+                // 非文件
+                if (!File.Exists(p))
+                    continue;
+            
+                // FGUI导出处理
+                FGUIExportPost(p);
+            }
+            
+            AssetDatabase.Refresh();
         }
 
         /// <summary>
