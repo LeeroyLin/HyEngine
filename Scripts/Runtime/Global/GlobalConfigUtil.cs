@@ -45,7 +45,15 @@ namespace Engine.Scripts.Runtime.Global
 #if UNITY_EDITOR
             var path = $"{Application.streamingAssetsPath}/{GLOBAL_CONFIG_STREAMING_ASSETS_PATH}";
             var content = File.ReadAllText(path);
-            var conf = JsonConvert.DeserializeObject<GlobalConfig>(content);
+            
+            var bytes = Encoding.UTF8.GetBytes(content);
+
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = (byte)(bytes[i] ^ (GLOBAL_CONFIG_KEY[i % GLOBAL_CONFIG_KEY.Length] & 0xff));
+
+            var str = Encoding.UTF8.GetString(bytes);
+
+            var conf = JsonConvert.DeserializeObject<GlobalConfig>(str;
             return conf;
 #endif
 
