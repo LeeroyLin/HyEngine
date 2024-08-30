@@ -74,12 +74,21 @@ namespace Engine.Scripts.Editor.Global
                     resLoadMode = confSO.resLoadMode,
                     netMaxMsgLen = confSO.netMaxMsgLen,
                     isNetEncrypt = confSO.isNetEncrypt,
-                    isSelectServer = confSO.isSelectServer,
                     abOffset = confSO.abOffset,
+                    loginType = confSO.loginType,
                     version = confSO.version,
                     logConfig = confSO.logConfig,
                     netConfig = confSO.GetCurrNetConfig(),
                 };
+                
+                globalConf.SetFlags(
+                    confSO.isSelectServer,
+                    confSO.autoShowGM,
+                    confSO.settingViewGM,
+                    confSO.autoShowDebug,
+                    confSO.editorAntiAddiction,
+                    confSO.packageAntiAddiction,
+                    confSO.antiAddictionTestEnv);
 
                 GlobalConfigUtil.SaveConf(globalConf);
                 
