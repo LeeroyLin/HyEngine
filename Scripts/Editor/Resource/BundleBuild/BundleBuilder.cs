@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEditor.Build.Pipeline;
 using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Engine.Scripts.Editor.Resource.BundleBuild
 {
@@ -267,7 +268,12 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 for (int i = 0; i < newBytes.Length; i++)
                 {
                     if (i < abOffset)
-                        newBytes[i] = bytes[i];
+                    {
+                        if (i < bytes.Length)
+                            newBytes[i] = bytes[i];
+                        else
+                            newBytes[i] = (byte)Random.Range(0, 210);
+                    }
                     else
                         newBytes[i] = bytes[i - abOffset];
                 }
