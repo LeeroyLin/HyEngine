@@ -219,6 +219,10 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             
             if (exitCode != ReturnCode.Success)
                 return false;
+
+            // 加密ab
+            if (!EncryptAB(results))
+                return false;
             
             // 保存目录文件
             if (!SaveManifestFile(outputPath, results, finalVersion))
@@ -232,10 +236,6 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             if (!MovePackageFiles(buildTarget, results, outputPath))
                 return false;
 
-            // 加密ab
-            if (!EncryptAB())
-                return false;
-
             return true;
         }
 
@@ -243,23 +243,20 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
         /// 加密ab
         /// </summary>
         /// <returns></returns>
-        static bool EncryptAB()
+        static bool EncryptAB(IBundleBuildResults results)
         {
-            DirectoryInfo dirInfo = new DirectoryInfo(PACKAGE_AB_DIR);
-            var files = dirInfo.GetFiles("*.*", SearchOption.AllDirectories);
-
             byte[] bytes = null;
             byte[] newBytes = null;
-            
-            foreach (var fileInfo in files)
+
+            foreach (var info in results.BundleInfos)
             {
                 try
                 {
-                    bytes = File.ReadAllBytes(fileInfo.FullName);
+                    bytes = File.ReadAllBytes(info.Value.FileName);
                 }
                 catch (Exception e)
                 {
-                    LogError($"[EncryptAB] Read file at {fileInfo.FullName} failed. err: {e.Message}");
+                    LogError($"[EncryptAB] Read file at {info.Value.FileName} failed. err: {e.Message}");
                     return false;
                 }
 
@@ -275,11 +272,11 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
 
                 try
                 {
-                    File.WriteAllBytes(fileInfo.FullName, newBytes);
+                    File.WriteAllBytes(info.Value.FileName, newBytes);
                 }
                 catch (Exception e)
                 {
-                    LogError($"[EncryptAB] Save file at {fileInfo.FullName} failed. err: {e.Message}");
+                    LogError($"[EncryptAB] Save file at {info.Value.FileName} failed. err: {e.Message}");
                     return false;
                 }
             }
