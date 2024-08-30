@@ -16,6 +16,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
 
         private static BundleConfig _config;
         private static List<BundleConfigData> _list;
+        private static MultiColumnListView _viewList;
 
         [MenuItem("Build/Bundle/Bundle Config/Bundle Config Window")]
         public static void ShowExample()
@@ -68,15 +69,20 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             // 主按钮事件注册
             MainBtnEventReg(labelFromUXML);
             
-            var listView = labelFromUXML.Q<MultiColumnListView>();
+            _viewList = labelFromUXML.Q<MultiColumnListView>();
 
-            listView.itemsSource = _list;
+            _viewList.itemsSource = _list;
 
             // 创建列处理
-            MakeCell(listView);
+            MakeCell(_viewList);
 
             // 绑定列事件
-            BindColumnsEvent(listView);
+            BindColumnsEvent(_viewList);
+        }
+
+        void RefreshList()
+        {
+            _viewList.RefreshItems();
         }
 
         /// <summary>
@@ -210,7 +216,13 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
         
         void OnMd5Changed(ChangeEvent<bool> evt, int idx)
         {
-            _list[idx].md5 = evt.newValue;
+            var path = _list[idx].path;
+            if (path == "Boot" || path.StartsWith("Logic"))
+                _list[idx].md5 = true;
+            else
+                _list[idx].md5 = evt.newValue;
+
+            RefreshList();
         }
         
         /// <summary>
@@ -267,7 +279,7 @@ namespace Engine.Scripts.Editor.Resource.BundleConfigWindow
             listView.columns["md5"].bindCell = (element, i) =>
             {
                 var toggle = (Toggle) element;
-                
+
                 toggle.UnregisterCallback<ChangeEvent<bool>, int>(OnMd5Changed);
                 toggle.RegisterCallback<ChangeEvent<bool>, int>(OnMd5Changed, i);
                 
