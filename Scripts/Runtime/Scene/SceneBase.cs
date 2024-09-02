@@ -226,6 +226,8 @@ namespace Engine.Scripts.Runtime.Scene
             {
                 var abName = ResMgr.Ins.RelPath2ABName(relPath, out var isInGame, out var isPackage);
                 
+                Debug.Log($"CCC relPath:{relPath} abName:{abName}");
+                
                 ResMgr.Ins.LoadABAsyncWithABName(abName, isInGame, isPackage, ab =>
                 {
                     cnt++;
