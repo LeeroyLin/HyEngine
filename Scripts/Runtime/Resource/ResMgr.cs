@@ -423,11 +423,14 @@ namespace Engine.Scripts.Runtime.Resource
         
         public string RelPath2ABName(string relPath, out bool isInGame, out bool isPackage)
         {
-            int maxLength = 0;
-            BundleConfigData data = null;
-
             isInGame = false;
             isPackage = false;
+            
+            if (_resLoadMode != EResLoadMode.AB && _resLoadMode != EResLoadMode.PackageAB)
+                return relPath;
+            
+            int maxLength = 0;
+            BundleConfigData data = null;
             
             foreach (var config in _manifest.config.dataList)
             {
