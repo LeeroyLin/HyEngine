@@ -421,6 +421,73 @@ namespace Engine.Scripts.Runtime.Resource
             });
         }
         
+        public string RelPath2ABName(string relPath, out bool isInGame, out bool isPackage)
+        {
+            int maxLength = 0;
+            BundleConfigData data = null;
+
+            isInGame = false;
+            isPackage = false;
+            
+            foreach (var config in _manifest.config.dataList)
+            {
+                if (relPath.StartsWith(config.path))
+                {
+                    if (maxLength == 0 || config.path.Length > maxLength)
+                    {
+                        maxLength = config.path.Length;
+                        data = config;
+                    }
+                }
+            }
+
+            if (data == null)
+            {
+                _log.Error($"Can not get ab with relPath : {relPath}");
+                return "";
+            }
+
+            isInGame = data.updateType == EABUpdate.InGame;
+            isPackage = data.updateType == EABUpdate.Package;
+
+            switch (data.packDirType)
+            {
+                case EABPackDir.Single:
+                    return GetABNameWithMd5(data.path, data.md5);
+                case EABPackDir.File:
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(relPath);
+
+                    return GetABNameWithMd5($"{data.path}_{fileName}", data.md5);
+                }
+                case EABPackDir.SubSingle:
+                {
+                    relPath = relPath.Replace(data.path, "");
+                    var strs = relPath.Split("/");
+                    var dirName = "";
+                    foreach (var str in strs)
+                    {
+                        if (string.IsNullOrEmpty(str))
+                            continue;
+                        
+                        dirName = str;
+
+                        break;
+                    }
+
+                    if (string.IsNullOrEmpty(dirName))
+                    {
+                        _log.Error($"Can not get ab use SubSingle with relPath : {relPath}");
+                        return "";
+                    }
+                    
+                    return GetABNameWithMd5($"{data.path}_{dirName}", data.md5);
+                }
+            }
+
+            return "";
+        }
+        
         // 下载ab文件
         UnityWebRequestAsyncOperation DownloadABFile(string abName)
         {
@@ -665,73 +732,6 @@ namespace Engine.Scripts.Runtime.Resource
                 return depList;
             
             return new List<string>();
-        }
-
-        private string RelPath2ABName(string relPath, out bool isInGame, out bool isPackage)
-        {
-            int maxLength = 0;
-            BundleConfigData data = null;
-
-            isInGame = false;
-            isPackage = false;
-            
-            foreach (var config in _manifest.config.dataList)
-            {
-                if (relPath.StartsWith(config.path))
-                {
-                    if (maxLength == 0 || config.path.Length > maxLength)
-                    {
-                        maxLength = config.path.Length;
-                        data = config;
-                    }
-                }
-            }
-
-            if (data == null)
-            {
-                _log.Error($"Can not get ab with relPath : {relPath}");
-                return "";
-            }
-
-            isInGame = data.updateType == EABUpdate.InGame;
-            isPackage = data.updateType == EABUpdate.Package;
-
-            switch (data.packDirType)
-            {
-                case EABPackDir.Single:
-                    return GetABNameWithMd5(data.path, data.md5);
-                case EABPackDir.File:
-                {
-                    var fileName = Path.GetFileNameWithoutExtension(relPath);
-
-                    return GetABNameWithMd5($"{data.path}_{fileName}", data.md5);
-                }
-                case EABPackDir.SubSingle:
-                {
-                    relPath = relPath.Replace(data.path, "");
-                    var strs = relPath.Split("/");
-                    var dirName = "";
-                    foreach (var str in strs)
-                    {
-                        if (string.IsNullOrEmpty(str))
-                            continue;
-                        
-                        dirName = str;
-
-                        break;
-                    }
-
-                    if (string.IsNullOrEmpty(dirName))
-                    {
-                        _log.Error($"Can not get ab use SubSingle with relPath : {relPath}");
-                        return "";
-                    }
-                    
-                    return GetABNameWithMd5($"{data.path}_{dirName}", data.md5);
-                }
-            }
-
-            return "";
         }
 
         private string GetABNameWithMd5(string name, bool isMd5)
