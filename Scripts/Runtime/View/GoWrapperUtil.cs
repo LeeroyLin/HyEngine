@@ -12,7 +12,6 @@ namespace Engine.Scripts.Runtime.View
             Clear(holder, null);
             
             var obj = PoolMgr.Ins.Get(relPath);
-            onShow?.Invoke(obj.transform);
             
             var wrapper = holder.displayObject as GoWrapper;
 
@@ -23,6 +22,8 @@ namespace Engine.Scripts.Runtime.View
             }
             else
                 wrapper.wrapTarget = obj;
+            
+            onShow?.Invoke(obj.transform);
         }
 
         public static void Clear(GGraph holder, Action<GameObject> onRecycle)
