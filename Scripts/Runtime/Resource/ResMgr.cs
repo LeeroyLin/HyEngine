@@ -740,9 +740,13 @@ namespace Engine.Scripts.Runtime.Resource
         private string GetABNameWithMd5(string name, bool isMd5)
         {
             name = name.Replace("/", "__").Replace("\\", "__").Replace(".", "__");
-            
+
             if (isMd5)
-                return Md5.EncryptMD5_32(name);
+            {
+                string n = Md5.EncryptMD5_32(name);
+                _log.Log($"GetABNameWithMd5 {name} => {n}");
+                return n;
+            }
 
             return name;
         }
