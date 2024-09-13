@@ -136,6 +136,45 @@ namespace Engine.Scripts.Runtime.Utils
         }
 
         /// <summary>
+        /// 距离某毫秒级时间，还剩多久毫秒级时间
+        /// </summary>
+        /// <param name="timeMS">毫秒级时间戳</param>
+        /// <param name="isLocalTime">本地时间计算</param>
+        /// <returns></returns>
+        public static long LeftMSLong(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var delta = timeMS - nowMS;
+            if (delta < 0)
+                delta = 0;
+            return delta;
+        }
+
+        /// <summary>
+        /// 距离某毫秒级时间，还剩多久秒级时间
+        /// </summary>
+        /// <returns></returns>
+        public static int LeftByMS(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var sec = (timeMS - nowMS) / 1000;
+            return Mathf.Max(0, MathUtil.Long2NearInt(sec));
+        }
+
+        /// <summary>
+        /// 距离某毫秒级时间，还剩多久秒级时间
+        /// </summary>
+        /// <returns></returns>
+        public static long LeftByMSLong(long timeMS, bool isLocalTime = false)
+        {
+            var nowMS = isLocalTime ? GetLocalTimeMS() : GetTimestampMS();
+            var delta = (timeMS - nowMS) / 1000;
+            if (delta < 0)
+                delta = 0;
+            return delta;
+        }
+
+        /// <summary>
         /// 根据格式化字符串内容，格式化时间显示
         /// </summary>
         /// <param name="sec">秒</param>
