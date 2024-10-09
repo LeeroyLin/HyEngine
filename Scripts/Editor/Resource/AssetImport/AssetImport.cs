@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Engine.Scripts.Runtime.Global;
 using Engine.Scripts.Runtime.Resource;
@@ -29,6 +30,8 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
             
             if (_config == null)
                 return;
+
+            bool isChanged = false;
             
             foreach (var p in importedAssets)
             {
@@ -37,17 +40,53 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
                     continue;
             
                 // FGUI导出处理
-                FGUIExportPost(p);
+                if (FGUIExportPost(p))
+                    isChanged = true;
+
+                // 图片处理
+                if (SpritePost(p))
+                    isChanged = true;
             }
+
+            if (isChanged)
+                AssetDatabase.Refresh();
+        }
+
+        private static bool SpritePost(string p)
+        {
+            var path = p.Replace("\\", "/");
             
-            AssetDatabase.Refresh();
+            var extension = Path.GetExtension(path);
+
+            if (extension == ".png" || extension == ".jpg" || extension == ".jpeg")
+            {
+                TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (importer != null)
+                {
+                    TextureImporterPlatformSettings importPlatformAndroid = importer.GetPlatformTextureSettings("Android");
+
+                    if (importPlatformAndroid.overridden && importPlatformAndroid.format == TextureImporterFormat.ETC2_RGBA8Crunched)
+                        return false;
+                    
+                    importPlatformAndroid.overridden = true;
+
+                    importPlatformAndroid.format = TextureImporterFormat.ETC2_RGBA8Crunched;
+                    
+                    importer.SetPlatformTextureSettings(importPlatformAndroid);
+                    importer.SaveAndReimport();
+
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
         /// FGUI导出处理
         /// </summary>
         /// <param name="p"></param>
-        private static void FGUIExportPost(string p)
+        private static bool FGUIExportPost(string p)
         {
             var path = p.Replace("\\", "/");
 
@@ -67,12 +106,17 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
                 if (extension == ".bytes")
                 {
                     MoveDesc(path, uiDir);
+                    return true;
                 }
-                else if (extension == ".png")
+                
+                if (extension == ".png")
                 {
                     MovePng(path, uiDir);
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private static void MoveDesc(string path, string dir)

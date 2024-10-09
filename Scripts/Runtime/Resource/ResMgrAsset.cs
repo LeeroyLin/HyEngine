@@ -82,6 +82,7 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="delta"></param>
         public void ReduceAssetRef(string relPath, int delta = 1)
         {
+#if !UNITY_EDITOR
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
 
@@ -89,6 +90,7 @@ namespace Engine.Scripts.Runtime.Resource
                 info.ReduceRef();
             
             ReduceABRef(relPath);
+#endif
         }
         
         protected void OnAssetReset()
