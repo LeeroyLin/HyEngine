@@ -19,6 +19,10 @@ namespace Engine.Scripts.Runtime.Global
         /// 选择登录方式，值随便写的
         /// </summary>
         Choose = 100,
+        /// <summary>
+        /// 固定用户名登录，值随便写的
+        /// </summary>
+        FixedUsr = 101,
     }
     
     [CreateAssetMenu(fileName ="GlobalConfig", menuName ="ScriptableObject/NewGlobalConfig",order = 1 )]
