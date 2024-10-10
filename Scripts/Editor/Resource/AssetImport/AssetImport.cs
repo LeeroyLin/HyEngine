@@ -13,6 +13,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         private static readonly string DEFAULT_OUT_UI_DIR = "Assets/BundleAssets/UI";
         private static readonly string RESOURCES_OUT_UI_DIR = "Assets/Resources/UI";
         private static readonly string TEX_DIR = "Assets/Arts";
+        private static readonly string FONT_DIR = "Assets/BundleAsses/Font";
         
         // 定义文件和图片文件分离
         private static readonly bool IS_SEPARATE = false;
@@ -57,7 +58,7 @@ namespace Engine.Scripts.Editor.Resource.AssetImport
         {
             var path = p.Replace("\\", "/");
 
-            if (path.StartsWith(TEX_DIR))
+            if (path.StartsWith(TEX_DIR) || path.StartsWith(FONT_DIR))
                 return false;
             
             var extension = Path.GetExtension(path);
