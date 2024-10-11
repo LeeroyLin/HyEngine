@@ -117,6 +117,8 @@ namespace Engine.Scripts.Runtime.View
 
         public void CallBlur(string key, bool isBlur)
         {
+            return;
+            
             _blurHandler?.Invoke(key, isBlur);
 
             bool hasBGBlur = false;
@@ -147,6 +149,8 @@ namespace Engine.Scripts.Runtime.View
 
         void SetFilter(ViewBase view, bool isBlur)
         {
+            return;
+            
             var filter = view.filter as BlurFilter;
 
             if (isBlur)
