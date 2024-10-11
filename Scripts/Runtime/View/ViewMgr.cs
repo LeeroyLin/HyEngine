@@ -221,6 +221,7 @@ namespace Engine.Scripts.Runtime.View
                 
                 ins.name = $"{ins.Pkg}_{ins.Name}";
                 ins.MakeFullScreen();
+                ins.fairyBatching = true;
             }
             else
             {
