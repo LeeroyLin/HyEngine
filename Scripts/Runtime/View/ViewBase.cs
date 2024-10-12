@@ -68,6 +68,7 @@ namespace Engine.Scripts.Runtime.View
             onCreated = DoInit;
 
             sortingOrder = (int) EViewLayer.Normal;
+            fairyBatching = true;
         }
 
         protected void DoInit()
