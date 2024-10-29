@@ -47,6 +47,7 @@ namespace Engine.Scripts.Runtime.Global
         public bool packageAntiAddiction = false;
         // 防沉迷 测试模式
         public bool antiAddictionTestEnv = false;
+        public string pkgSign = "jgc.aliyun.yice.prod";
         // 登录方式
         public EGlobalConfigLoginType loginType = EGlobalConfigLoginType.Choose;
         public string version = "0.1";

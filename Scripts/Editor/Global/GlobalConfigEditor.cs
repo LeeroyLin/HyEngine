@@ -75,6 +75,7 @@ namespace Engine.Scripts.Editor.Global
                     netMaxMsgLen = confSO.netMaxMsgLen,
                     isNetEncrypt = confSO.isNetEncrypt,
                     abOffset = confSO.abOffset,
+                    pkgSign = confSO.pkgSign,
                     loginType = confSO.loginType,
                     version = confSO.version,
                     logConfig = confSO.logConfig,

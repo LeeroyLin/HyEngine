@@ -13,6 +13,7 @@ namespace Engine.Scripts.Runtime.Global
         public ulong abOffset = 2000;
         // 登录方式
         public EGlobalConfigLoginType loginType;
+        public string pkgSign = "jgc.aliyun.yice.prod";
 
         // 服务器手动选择
         public bool isSelectServer => flags[0];
