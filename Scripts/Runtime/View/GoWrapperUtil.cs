@@ -22,7 +22,7 @@ namespace Engine.Scripts.Runtime.View
             }
             else
                 wrapper.wrapTarget = obj;
-            
+            SetTransLayer(obj.transform,LayerMask.NameToLayer("UI"));
             onShow?.Invoke(obj.transform);
         }
 
@@ -47,10 +47,9 @@ namespace Engine.Scripts.Runtime.View
 
         public static void SetTransLayer(Transform trans, LayerMask layer)
         {
+            trans.gameObject.layer = layer;
             foreach (Transform t in trans)
             {
-                t.gameObject.layer = layer;
-
                 SetTransLayer(t, layer);
             }
         }
