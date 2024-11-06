@@ -183,7 +183,12 @@ namespace Engine.Scripts.Runtime.Resource
             var abName = RelPath2ABName(relPath, out _, out _);
 
             if (_abDic.TryGetValue(abName, out var ab))
+            {
                 ab.AddRef(delta);
+                
+                if (relPath.StartsWith("Buildings/31"))
+                    Debug.Log($"CCC AddRef [AddABRef] after:{ab.RefCnt}");
+            }
         }
 
         /// <summary>
@@ -211,7 +216,12 @@ namespace Engine.Scripts.Runtime.Resource
             var abName = RelPath2ABName(relPath, out _, out _);
 
             if (_abDic.TryGetValue(abName, out var ab))
+            {
                 ab.ReduceRef(delta);
+                
+                if (relPath.StartsWith("Buildings/31"))
+                    Debug.Log($"CCC ReduceRef [ReduceABRef] after:{ab.RefCnt}");
+            }
         }
 
         /// <summary>
@@ -264,6 +274,9 @@ namespace Engine.Scripts.Runtime.Resource
                     case EABState.Loaded:
                         // 引用计数
                         abInfo.AddRef();
+                
+                        if (abName == "1848FEA5277229806EEA29A4A5177761")
+                            Debug.Log($"CCC AddRef [LoadABWithABName1] after:{abInfo.RefCnt}");
                         
                         return abInfo.AB;
                     case EABState.SyncLoading:
@@ -305,6 +318,9 @@ namespace Engine.Scripts.Runtime.Resource
             
             // 引用计数
             abInfo.AddRef();
+                
+            if (abName == "1848FEA5277229806EEA29A4A5177761")
+                Debug.Log($"CCC AddRef [LoadABWithABName2] after:{abInfo.RefCnt}");
 
             // 完成后的回调
             abInfo.OnLoaded?.Invoke(ab);
@@ -375,6 +391,9 @@ namespace Engine.Scripts.Runtime.Resource
                     case EABState.Loaded:
                         // 引用计数
                         abInfo.AddRef();
+                
+                        if (abName == "1848FEA5277229806EEA29A4A5177761")
+                            Debug.Log($"CCC AddRef [LoadABAsyncWithABName1] after:{abInfo.RefCnt}");
                         
                         callback(abInfo.AB);
                         return;
@@ -411,6 +430,9 @@ namespace Engine.Scripts.Runtime.Resource
             
             // 引用计数
             abInfo.AddRef();
+                
+            if (abName == "1848FEA5277229806EEA29A4A5177761")
+                Debug.Log($"CCC AddRef [LoadABAsyncWithABName2] after:{abInfo.RefCnt}");
 
             // 加载依赖
             LoadABDepsAsync(abName, isPackage, () =>
