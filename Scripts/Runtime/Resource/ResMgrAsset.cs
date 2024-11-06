@@ -69,9 +69,6 @@ namespace Engine.Scripts.Runtime.Resource
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
 
-            if (relPath.StartsWith("Buildings/31"))
-                _log.Log($"AddAssetRef {relPath}");
-            
             if (_assetDic.TryGetValue(relPath, out var info))
                 info.AddRef();
             
@@ -85,9 +82,6 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="delta"></param>
         public void ReduceAssetRef(string relPath, int delta = 1)
         {            
-            if (relPath.StartsWith("Buildings/31"))
-                _log.Log($"ReduceAssetRef {relPath}");
-
 #if !UNITY_EDITOR
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
@@ -467,8 +461,6 @@ namespace Engine.Scripts.Runtime.Resource
         {
             if (!_abAssetDic.TryGetValue(abName, out var set))
                 return;
-
-            _log.Log($"RemoveABAssets {abName}");
 
             foreach (var assetRelPath in set)
                 _assetDic.Remove(assetRelPath);

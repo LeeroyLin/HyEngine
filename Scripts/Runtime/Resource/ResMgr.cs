@@ -170,9 +170,6 @@ namespace Engine.Scripts.Runtime.Resource
             
             bool isAtlas = IsRelPathAtlas(relPath, out var atlasName, out var spriteName);
 
-            if (relPath.StartsWith("Buildings/31"))
-                _log.Log($"AddABRef {relPath}");
-            
             if (isAtlas)
             {
                 AddAtlasABRef(atlasName);
@@ -183,12 +180,7 @@ namespace Engine.Scripts.Runtime.Resource
             var abName = RelPath2ABName(relPath, out _, out _);
 
             if (_abDic.TryGetValue(abName, out var ab))
-            {
                 ab.AddRef(delta);
-                
-                if (relPath.StartsWith("Buildings/31"))
-                    Debug.Log($"CCC AddRef [AddABRef] after:{ab.RefCnt}");
-            }
         }
 
         /// <summary>
@@ -200,9 +192,6 @@ namespace Engine.Scripts.Runtime.Resource
         {
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
-            
-            if (relPath.StartsWith("Buildings/31"))
-                _log.Log($"ReduceABRef {relPath}");
             
             bool isAtlas = IsRelPathAtlas(relPath, out var atlasName, out var spriteName);
 
@@ -216,12 +205,7 @@ namespace Engine.Scripts.Runtime.Resource
             var abName = RelPath2ABName(relPath, out _, out _);
 
             if (_abDic.TryGetValue(abName, out var ab))
-            {
                 ab.ReduceRef(delta);
-                
-                if (relPath.StartsWith("Buildings/31"))
-                    Debug.Log($"CCC ReduceRef [ReduceABRef] after:{ab.RefCnt}");
-            }
         }
 
         /// <summary>
@@ -392,9 +376,6 @@ namespace Engine.Scripts.Runtime.Resource
                         // 引用计数
                         abInfo.AddRef();
                 
-                        if (abName == "1848FEA5277229806EEA29A4A5177761")
-                            Debug.Log($"CCC AddRef [LoadABAsyncWithABName1] after:{abInfo.RefCnt}");
-                        
                         callback(abInfo.AB);
                         return;
                     case EABState.SyncLoading:
@@ -407,9 +388,6 @@ namespace Engine.Scripts.Runtime.Resource
                         
                         // 引用计数
                         abInfo.AddRef();
-                
-                        if (abName == "1848FEA5277229806EEA29A4A5177761")
-                            Debug.Log($"CCC AddRef [LoadABAsyncWithABName3] after:{abInfo.RefCnt}");
                     }
                         return;
                 }
@@ -439,9 +417,6 @@ namespace Engine.Scripts.Runtime.Resource
             // 引用计数
             abInfo.AddRef();
                 
-            if (abName == "1848FEA5277229806EEA29A4A5177761")
-                Debug.Log($"CCC AddRef [LoadABAsyncWithABName2] after:{abInfo.RefCnt}");
-
             // 加载依赖
             LoadABDepsAsync(abName, isPackage, () =>
             {
@@ -715,8 +690,6 @@ namespace Engine.Scripts.Runtime.Resource
                 // 卸载ab
                 info.AB.Unload(true);
                 
-                _log.Log($"UnloadAB {key}");
-
                 RemoveABAssets(key);
             }
         }
