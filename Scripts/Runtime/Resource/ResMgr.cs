@@ -402,7 +402,15 @@ namespace Engine.Scripts.Runtime.Resource
                     case EABState.AsyncWaiting:
                     case EABState.Downloading:
                     case EABState.Downloaded:
+                    {
                         abInfo.OnLoaded += callback;
+                        
+                        // 引用计数
+                        abInfo.AddRef();
+                
+                        if (abName == "1848FEA5277229806EEA29A4A5177761")
+                            Debug.Log($"CCC AddRef [LoadABAsyncWithABName3] after:{abInfo.RefCnt}");
+                    }
                         return;
                 }
             }
