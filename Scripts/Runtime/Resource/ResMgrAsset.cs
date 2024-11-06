@@ -468,6 +468,8 @@ namespace Engine.Scripts.Runtime.Resource
             if (!_abAssetDic.TryGetValue(abName, out var set))
                 return;
 
+            _log.Log($"RemoveABAssets {abName}");
+
             foreach (var assetRelPath in set)
                 _assetDic.Remove(assetRelPath);
         }
