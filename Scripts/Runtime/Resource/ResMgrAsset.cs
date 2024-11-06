@@ -85,12 +85,12 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="delta"></param>
         public void ReduceAssetRef(string relPath, int delta = 1)
         {            
+            if (relPath.StartsWith("Buildings/31"))
+                _log.Log($"ReduceAssetRef {relPath}");
+
 #if !UNITY_EDITOR
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
-
-            if (relPath.StartsWith("Buildings/31"))
-                _log.Log($"ReduceAssetRef {relPath}");
 
             if (_assetDic.TryGetValue(relPath, out var info))
                 info.ReduceRef();

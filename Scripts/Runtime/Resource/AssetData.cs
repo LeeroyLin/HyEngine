@@ -8,6 +8,11 @@ namespace Engine.Scripts.Runtime.Resource
 
         private void OnDestroy()
         {
+            if (relPath.StartsWith("Buildings/31"))
+            {
+                Debug.Log($"CCC OnDestroy {name}");
+            }
+            
             ResMgr.Ins.ReduceAssetRef(relPath);
         }
     }
