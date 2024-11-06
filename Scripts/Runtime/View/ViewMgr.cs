@@ -314,6 +314,7 @@ namespace Engine.Scripts.Runtime.View
                 // 放入非激活列表
                 _inactiveUIList.Add(info);
             }
+            
             UpdateTop((true));
         }
 
@@ -466,14 +467,21 @@ namespace Engine.Scripts.Runtime.View
             _sortList.Sort((a, b) => a.CompareTo(b));
 
             bool isFindTop = false;
+            bool isHideBelow = false;
             
             for (int i = _sortList.Count - 1; i >= 0; i--)
             {
                 var view = _sortList[i];
+                
+                view.View.visible = true;
 
                 if (isFindTop)
                 {
                     view.View.IsTop = false;
+
+                    if (isHideBelow)
+                        view.View.visible = false;
+                    
                     continue;
                 }
                 
@@ -486,6 +494,7 @@ namespace Engine.Scripts.Runtime.View
 
                 isFindTop = true;
                 view.View.IsTop = true;
+                isHideBelow = view.View.IsHideBelow;
             }
         }
         

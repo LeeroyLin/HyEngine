@@ -28,6 +28,11 @@ namespace Engine.Scripts.Runtime.View
         public bool IsBGBlur { get; protected set; }
         
         /// <summary>
+        /// 是否隐藏其他底层界面
+        /// </summary>
+        public bool IsHideBelow { get; protected set; }
+        
+        /// <summary>
         /// 标记是否是常驻UI
         /// </summary>
         public bool IsPermanent { get; protected set; }
@@ -86,7 +91,7 @@ namespace Engine.Scripts.Runtime.View
 
             if (IsBGBlur)
                 ViewMgr.Ins.CallBlur(CustomKey, true);
-
+            
             PlayEnterAnim();
             
             OnOpen(args);
