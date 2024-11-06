@@ -170,6 +170,9 @@ namespace Engine.Scripts.Runtime.Resource
             
             bool isAtlas = IsRelPathAtlas(relPath, out var atlasName, out var spriteName);
 
+            if (relPath.StartsWith("Buildings/31"))
+                _log.Log($"AddABRef {relPath}");
+            
             if (isAtlas)
             {
                 AddAtlasABRef(atlasName);
@@ -192,6 +195,9 @@ namespace Engine.Scripts.Runtime.Resource
         {
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
+            
+            if (relPath.StartsWith("Buildings/31"))
+                _log.Log($"ReduceABRef {relPath}");
             
             bool isAtlas = IsRelPathAtlas(relPath, out var atlasName, out var spriteName);
 

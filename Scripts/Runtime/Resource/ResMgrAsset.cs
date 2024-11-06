@@ -68,6 +68,9 @@ namespace Engine.Scripts.Runtime.Resource
         {
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
+
+            if (relPath.StartsWith("Buildings/31"))
+                _log.Log($"AddAssetRef {relPath}");
             
             if (_assetDic.TryGetValue(relPath, out var info))
                 info.AddRef();
@@ -81,10 +84,13 @@ namespace Engine.Scripts.Runtime.Resource
         /// <param name="relPath">相对资源目录的资源路径</param>
         /// <param name="delta"></param>
         public void ReduceAssetRef(string relPath, int delta = 1)
-        {
+        {            
 #if !UNITY_EDITOR
             if (GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.AB && GlobalConfigUtil.Conf.resLoadMode != EResLoadMode.PackageAB)
                 return;
+
+            if (relPath.StartsWith("Buildings/31"))
+                _log.Log($"ReduceAssetRef {relPath}");
 
             if (_assetDic.TryGetValue(relPath, out var info))
                 info.ReduceRef();
