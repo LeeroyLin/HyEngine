@@ -258,9 +258,6 @@ namespace Engine.Scripts.Runtime.Resource
                     case EABState.Loaded:
                         // 引用计数
                         abInfo.AddRef();
-                
-                        if (abName == "1848FEA5277229806EEA29A4A5177761")
-                            Debug.Log($"CCC AddRef [LoadABWithABName1] after:{abInfo.RefCnt}");
                         
                         return abInfo.AB;
                     case EABState.SyncLoading:
@@ -302,9 +299,6 @@ namespace Engine.Scripts.Runtime.Resource
             
             // 引用计数
             abInfo.AddRef();
-                
-            if (abName == "1848FEA5277229806EEA29A4A5177761")
-                Debug.Log($"CCC AddRef [LoadABWithABName2] after:{abInfo.RefCnt}");
 
             // 完成后的回调
             abInfo.OnLoaded?.Invoke(ab);
