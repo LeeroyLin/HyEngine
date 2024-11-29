@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Engine.Scripts.Runtime.Manager;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Engine.Scripts.Runtime.Timer
 {
@@ -53,8 +54,14 @@ namespace Engine.Scripts.Runtime.Timer
             foreach (var data in _lateUpdateDic)
                 _actions.Add(data.Value);
 
+            Profiler.BeginSample($"_TimerMgr");
             foreach (var action in _actions)
+            {
+                Profiler.BeginSample($"_{action.Target}");
                 action();
+                Profiler.EndSample();
+            }
+            Profiler.EndSample();
         }
 
         public void OnFixedUpdate()
