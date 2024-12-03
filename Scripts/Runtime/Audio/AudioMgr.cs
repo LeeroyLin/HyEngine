@@ -58,11 +58,9 @@ namespace Engine.Scripts.Runtime.Audio
 
         protected override void OnDisposed()
         {
-            TimerMgr.Ins.RemoveUpdate(OnUpdate);
-
-            ClearAll();
-            
-            RemoveNode();
+            _currMusic = "";
+            _musicSource = null;
+            _soundsList.Clear();
         }
 
         public void SetMusicMute(bool isMute)

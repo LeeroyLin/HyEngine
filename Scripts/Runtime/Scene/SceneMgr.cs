@@ -26,8 +26,7 @@ namespace Engine.Scripts.Runtime.Scene
 
         protected override void OnDisposed()
         {
-            // 关闭之前场景
-            CloseCurr();
+            _current = null;
         }
 
         /// <summary>
