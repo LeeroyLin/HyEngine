@@ -20,6 +20,8 @@ namespace Engine.Scripts.Runtime.Event
         // 在下一帧再调用
         private List<AsyncInfo> _asyncList;
 
+        List<Action<IEventData>> _cbList = new List<Action<IEventData>>();
+
         private LogGroup _log;
         
 
@@ -218,7 +220,7 @@ namespace Engine.Scripts.Runtime.Event
 
         void OnTimer()
         {
-            List<Action<IEventData>> cbList = new List<Action<IEventData>>();
+            _cbList.Clear();
             
             foreach (var asyncInfo in _asyncList)
             {
@@ -226,16 +228,25 @@ namespace Engine.Scripts.Runtime.Event
                 if (!groupDic.TryGetValue(asyncInfo.Key, out var list))
                     continue;
                 
-                cbList.Clear();
+                _cbList.Clear();
 
                 foreach (var cbId in list)
                 {
                     if (_cbDic.TryGetValue(cbId, out var info) && info.Callback != null)
-                        cbList.Add(info.Callback);
+                        _cbList.Add(info.Callback);
                 }
-                
-                foreach (var cb in cbList)
-                    cb(asyncInfo.Data);
+
+                foreach (var cb in _cbList)
+                {
+                    try
+                    {
+                        cb(asyncInfo.Data);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e.Message);
+                    }
+                }
             }
             
             _asyncList.Clear();
