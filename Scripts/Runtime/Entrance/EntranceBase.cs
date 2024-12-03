@@ -1,4 +1,5 @@
-﻿using Engine.Scripts.Runtime.Utils;
+﻿using System.Threading.Tasks;
+using Engine.Scripts.Runtime.Utils;
 using EngineRuntimeAOT;
 using UnityEngine;
 
@@ -8,13 +9,14 @@ namespace Engine.Scripts.Runtime.Entrance
     {
         protected object[] Args;
         
-        public void DoStart(MonoBehaviour behaviour, params object[] args)
+        public async void DoStart(MonoBehaviour behaviour, params object[] args)
         {
             MonoHelper.Ins.Behaviour = behaviour;
             Args = args;
             
             OnInit();
-            OnStart();
+            await OnStart();
+            OnAfterStart();
         }
 
         public void DoUpdate()
@@ -38,7 +40,8 @@ namespace Engine.Scripts.Runtime.Entrance
         }
 
         protected abstract void OnInit();
-        protected abstract void OnStart();
+        protected abstract Task OnStart();
+        protected abstract void OnAfterStart();
         protected abstract void OnDispose();
         protected abstract void OnUpdate();
         protected abstract void OnLateUpdate();
