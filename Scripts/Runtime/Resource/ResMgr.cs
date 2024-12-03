@@ -37,7 +37,16 @@ namespace Engine.Scripts.Runtime.Resource
         public static readonly string PACKAGE_BUNDLE_PATH = $"{Application.streamingAssetsPath}/AB/{PlatformInfo.BuildTargetStr}";
         public static readonly string CONFIG_NAME = "manifest.json";
 
-        public string ResVersion => _manifest.version;
+        public string ResVersion
+        {
+            get
+            {
+                if (_manifest != null)
+                    return _manifest.version;
+                
+                return "";
+            }
+        }
         
         // 最大异步加载ab数
         private static readonly int MAX_ASYNC_LOAD_AB_NUM = 5;
