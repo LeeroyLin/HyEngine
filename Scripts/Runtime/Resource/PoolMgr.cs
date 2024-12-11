@@ -61,7 +61,7 @@ namespace Engine.Scripts.Runtime.Resource
 
         protected override void OnDisposed()
         {
-            ClearAll();
+            // ClearAll();
             
             RemoveNode();
             
