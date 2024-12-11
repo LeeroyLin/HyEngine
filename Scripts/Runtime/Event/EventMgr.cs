@@ -244,7 +244,7 @@ namespace Engine.Scripts.Runtime.Event
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError(e.Message);
+                        Debug.LogError($"evtTarget:{cb.Target} msg:{e.Message}");
                     }
                 }
             }
