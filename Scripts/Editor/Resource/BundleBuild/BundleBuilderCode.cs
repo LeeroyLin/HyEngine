@@ -43,8 +43,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
                 StripAOTDllCommand.GenerateStripedAOTDlls(target);
 
                 // 桥接函数生成依赖于AOT dll，必须保证已经build过，生成AOT dll
-                MethodBridgeGeneratorCommand.GenerateMethodBridge(target);
-                ReversePInvokeWrapperGeneratorCommand.GenerateReversePInvokeWrapper(target);
+                MethodBridgeGeneratorCommand.GenerateMethodBridgeAndReversePInvokeWrapper(target);
                 (errorMsg, aotRefs) = GenerateAOTGenericReference(target);
             }
             else
@@ -179,7 +178,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             }
             catch (Exception e)
             {
-                collector?.Dispose();
+                // collector?.Dispose();
                 
                 return (e.Message, null);
             }
@@ -201,7 +200,7 @@ namespace Engine.Scripts.Editor.Resource.BundleBuild
             foreach (dnlib.DotNet.ModuleDef module in modules)
                 aotRefs.Add(module.Name);
             
-            collector.Dispose();
+            // collector.Dispose();
 
             return (null, aotRefs);
         }
