@@ -177,7 +177,7 @@ namespace Engine.Scripts.Runtime.View
         /// </summary>
         /// <param name="key">界面键</param>
         /// <param name="args">参数，可空</param>
-        public void Open(string key, ViewArgsBase args = null)
+        public ViewBase Open(string key, ViewArgsBase args = null)
         {
             ViewBase ins = null;
             
@@ -216,7 +216,7 @@ namespace Engine.Scripts.Runtime.View
                 if (ins == null)
                 {
                     _log.Error($"Load view '{pkgName}_{uiName}' failed.");
-                    return;
+                    return null;
                 }
                 
                 ins.name = $"{ins.Pkg}_{ins.Name}";
@@ -237,6 +237,8 @@ namespace Engine.Scripts.Runtime.View
             UpdateTop(true);
             
             // LogList();
+
+            return ins;
         }
 
         /// <summary>
