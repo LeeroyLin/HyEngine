@@ -181,6 +181,13 @@ namespace Engine.Scripts.Runtime.View
         {
             ViewBase ins = null;
             
+            // 是否已经激活
+            if (FindViewIdx(_activeUIList, key, out var i))
+            {
+                // 关闭该界面
+                CloseAt(i);
+            }
+            
             // 是否在非激活状态
             if (FindViewIdx(_inactiveUIList, key, out var idx))
             {
@@ -198,12 +205,6 @@ namespace Engine.Scripts.Runtime.View
                 
                 // 取消blur
                 SetFilter(ins, false);
-            }
-            // 是否已经激活
-            else if (FindViewIdx(_activeUIList, key, out var i))
-            {
-                // 关闭该界面
-                CloseAt(i);
             }
             
             // 新建实例
