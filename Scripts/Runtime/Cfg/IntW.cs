@@ -28,6 +28,16 @@ namespace Engine.Scripts.Runtime.Cfg
         /// 原值除以10000后的浮点数值
         /// </summary>
         public float FloatCal { get; }
+        
+        /// <summary>
+        /// 百分比数值，保留2位小数
+        /// </summary>
+        public string PercentStr => (IntOri / 100f).ToString("f2");
+        
+        /// <summary>
+        /// 百分比数值，没有小数
+        /// </summary>
+        public string PercentIntStr => IntOri / 100 + "";
 
         public IntW(int value)
         {
