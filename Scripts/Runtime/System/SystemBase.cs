@@ -3,8 +3,9 @@ using Engine.Scripts.Runtime.Event;
 
 namespace Engine.Scripts.Runtime.System
 {
-    public abstract class SystemBase : ISystem
+    public abstract class SystemBase<T> : ISystem where T : SystemModelBase, new()
     {
+        public T SystemModel { get; private set; }
         public EventGroup EventGroup { get; private set; }
         
         public bool IsSystemExited { get; private set; }
@@ -12,6 +13,10 @@ namespace Engine.Scripts.Runtime.System
         public SystemBase()
         {
             EventGroup = new EventGroup(EEventGroup.GameLogic);
+            
+            SystemModel = new T();
+            
+            SystemModel.Init();
         }
         
         public void Enter()
