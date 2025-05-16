@@ -182,6 +182,13 @@ namespace Engine.Scripts.Runtime.View
             List.ScrollToView(index, isAnim);
         }
 
+        public T GetChildByItemIdx(int idx)
+        {
+            var childIdx = List.ItemIndexToChildIndex(idx);
+            var cell = List.GetChildAt(childIdx) as T;
+            return cell;
+        }
+
         void OnShowListCell(int idx, GObject obj)
         {
             _showGCompCellHandler?.Invoke(idx, obj as GComponent);
